@@ -11,6 +11,16 @@ export const byId = (s: GameState, pid: PlayerId): Player => s.players.find((p) 
 export const alive = (s: GameState): Player[] => s.players.filter((p) => !p.bankrupt);
 export const cash = (s: GameState, pid: PlayerId): number => byId(s, pid).cash;
 
+// Hand the turn to the next non-bankrupt player and reset to a fresh preRoll.
+// Assumes at least 2 players remain (caller checks the win condition first).
+export function nextPlayer(s: GameState): void {
+  do {
+    s.current = (s.current + 1) % s.players.length;
+  } while (s.players[s.current].bankrupt);
+  s.players[s.current].doublesCount = 0;
+  s.phase = { t: "preRoll" };
+}
+
 export interface Claim {
   creditor: PlayerId | "bank";
   amount: number;
@@ -179,14 +189,8 @@ export function eliminate(s: GameState, pid: PlayerId, ev: GameEvent[]): void {
     s.winner = survivors[0]?.id;
     return;
   }
-  if (cur(s).id === pid) {
-    // replace the dead player's frozen phase UNDER any interrupt frames — they keep blocking
-    do {
-      s.current = (s.current + 1) % s.players.length;
-    } while (s.players[s.current].bankrupt);
-    s.players[s.current].doublesCount = 0;
-    s.phase = { t: "preRoll" };
-  }
+  // replace the dead player's frozen phase UNDER any interrupt frames — they keep blocking
+  if (cur(s).id === pid) nextPlayer(s);
 }
 
 // Deterministic-ish id for trades (advances the seed — uniqueness among live trades is enough).

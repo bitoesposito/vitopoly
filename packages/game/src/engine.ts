@@ -1,7 +1,7 @@
 import type { AuctionFrame, ClientAction, DebtFrame, GameEvent, GameState, Interrupt, PlayerId, Result, TurnPhase } from "./types";
 import { BAIL, BOARD } from "./board-data";
 import { roll2d6, nextInt } from "./rng";
-import { alive, byId, cash, charge, cur, eliminate, moveAndResolve, pushAuction, sendToJail, settleAuction, transfer } from "./flow";
+import { alive, byId, cash, charge, cur, eliminate, moveAndResolve, nextPlayer, pushAuction, sendToJail, settleAuction, transfer } from "./flow";
 import * as props from "./properties";
 import { handleTrade } from "./trades";
 import { CHANCE, CHEST } from "./cards";
@@ -27,11 +27,7 @@ function advanceTurn(s: GameState): GameState {
     s.winner = rest[0]?.id;
     return s;
   }
-  do {
-    s.current = (s.current + 1) % s.players.length;
-  } while (s.players[s.current].bankrupt);
-  s.players[s.current].doublesCount = 0;
-  s.phase = { t: "preRoll" };
+  nextPlayer(s);
   return s;
 }
 

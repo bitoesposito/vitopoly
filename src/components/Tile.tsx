@@ -26,13 +26,13 @@ const KIND_ICON: Record<string, string> = {
   parking: "🏝",
 };
 
-// Which side of the tile faces the board center (for the color bar).
+// Which side of the tile faces the board center (for the color bar). GO top-left.
 function innerSide(i: number): "top" | "right" | "bottom" | "left" {
   if (i % 10 === 0) return "top"; // corners: irrelevant, no group anyway
-  if (i < 10) return "top"; // bottom edge
-  if (i < 20) return "right"; // left edge
-  if (i < 30) return "bottom"; // top edge
-  return "left"; // right edge
+  if (i < 10) return "bottom"; // top edge
+  if (i < 20) return "left"; // right edge
+  if (i < 30) return "top"; // bottom edge
+  return "right"; // left edge
 }
 
 const BAR: Record<string, string> = {
@@ -52,7 +52,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
 
   return (
     <div
-      className={`relative h-full w-full overflow-hidden rounded-[4px] border bg-[#1c1c3a] ${owner ? "" : "border-white/10"}`}
+      className={`relative h-full w-full overflow-hidden rounded-[4px] border bg-card ${owner ? "" : "border-border"}`}
       style={owner ? { borderColor: TOKEN_COLOR[owner.token % 8] } : undefined}
       title={`${tile.name}${tile.price ? ` — $${tile.price}` : ""}`}
     >
@@ -60,9 +60,9 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
 
       <div className={`flex h-full w-full flex-col items-center justify-center gap-px p-0.5 text-center ${isCorner ? "text-[10px]" : "text-[7px] sm:text-[8px]"}`}>
         {KIND_ICON[tile.kind] && <span className={isCorner ? "text-base" : "text-[10px]"}>{KIND_ICON[tile.kind]}</span>}
-        <span className="line-clamp-2 leading-[1.1] font-medium text-slate-200">{tile.name}</span>
-        {tile.price != null && !own && <span className="text-slate-400">${tile.price}</span>}
-        {own?.mortgaged && <span className="font-bold text-rose-400">IPOTECATA</span>}
+        <span className="line-clamp-2 leading-[1.1] font-medium text-foreground">{tile.name}</span>
+        {tile.price != null && !own && <span className="text-muted-foreground">${tile.price}</span>}
+        {own?.mortgaged && <span className="font-bold text-destructive">IPOTECATA</span>}
         {(own?.houses ?? 0) > 0 && (
           <span className="text-[8px] leading-none">{own!.houses === 5 ? "🏨" : "🏠".repeat(own!.houses)}</span>
         )}
@@ -74,7 +74,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
             <span
               key={p.id}
               title={p.name}
-              className="size-2.5 rounded-full ring-1 ring-black/60 sm:size-3"
+              className="size-2.5 rounded-full ring-1 ring-black/40 sm:size-3"
               style={{ background: TOKEN_COLOR[p.token % 8] }}
             />
           ))}

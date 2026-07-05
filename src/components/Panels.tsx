@@ -2,11 +2,21 @@ import { useState } from "react";
 import { BOARD } from "@vitopoly/game";
 import type { AuctionFrame, DebtFrame, PublicState } from "@vitopoly/game";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { send } from "@/lib/ws";
 
-const card = "rounded-md border border-white/10 bg-white/5 p-2.5 text-xs space-y-2";
-const inputCls =
-  "h-7 rounded-md border border-white/10 bg-white/5 px-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-400";
+// Compact game panels. Card size="sm"; status colors via --color-success/--color-warning tokens.
+function Panel({ ring, className, children }: { ring?: string; className?: string; children: React.ReactNode }) {
+  return (
+    <Card size="sm" className={ring}>
+      <CardContent className={`space-y-2 ${className ?? ""}`}>{children}</CardContent>
+    </Card>
+  );
+}
 
 export function BuyPanel({ game, myId }: { game: PublicState; myId: string }) {
   const ph = game.phase;
@@ -14,19 +24,19 @@ export function BuyPanel({ game, myId }: { game: PublicState; myId: string }) {
   if (game.players[game.current]?.id !== myId) return null;
   const tile = BOARD[ph.tile];
   return (
-    <div className={`${card} border-indigo-400/40`}>
+    <Panel ring="ring-primary/50">
       <div className="text-sm font-semibold">
-        Comprare {tile.name} per <span className="text-emerald-300">${tile.price}</span>?
+        Comprare {tile.name} per <span className="text-success">${tile.price}</span>?
       </div>
       <div className="flex gap-2">
-        <Button size="sm" className="rounded-md" onClick={() => send({ type: "buy" })}>
+        <Button size="sm" onClick={() => send({ type: "buy" })}>
           Compra
         </Button>
-        <Button size="sm" variant="secondary" className="rounded-md" onClick={() => send({ type: "decline" })}>
+        <Button size="sm" variant="secondary" onClick={() => send({ type: "decline" })}>
           {game.settings.auction ? "Rifiuta (asta)" : "Rifiuta"}
         </Button>
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -38,24 +48,24 @@ export function AuctionPanel({ game, myId }: { game: PublicState; myId: string }
   const inAuction = a.active.includes(myId);
   const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
   return (
-    <div className={`${card} border-amber-400/50`}>
-      <div className="text-sm font-semibold text-amber-300">🔨 Asta: {BOARD[a.tile].name}</div>
-      <div className="text-slate-300">
-        offerta <b className="text-amber-200">${a.bid}</b> {a.leader ? `di ${names[a.leader]}` : "(nessuna)"} · in gara:{" "}
+    <Panel ring="ring-warning/50">
+      <div className="text-sm font-semibold text-warning">🔨 Asta: {BOARD[a.tile].name}</div>
+      <div className="text-muted-foreground">
+        offerta <b className="text-warning">${a.bid}</b> {a.leader ? `di ${names[a.leader]}` : "(nessuna)"} · in gara:{" "}
         {a.active.map((x) => names[x]).join(", ")}
       </div>
       {inAuction && (
         <div className="flex gap-2">
-          <input className={`${inputCls} w-20`} type="number" placeholder={`> ${a.bid}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
-          <Button size="sm" className="rounded-md" onClick={() => send({ type: "bid", amount: Number(amount) })}>
+          <Input className="h-7 w-20" type="number" placeholder={`> ${a.bid}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <Button size="sm" onClick={() => send({ type: "bid", amount: Number(amount) })}>
             Offri
           </Button>
-          <Button size="sm" variant="secondary" className="rounded-md" disabled={a.leader === myId} onClick={() => send({ type: "fold" })}>
+          <Button size="sm" variant="secondary" disabled={a.leader === myId} onClick={() => send({ type: "fold" })}>
             Passa
           </Button>
         </div>
       )}
-    </div>
+    </Panel>
   );
 }
 
@@ -66,20 +76,20 @@ export function DebtPanel({ game, myId }: { game: PublicState; myId: string }) {
   const total = d.claims.reduce((s, c) => s + c.amount, 0);
   const me = game.players.find((p) => p.id === myId);
   if (d.debtor !== myId)
-    return <div className={card}>{game.players.find((p) => p.id === d.debtor)?.name} sta risolvendo un debito da ${total}…</div>;
+    return <Panel>{game.players.find((p) => p.id === d.debtor)?.name} sta risolvendo un debito da ${total}…</Panel>;
   return (
-    <div className={`${card} border-rose-500/50`}>
-      <div className="text-sm font-semibold text-rose-300">Devi ${total}</div>
-      <div className="text-slate-400">Vendi case / ipoteca qui sotto per raccogliere contanti, poi paga — o dichiara bancarotta.</div>
+    <Panel ring="ring-destructive/50">
+      <div className="text-sm font-semibold text-destructive">Devi ${total}</div>
+      <div className="text-muted-foreground">Vendi case / ipoteca qui sotto per raccogliere contanti, poi paga — o dichiara bancarotta.</div>
       <div className="flex gap-2">
-        <Button size="sm" className="rounded-md" disabled={(me?.cash ?? 0) < d.claims[0].amount} onClick={() => send({ type: "payDebt" })}>
+        <Button size="sm" disabled={(me?.cash ?? 0) < d.claims[0].amount} onClick={() => send({ type: "payDebt" })}>
           Paga
         </Button>
-        <Button size="sm" variant="destructive" className="rounded-md" onClick={() => send({ type: "bankrupt" })}>
+        <Button size="sm" variant="destructive" onClick={() => send({ type: "bankrupt" })}>
           Bancarotta
         </Button>
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -94,7 +104,7 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
   const canBuild = node.t === "postRoll" && game.players[game.current]?.id === myId;
 
   return (
-    <div className={card}>
+    <Panel>
       <button className="flex w-full items-center justify-between font-semibold" onClick={() => setOpen(!open)}>
         <span>🏘 Le tue proprietà ({mine.length})</span>
         <span>{open || inMyDebt ? "▾" : "▸"}</span>
@@ -107,27 +117,27 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
             return (
               <div key={k} className="flex items-center gap-1.5">
                 <span className="min-w-0 flex-1 truncate">
-                  {def.name} {o!.mortgaged ? <span className="text-rose-400">(M)</span> : o!.houses === 5 ? "🏨" : "🏠".repeat(o!.houses)}
+                  {def.name} {o!.mortgaged ? <span className="text-destructive">(M)</span> : o!.houses === 5 ? "🏨" : "🏠".repeat(o!.houses)}
                 </span>
                 {canManage && (
                   <span className="flex shrink-0 gap-1">
                     {canBuild && def.kind === "street" && !o!.mortgaged && (
-                      <Button size="xs" variant="secondary" className="rounded" onClick={() => send({ type: "build", tile: t })}>
+                      <Button size="xs" variant="secondary" onClick={() => send({ type: "build", tile: t })}>
                         +🏠${def.houseCost}
                       </Button>
                     )}
                     {o!.houses > 0 && (
-                      <Button size="xs" variant="secondary" className="rounded" onClick={() => send({ type: "sellHouse", tile: t })}>
+                      <Button size="xs" variant="secondary" onClick={() => send({ type: "sellHouse", tile: t })}>
                         −🏠
                       </Button>
                     )}
                     {game.settings.mortgageAllowed && o!.houses === 0 && !o!.mortgaged && (
-                      <Button size="xs" variant="secondary" className="rounded" onClick={() => send({ type: "mortgage", tile: t })}>
+                      <Button size="xs" variant="secondary" onClick={() => send({ type: "mortgage", tile: t })}>
                         Ipoteca +${def.price! / 2}
                       </Button>
                     )}
                     {canBuild && o!.mortgaged && (
-                      <Button size="xs" variant="secondary" className="rounded" onClick={() => send({ type: "unmortgage", tile: t })}>
+                      <Button size="xs" variant="secondary" onClick={() => send({ type: "unmortgage", tile: t })}>
                         Riscatta ${Math.ceil((def.price! / 2) * 1.1)}
                       </Button>
                     )}
@@ -138,7 +148,7 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
           })}
         </div>
       )}
-    </div>
+    </Panel>
   );
 }
 
@@ -163,73 +173,76 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
     [b.cash > 0 ? `$${b.cash}` : null, ...b.props.map((x) => BOARD[x].name)].filter(Boolean).join(" + ") || "niente";
 
   return (
-    <div className={card}>
+    <Panel>
       {incoming.map((t) => (
-        <div key={t.id} className="space-y-1.5 rounded-md border border-emerald-400/40 bg-emerald-400/5 p-2">
+        <div key={t.id} className="space-y-1.5 rounded-md border border-success/40 bg-success/5 p-2">
           <div>
-            <b style={{ color: "#6ee7b7" }}>{names[t.from]}</b> offre <b>{bundleText(t.give)}</b> in cambio di <b>{bundleText(t.get)}</b>
+            <b className="text-success">{names[t.from]}</b> offre <b>{bundleText(t.give)}</b> in cambio di <b>{bundleText(t.get)}</b>
           </div>
           <div className="flex gap-1.5">
-            <Button size="xs" className="rounded" onClick={() => send({ type: "respondTrade", id: t.id, accept: true })}>
+            <Button size="xs" onClick={() => send({ type: "respondTrade", id: t.id, accept: true })}>
               Accetta
             </Button>
-            <Button size="xs" variant="secondary" className="rounded" onClick={() => send({ type: "respondTrade", id: t.id, accept: false })}>
+            <Button size="xs" variant="secondary" onClick={() => send({ type: "respondTrade", id: t.id, accept: false })}>
               Rifiuta
             </Button>
           </div>
         </div>
       ))}
       {outgoing.map((t) => (
-        <div key={t.id} className="flex items-center gap-2 text-slate-400">
+        <div key={t.id} className="flex items-center gap-2 text-muted-foreground">
           scambio con {names[t.to]} in attesa…
-          <Button size="xs" variant="ghost" className="rounded" onClick={() => send({ type: "cancelTrade", id: t.id })}>
+          <Button size="xs" variant="ghost" onClick={() => send({ type: "cancelTrade", id: t.id })}>
             Annulla
           </Button>
         </div>
       ))}
       {!open ? (
-        <Button size="xs" variant="secondary" className="rounded" onClick={() => setOpen(true)}>
+        <Button size="xs" variant="secondary" onClick={() => setOpen(true)}>
           🤝 Proponi scambio
         </Button>
       ) : (
         <div className="space-y-2">
-          <select className={`${inputCls} w-full`} value={to} onChange={(e) => setTo(e.target.value)}>
-            <option value="">— scegli giocatore —</option>
-            {others.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Select value={to} onValueChange={setTo}>
+            <SelectTrigger size="sm" className="w-full">
+              <SelectValue placeholder="— scegli giocatore —" />
+            </SelectTrigger>
+            <SelectContent>
+              {others.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="space-y-1">
-            <div className="text-slate-400">Tu dai:</div>
-            <input className={`${inputCls} w-24`} type="number" value={giveCash} onChange={(e) => setGiveCash(e.target.value)} /> $
-            <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+            <div className="text-muted-foreground">Tu dai:</div>
+            <Input className="inline-flex h-7 w-24" type="number" value={giveCash} onChange={(e) => setGiveCash(e.target.value)} /> $
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
               {propsOf(myId).map((t) => (
-                <label key={t} className="flex items-center gap-1">
-                  <input type="checkbox" className="accent-indigo-500" checked={giveProps.includes(t)} onChange={() => toggle(giveProps, setGiveProps, t)} />
+                <Label key={t} className="flex items-center gap-1.5 font-normal">
+                  <Checkbox checked={giveProps.includes(t)} onCheckedChange={() => toggle(giveProps, setGiveProps, t)} />
                   {BOARD[t].name}
-                </label>
+                </Label>
               ))}
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-slate-400">Tu ricevi:</div>
-            <input className={`${inputCls} w-24`} type="number" value={getCash} onChange={(e) => setGetCash(e.target.value)} /> $
-            <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+            <div className="text-muted-foreground">Tu ricevi:</div>
+            <Input className="inline-flex h-7 w-24" type="number" value={getCash} onChange={(e) => setGetCash(e.target.value)} /> $
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
               {to &&
                 propsOf(to).map((t) => (
-                  <label key={t} className="flex items-center gap-1">
-                    <input type="checkbox" className="accent-indigo-500" checked={getProps.includes(t)} onChange={() => toggle(getProps, setGetProps, t)} />
+                  <Label key={t} className="flex items-center gap-1.5 font-normal">
+                    <Checkbox checked={getProps.includes(t)} onCheckedChange={() => toggle(getProps, setGetProps, t)} />
                     {BOARD[t].name}
-                  </label>
+                  </Label>
                 ))}
             </div>
           </div>
           <div className="flex gap-1.5">
             <Button
               size="xs"
-              className="rounded"
               disabled={!to}
               onClick={() => {
                 send({
@@ -247,12 +260,12 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
             >
               Invia
             </Button>
-            <Button size="xs" variant="ghost" className="rounded" onClick={() => setOpen(false)}>
+            <Button size="xs" variant="ghost" onClick={() => setOpen(false)}>
               Chiudi
             </Button>
           </div>
         </div>
       )}
-    </div>
+    </Panel>
   );
 }

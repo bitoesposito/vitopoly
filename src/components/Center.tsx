@@ -14,12 +14,12 @@ function Countdown({ deadline }: { deadline?: number }) {
   }, []);
   if (!deadline || now === 0) return null;
   const left = Math.max(0, Math.round((deadline - now) / 1000));
-  return <span className={left <= 10 ? "font-bold text-rose-400" : "text-slate-400"}> ⏱ {left}s</span>;
+  return <span className={left <= 10 ? "font-bold text-destructive" : "text-muted-foreground"}> ⏱ {left}s</span>;
 }
 
 function Die({ value }: { value: number | null }) {
   return (
-    <div className="grid size-10 place-items-center rounded-lg bg-white text-xl font-black text-slate-900 shadow-lg sm:size-12 sm:text-2xl">
+    <div className="grid size-10 place-items-center rounded-lg bg-foreground text-xl font-black text-background shadow-lg sm:size-12 sm:text-2xl">
       {value ?? "–"}
     </div>
   );
@@ -68,10 +68,10 @@ export function Center({ game }: { game: PublicState }) {
 
   if (game.status === "ended") {
     return (
-      <div className="grid h-full place-items-center rounded-lg bg-[#151530]">
+      <div className="grid h-full place-items-center rounded-lg bg-card">
         <div className="text-center">
           <div className="text-5xl">🏆</div>
-          <h2 className="mt-2 text-2xl font-bold text-amber-300">{game.winner ? names[game.winner] : "Nessuno"} vince!</h2>
+          <h2 className="mt-2 text-2xl font-bold text-warning">{game.winner ? names[game.winner] : "Nessuno"} vince!</h2>
         </div>
       </div>
     );
@@ -87,9 +87,9 @@ export function Center({ game }: { game: PublicState }) {
   })();
 
   return (
-    <div className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg bg-[#151530] p-2 sm:p-3">
-      <div className="text-center text-[11px] text-slate-400">
-        turno di <b className="text-slate-200">{names[game.players[game.current]?.id]}</b>
+    <div className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg bg-card p-2 sm:p-3">
+      <div className="text-center text-[11px] text-muted-foreground">
+        turno di <b className="text-foreground">{names[game.players[game.current]?.id]}</b>
         <Countdown deadline={game.deadline} />
       </div>
 
@@ -100,17 +100,17 @@ export function Center({ game }: { game: PublicState }) {
 
       <div className="flex flex-wrap items-center justify-center gap-2">
         {primary && (
-          <Button className="rounded-md px-6" onClick={primary.action}>
+          <Button className="px-6" onClick={primary.action}>
             {primary.label}
           </Button>
         )}
         {me?.inJail && isMyTurn && node.t === "preRoll" && (
           <>
-            <Button variant="secondary" size="sm" className="rounded-md" onClick={() => send({ type: "payBail" })}>
+            <Button variant="secondary" size="sm" onClick={() => send({ type: "payBail" })}>
               Paga cauzione $50
             </Button>
             {me.jailCards > 0 && (
-              <Button variant="secondary" size="sm" className="rounded-md" onClick={() => send({ type: "useJailCard" })}>
+              <Button variant="secondary" size="sm" onClick={() => send({ type: "useJailCard" })}>
                 Usa carta 🎟
               </Button>
             )}
@@ -118,7 +118,7 @@ export function Center({ game }: { game: PublicState }) {
         )}
       </div>
 
-      {error && <div className="text-center text-xs text-rose-400">{error}</div>}
+      {error && <div className="text-center text-xs text-destructive">{error}</div>}
 
       <BuyPanel game={game} myId={myId} />
       <AuctionPanel game={game} myId={myId} />
@@ -126,7 +126,7 @@ export function Center({ game }: { game: PublicState }) {
       <AssetsPanel game={game} myId={myId} />
       <TradePanel game={game} myId={myId} />
 
-      <div className="flex min-h-16 flex-1 flex-col-reverse overflow-y-auto rounded-md bg-black/30 p-2 text-[11px] leading-relaxed text-slate-300">
+      <div className="flex min-h-16 flex-1 flex-col-reverse overflow-y-auto rounded-md bg-muted p-2 text-[11px] leading-relaxed text-muted-foreground">
         <div>
           {game.log.map((e, i) => (
             <div key={i}>{eventText(e, names)}</div>

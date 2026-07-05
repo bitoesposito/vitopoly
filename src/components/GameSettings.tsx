@@ -1,19 +1,72 @@
 import type { GameSettings, PublicState } from "@vitopoly/game";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGame } from "@/lib/store";
 import { send } from "@/lib/ws";
 
-// Lobby screen: richup-style settings. Host edits, everyone sees live.
+// Lobby screen: game settings. Host edits, everyone sees live.
+// Toggles are phrased so that OFF = default rules; `invert` flips the wire value,
+// so a rule that defaults to true reads as an opt-in deviation ("Niente aste").
 
-const TOGGLES: { key: keyof GameSettings; label: string; desc: string }[] = [
-  { key: "doubleRentFullSet", label: "x2 rent on full-set properties", desc: "Se possiedi un set completo, l'affitto base raddoppia" },
-  { key: "vacationCash", label: "Vacation cash", desc: "Tasse e pagamenti alla banca si accumulano su Free Parking: chi ci atterra incassa" },
-  { key: "auction", label: "Auction", desc: "Se rifiuti l'acquisto, la proprietà va all'asta" },
-  { key: "noRentInPrison", label: "Don't collect rent while in prison", desc: "Niente affitto se il proprietario è in prigione" },
-  { key: "mortgageAllowed", label: "Mortgage", desc: "Ipoteca le proprietà per il 50% del costo" },
-  { key: "evenBuild", label: "Even build", desc: "Case e hotel vanno costruiti/venduti in modo uniforme nel set" },
-  { key: "randomOrder", label: "Randomize player order", desc: "Ordine dei giocatori casuale a inizio partita" },
+type Toggle = { key: keyof GameSettings; label: string; desc: string; invert?: boolean };
+
+const SECTIONS: { title: string; toggles: Toggle[] }[] = [
+  {
+    title: "Partita",
+    toggles: [
+      { key: "randomOrder", label: "Ordine fisso", desc: "Turni in ordine di ingresso invece che casuale", invert: true },
+    ],
+  },
+  {
+    title: "Proprietà",
+    toggles: [
+      { key: "auction", label: "Niente aste", desc: "Se rifiuti l'acquisto, la proprietà resta alla banca", invert: true },
+      { key: "mortgageAllowed", label: "Niente ipoteche", desc: "Vietato ipotecare le proprietà", invert: true },
+      { key: "evenBuild", label: "Costruzione uniforme", desc: "Case e hotel costruiti/venduti in modo uniforme nel set" },
+    ],
+  },
+  {
+    title: "Affitti",
+    toggles: [
+      { key: "doubleRentFullSet", label: "Niente x2 sui set completi", desc: "Affitto base anche possedendo il set completo", invert: true },
+      { key: "noRentInPrison", label: "Niente affitto in prigione", desc: "Il proprietario in prigione non incassa affitti" },
+    ],
+  },
+  {
+    title: "Extra",
+    toggles: [
+      { key: "vacationCash", label: "Niente vacation cash", desc: "Tasse e pagamenti restano alla banca invece di accumularsi su Free Parking", invert: true },
+    ],
+  },
 ];
+
+function NumberSetting({ label, desc, value, options, prefix, disabled, onChange }: {
+  label: string; desc: string; value: number; options: number[]; prefix?: string; disabled: boolean; onChange: (n: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 text-sm">
+      <div>
+        <div className="font-medium">{label}</div>
+        <div className="text-xs text-muted-foreground">{desc}</div>
+      </div>
+      <Select value={String(value)} disabled={disabled} onValueChange={(v) => onChange(Number(v))}>
+        <SelectTrigger size="sm" className="w-24">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((n) => (
+            <SelectItem key={n} value={String(n)}>
+              {prefix}{n}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 export function GameSettingsView({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
@@ -22,69 +75,42 @@ export function GameSettingsView({ game }: { game: PublicState }) {
   const patch = (settings: Partial<GameSettings>) => send({ type: "updateSettings", settings });
 
   return (
-    <div className="w-full max-w-lg space-y-4 rounded-xl border border-white/10 bg-white/5 p-6">
-      <h2 className="text-xl font-bold text-indigo-300">Game settings</h2>
-      {!isHost && <p className="text-xs text-slate-400">Solo l'host ({game.players[0]?.name}) può modificare le impostazioni.</p>}
-
-      <label className="flex items-center justify-between gap-4 text-sm">
-        <div>
-          <div className="font-medium">Maximum players</div>
-          <div className="text-xs text-slate-400">Quanti giocatori possono entrare</div>
+    <Card className="m-auto w-full lg:max-w-2xl w-full lg:h-fit h-full">
+      <CardHeader>
+        <CardTitle>Impostazioni partita</CardTitle>
+        {!isHost && <p className="text-xs text-muted-foreground">Solo l'host ({game.players[0]?.name}) può modificare le impostazioni.</p>}
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <NumberSetting label="Giocatori max" desc="Quanti possono entrare" value={st.maxPlayers} options={[2, 3, 4, 5, 6, 7, 8]} disabled={!isHost} onChange={(n) => patch({ maxPlayers: n })} />
+          <NumberSetting label="Soldi iniziali" desc="Cash di partenza a testa" value={st.startingCash} options={[500, 1000, 1500, 2000, 2500, 3000]} prefix="$" disabled={!isHost} onChange={(n) => patch({ startingCash: n })} />
         </div>
-        <select
-          className="h-8 rounded-md border border-white/10 bg-[#1a1a35] px-2 text-sm"
-          value={st.maxPlayers}
-          disabled={!isHost}
-          onChange={(e) => patch({ maxPlayers: Number(e.target.value) })}
-        >
-          {[2, 3, 4, 5, 6, 7, 8].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </label>
 
-      <label className="flex items-center justify-between gap-4 text-sm">
-        <div>
-          <div className="font-medium">Starting cash</div>
-          <div className="text-xs text-slate-400">Soldi iniziali di ogni giocatore</div>
+        <div className="grid gap-x-8 gap-y-4 lg:grid-cols-2">
+          {SECTIONS.map(({ title, toggles }) => (
+            <section key={title} className="space-y-2.5 border-t border-border pt-3">
+              <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{title}</h3>
+              {toggles.map(({ key, label, desc, invert }) => (
+                <Label key={key} className="flex cursor-pointer items-start justify-between gap-4 text-sm font-normal">
+                  <div>
+                    <div className="font-medium">{label}</div>
+                    <div className="text-xs text-muted-foreground">{desc}</div>
+                  </div>
+                  <Switch
+                    checked={invert ? !st[key] : Boolean(st[key])}
+                    disabled={!isHost}
+                    onCheckedChange={(c) => patch({ [key]: invert ? !c : c })}
+                  />
+                </Label>
+              ))}
+            </section>
+          ))}
         </div>
-        <select
-          className="h-8 rounded-md border border-white/10 bg-[#1a1a35] px-2 text-sm"
-          value={st.startingCash}
-          disabled={!isHost}
-          onChange={(e) => patch({ startingCash: Number(e.target.value) })}
-        >
-          {[500, 1000, 1500, 2000, 2500, 3000].map((n) => (
-            <option key={n} value={n}>
-              ${n}
-            </option>
-          ))}
-        </select>
-      </label>
 
-      <div className="space-y-3">
-        {TOGGLES.map(({ key, label, desc }) => (
-          <label key={key} className="flex cursor-pointer items-start justify-between gap-4 text-sm">
-            <div>
-              <div className="font-medium">{label}</div>
-              <div className="text-xs text-slate-400">{desc}</div>
-            </div>
-            <input
-              type="checkbox"
-              className="mt-1 size-4 accent-indigo-500"
-              checked={Boolean(st[key])}
-              disabled={!isHost}
-              onChange={(e) => patch({ [key]: e.target.checked })}
-            />
-          </label>
-        ))}
-      </div>
-
-      <Button className="w-full rounded-md" disabled={!isHost || game.players.length < 2} onClick={() => send({ type: "start" })}>
-        {game.players.length < 2 ? "In attesa di giocatori…" : "Start game"}
-      </Button>
-    </div>
+        <Button className="w-full" disabled={!isHost || game.players.length < 2} onClick={() => send({ type: "start" })}>
+          {game.players.length < 2 ? "In attesa di giocatori…" : "Inizia partita"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

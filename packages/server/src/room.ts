@@ -61,7 +61,7 @@ export class RoomDO extends DurableObject<Env> {
       const text = String(msg.text ?? "").slice(0, 300).trim();
       const name = this.game.players.find((p) => p.id === pid)?.name ?? "?";
       if (!text) return;
-      const m: ChatMsg = { pid, name, text };
+      const m: ChatMsg = { pid, name, text, ts: Date.now() };
       this.chat = [...this.chat, m].slice(-100);
       await this.ctx.storage.put("chat", this.chat);
       const payload = JSON.stringify({ type: "chat", msg: m } satisfies ServerMsg);

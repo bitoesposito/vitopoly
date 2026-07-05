@@ -5,7 +5,8 @@ import "./index.css"
 import App from "./App.tsx"
 import { Toaster } from "@/components/ui/sonner"
 
-document.documentElement.classList.add("dark") // always dark; shadcn tokens need the class
+// tema iniziale prima del render (no flash); poi lo store lo gestisce via setTheme
+document.documentElement.classList.toggle("dark", (localStorage.getItem("vitopoly:theme") ?? "dark") === "dark")
 
 // Dev-only screen simulator: /dev in dev builds. DEV=false in prod → chunk never bundled.
 const DevBar = import.meta.env.DEV && location.pathname === "/dev" ? lazy(() => import("./dev/DevBar.tsx")) : null

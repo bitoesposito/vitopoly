@@ -7,6 +7,7 @@ export interface ChatMsg {
   pid: string;
   name: string;
   text: string;
+  ts: number; // ms epoch, set by server
 }
 
 export type ClientMsg =

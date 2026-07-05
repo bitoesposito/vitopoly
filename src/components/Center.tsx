@@ -3,8 +3,11 @@ import { activeNode, CHANCE, CHEST, legalActions } from "@vitopoly/game";
 import type { GameEvent, PublicState } from "@vitopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 import { AssetsPanel, AuctionPanel, BuyPanel, DebtPanel, TradePanel } from "./Panels";
+
+type T = ReturnType<typeof useT>;
 
 function Countdown({ deadline }: { deadline?: number }) {
   const [now, setNow] = useState(0);
@@ -33,22 +36,22 @@ function lastRoll(events: GameEvent[]): [number, number] | null {
   return null;
 }
 
-function eventText(e: GameEvent, names: Record<string, string>): string {
+function eventText(e: GameEvent, names: Record<string, string>, t: T): string {
   switch (e.e) {
     case "rolled":
-      return `${names[e.pid]} tira ${e.d1} + ${e.d2}`;
+      return t("ev.rolled", { name: names[e.pid], d1: e.d1, d2: e.d2 });
     case "moved":
-      return `${names[e.pid]} si sposta su ${e.to}`;
+      return t("ev.moved", { name: names[e.pid], to: e.to });
     case "paid": {
-      const who = (x: string) => (x === "bank" ? "banca" : names[x]);
-      return `${who(e.from)} → ${who(e.to)}: $${e.amount} (${e.why})`;
+      const who = (x: string) => (x === "bank" ? t("ev.bank") : names[x]);
+      return t("ev.paid", { from: who(e.from), to: who(e.to), amount: e.amount, why: e.why });
     }
     case "auctionWon":
-      return `${names[e.pid]} vince l'asta per $${e.price}`;
+      return t("ev.auctionWon", { name: names[e.pid], price: e.price });
     case "bankrupt":
-      return `${names[e.pid]} è in bancarotta`;
+      return t("ev.bankrupt", { name: names[e.pid] });
     case "card":
-      return `${names[e.pid]} pesca: ${(e.deck === "chance" ? CHANCE : CHEST)[e.cardId].text}`;
+      return t("ev.card", { name: names[e.pid], text: (e.deck === "chance" ? CHANCE : CHEST)[e.cardId].text });
     case "info":
       return e.text;
   }
@@ -58,6 +61,7 @@ export function Center({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const events = useGame((s) => s.events);
   const error = useGame((s) => s.error);
+  const t = useT();
   const dice = lastRoll(events);
   const legal = new Set(legalActions(game, myId));
   const isMyTurn = game.players[game.current]?.id === myId;
@@ -71,7 +75,7 @@ export function Center({ game }: { game: PublicState }) {
       <div className="grid h-full place-items-center rounded-lg bg-card">
         <div className="text-center">
           <div className="text-5xl">🏆</div>
-          <h2 className="mt-2 text-2xl font-bold text-warning">{game.winner ? names[game.winner] : "Nessuno"} vince!</h2>
+          <h2 className="mt-2 text-2xl font-bold text-warning">{t("center.winner", { name: game.winner ? names[game.winner] : t("center.nobody") })}</h2>
         </div>
       </div>
     );
@@ -80,16 +84,16 @@ export function Center({ game }: { game: PublicState }) {
   // Fluid UX: one primary action at a time.
   const primary = (() => {
     if (!isMyTurn || node.t === "auction" || node.t === "debt" || node.t === "buyPrompt") return null;
-    if (legal.has("roll") && node.t === "preRoll") return { label: "🎲 Tira i dadi", action: () => send({ type: "roll" }) };
-    if (again) return { label: "🎲 Doppio! Tira ancora", action: () => send({ type: "roll" }) };
-    if (legal.has("endTurn") && node.t === "postRoll") return { label: "Fine turno →", action: () => send({ type: "endTurn" }) };
+    if (legal.has("roll") && node.t === "preRoll") return { label: t("center.roll"), action: () => send({ type: "roll" }) };
+    if (again) return { label: t("center.rollAgain"), action: () => send({ type: "roll" }) };
+    if (legal.has("endTurn") && node.t === "postRoll") return { label: t("center.endTurn"), action: () => send({ type: "endTurn" }) };
     return null;
   })();
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg bg-card p-2 sm:p-3">
       <div className="text-center text-[11px] text-muted-foreground">
-        turno di <b className="text-foreground">{names[game.players[game.current]?.id]}</b>
+        {t("center.turnOf")} <b className="text-foreground">{names[game.players[game.current]?.id]}</b>
         <Countdown deadline={game.deadline} />
       </div>
 
@@ -107,11 +111,11 @@ export function Center({ game }: { game: PublicState }) {
         {me?.inJail && isMyTurn && node.t === "preRoll" && (
           <>
             <Button variant="secondary" size="sm" onClick={() => send({ type: "payBail" })}>
-              Paga cauzione $50
+              {t("center.payBail")}
             </Button>
             {me.jailCards > 0 && (
               <Button variant="secondary" size="sm" onClick={() => send({ type: "useJailCard" })}>
-                Usa carta 🎟
+                {t("center.useJailCard")}
               </Button>
             )}
           </>
@@ -129,7 +133,7 @@ export function Center({ game }: { game: PublicState }) {
       <div className="flex min-h-16 flex-1 flex-col-reverse overflow-y-auto rounded-md bg-muted p-2 text-[11px] leading-relaxed text-muted-foreground">
         <div>
           {game.log.map((e, i) => (
-            <div key={i}>{eventText(e, names)}</div>
+            <div key={i}>{eventText(e, names, t)}</div>
           ))}
         </div>
       </div>

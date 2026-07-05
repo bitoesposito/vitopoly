@@ -36,8 +36,9 @@ function show(g: GameState | null) {
     events: g?.log ?? [],
     chat: g
       ? [
-          { pid: "p2", name: "Anna", text: "ciao!" },
-          { pid: ME, name: "Tu", text: "pronti" },
+          { pid: "p2", name: "Anna", text: "ciao!", ts: 0 },
+          { pid: "p2", name: "Anna", text: "pronti?", ts: 0 },
+          { pid: ME, name: "Tu", text: "pronti", ts: 0 },
         ]
       : [],
   });

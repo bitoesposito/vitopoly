@@ -12,9 +12,11 @@ function tileCell(i: number): { row: number; col: number } {
 }
 
 export function Board({ game }: { game: PublicState }) {
+  // sempre quadrato: solo il lato è vincolato (w-full + cap vmin), l'altezza segue via aspect-square.
+  // gap-px + bg-border = linee di griglia uniformi (niente bordi doppi né artefatti subpixel).
   return (
     <div
-      className="grid aspect-square w-full max-h-[60vh] min-h-[20rem] min-w-[20rem] lg:max-h-[80vh] sm:p-3 p-0"
+      className="m-auto grid aspect-square w-full mt-3 max-w-[min(100vmin,880px)] gap-px border border-border bg-border"
       style={{
         gridTemplateColumns: "1.55fr repeat(9, 1fr) 1.55fr",
         gridTemplateRows: "1.55fr repeat(9, 1fr) 1.55fr",
@@ -23,7 +25,7 @@ export function Board({ game }: { game: PublicState }) {
       {BOARD.map((_, i) => {
         const { row, col } = tileCell(i);
         return (
-          <div key={i} className="min-h-0 min-w-0 select-none" style={{ gridRow: row, gridColumn: col }}>
+          <div key={i} className="min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }}>
             <Tile index={i} game={game} />
           </div>
         );

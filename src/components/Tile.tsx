@@ -1,5 +1,21 @@
+import { CircleHelp, CircleParking, Gift, Landmark, Lock, Play, type LucideIcon } from "lucide-react";
 import { BOARD } from "@vitopoly/game";
-import type { PublicState } from "@vitopoly/game";
+import type { PublicState, TileKind } from "@vitopoly/game";
+import { useT, useTileName } from "@/lib/i18n";
+import { TOKEN_COLOR } from "@/lib/colors";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TileDetails, tileDesc } from "./TileDetails";
+
+// Caselle speciali: icona lucide (monocroma) al posto del nome.
+const KIND_ICON: Partial<Record<TileKind, LucideIcon>> = {
+  go: Play,
+  chest: Gift,
+  chance: CircleHelp,
+  jail: Lock,
+  parking: CircleParking,
+  tax: Landmark,
+};
 
 const GROUP_COLOR: Record<string, string> = {
   brown: "#955436",
@@ -11,8 +27,6 @@ const GROUP_COLOR: Record<string, string> = {
   green: "#1fb25a",
   darkblue: "#0072bb",
 };
-
-import { TOKEN_COLOR } from "@/lib/colors";
 
 // Which side of the tile faces the board center (for the color bar). GO top-left.
 function innerSide(i: number): "top" | "right" | "bottom" | "left" {
@@ -30,45 +44,65 @@ const BAR: Record<string, string> = {
   right: "right-0 top-0 bottom-0 w-1",
 };
 
+// Hover = tooltip che spiega la casella; click = popover con costi e azioni.
 export function Tile({ index, game }: { index: number; game: PublicState }) {
   const tile = BOARD[index];
+  const t = useT();
+  const name = useTileName()(index);
+  const Icon = KIND_ICON[tile.kind];
   const own = game.props[index];
   const owner = own ? game.players.find((p) => p.id === own.owner) : undefined;
   const here = game.players.filter((p) => p.pos === index && !p.bankrupt);
   const side = innerSide(index);
   const isCorner = index % 10 === 0;
+  const tip = tileDesc(t, tile, game) ?? `${name}${tile.price ? ` — $${tile.price}` : ""}`;
 
   return (
-    <div
-      className={`relative h-full w-full overflow-hidden border bg-card ${owner ? "" : "border-border"}`}
-      style={owner ? { borderColor: TOKEN_COLOR[owner.token % 8] } : undefined}
-      title={`${tile.name}${tile.price ? ` — $${tile.price}` : ""}`}
-    >
-      {tile.group && <div className={`absolute ${BAR[side]}`} style={{ background: GROUP_COLOR[tile.group] }} />}
+    <Popover>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={`relative h-full w-full overflow-hidden bg-card text-inherit hover:brightness-125 ${owner ? "border-2" : ""}`}
+              style={owner ? { borderColor: TOKEN_COLOR[owner.token % 8] } : undefined}
+            >
+              {tile.group && <div className={`absolute ${BAR[side]}`} style={{ background: GROUP_COLOR[tile.group] }} />}
 
-      <div className={`flex h-full w-full flex-col items-center justify-center gap-px text-center leading-none ${isCorner ? "text-[8px] sm:text-xs" : "text-[8px] sm:text-xs"}`}>
-        <span className="line-clamp-2 font-medium text-foreground">
-          {tile.name}
-        </span>
-        {tile.price != null && !own && <span className="text-muted-foreground">${tile.price}</span>}
-        {own?.mortgaged && <span className="font-bold text-destructive">IPOTECATA</span>}
-        {(own?.houses ?? 0) > 0 && (
-          <span className="text-[8px] leading-none">{own!.houses === 5 ? "🏨" : "🏠".repeat(own!.houses)}</span>
-        )}
-      </div>
+              <div className={`flex h-full w-full flex-col items-center justify-center gap-px text-center font-condensed leading-none lg:font-sans ${isCorner ? "text-[8px] sm:text-xs" : "text-[8px] sm:text-xs"}`}>
+                {Icon ? (
+                  <Icon className="size-4 text-foreground sm:size-6" aria-label={name} />
+                ) : (
+                  <span className="line-clamp-1 px-px font-medium break-all text-foreground sm:line-clamp-2 sm:break-normal">{name}</span>
+                )}
+                {/* prezzo nascosto su celle piccole: sta in tooltip/popover, evita salti di riga */}
+                {tile.price != null && !own && <span className="hidden text-muted-foreground sm:inline">${tile.price}</span>}
+                {own?.mortgaged && <span className="font-bold text-destructive">(M)</span>}
+                {(own?.houses ?? 0) > 0 && (
+                  <span className="text-[8px] leading-none">{own!.houses === 5 ? "🏨" : "🏠".repeat(own!.houses)}</span>
+                )}
+              </div>
 
-      {here.length > 0 && (
-        <div className="absolute right-0.5 bottom-0.5 flex flex-wrap justify-end gap-0.5">
-          {here.map((p) => (
-            <span
-              key={p.id}
-              title={p.name}
-              className="size-2.5 rounded-[2px] ring-1 ring-black/40 sm:size-3"
-              style={{ background: TOKEN_COLOR[p.token % 8]}}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+              {here.length > 0 && (
+                <div className="absolute right-0.5 bottom-0.5 flex flex-wrap justify-end gap-0.5">
+                  {here.map((p) => (
+                    <span
+                      key={p.id}
+                      title={p.name}
+                      className="size-2.5 rounded-[2px] ring-1 ring-black/40 sm:size-3"
+                      style={{ background: TOKEN_COLOR[p.token % 8] }}
+                    />
+                  ))}
+                </div>
+              )}
+            </button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{tip}</TooltipContent>
+      </Tooltip>
+      <PopoverContent className="w-64">
+        <TileDetails index={index} game={game} />
+      </PopoverContent>
+    </Popover>
   );
 }

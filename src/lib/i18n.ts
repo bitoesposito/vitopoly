@@ -1,3 +1,4 @@
+import { BOARD } from "@vitopoly/game";
 import { useGame } from "./store";
 
 // ponytail: i18n custom su zustand (2 lingue) — niente react-i18next.
@@ -113,6 +114,28 @@ const it: Record<string, string> = {
   "trade.send": "Invia",
   "trade.close": "Chiudi",
   "bundle.nothing": "niente",
+
+  "info.when": "quando",
+  "info.get": "ottieni",
+  "info.rent0": "Affitto base",
+  "info.rent1": "1 casa",
+  "info.rent2": "2 case",
+  "info.rent3": "3 case",
+  "info.rent4": "4 case",
+  "info.rent5": "Hotel",
+  "info.price": "Prezzo",
+  "info.house": "Casa",
+  "info.hotel": "Hotel",
+  "info.go": "Passa dal VIA e ritira ${amount}.",
+  "info.jail": "Sei solo di passaggio, a meno che tu non sia in prigione.",
+  "info.parking": "Sosta gratuita: non paghi nulla.",
+  "info.parkingPot": "Sosta: chi ci atterra incassa il piatto ({pot}$).",
+  "info.gotojail": "Vai direttamente in prigione, senza passare dal VIA.",
+  "info.chance": "Peschi una carta Imprevisti.",
+  "info.chest": "Peschi una carta Probabilità.",
+  "info.tax": "Se ci finisci sopra paghi ${amount} alla banca.",
+  "info.railroad": "Affitto in base alle stazioni possedute: $25 / $50 / $100 / $200.",
+  "info.utility": "Affitto = tiro dei dadi ×4 (×10 se possiedi entrambi i servizi).",
 };
 
 const en: Record<string, string> = {
@@ -217,6 +240,28 @@ const en: Record<string, string> = {
   "trade.send": "Send",
   "trade.close": "Close",
   "bundle.nothing": "nothing",
+
+  "info.when": "when",
+  "info.get": "get",
+  "info.rent0": "Base rent",
+  "info.rent1": "1 house",
+  "info.rent2": "2 houses",
+  "info.rent3": "3 houses",
+  "info.rent4": "4 houses",
+  "info.rent5": "Hotel",
+  "info.price": "Price",
+  "info.house": "House",
+  "info.hotel": "Hotel",
+  "info.go": "Pass GO and collect ${amount}.",
+  "info.jail": "Just visiting — unless you're in jail.",
+  "info.parking": "Free parking: you pay nothing.",
+  "info.parkingPot": "Free parking: landing collects the pot (${pot}).",
+  "info.gotojail": "Go directly to jail, without passing GO.",
+  "info.chance": "Draw a Chance card.",
+  "info.chest": "Draw a Community Chest card.",
+  "info.tax": "Land here and pay ${amount} to the bank.",
+  "info.railroad": "Rent by stations owned: $25 / $50 / $100 / $200.",
+  "info.utility": "Rent = dice roll ×4 (×10 if you own both utilities).",
 };
 
 const DICT: Record<Lang, Record<string, string>> = { it, en };
@@ -231,4 +276,47 @@ export function translate(lang: Lang, key: string, vars?: Vars): string {
 export function useT() {
   const lang = useGame((s) => s.lang);
   return (key: string, vars?: Vars) => translate(lang, key, vars);
+}
+
+// Nomi caselle: EN = BOARD.name (fonte), IT sovrascritto qui. Fallback all'inglese.
+const TILE_IT: Record<number, string> = {
+  0: "VIA",
+  2: "Probabilità",
+  3: "Lisbona",
+  4: "Tasse",
+  5: "Stazione Nord",
+  7: "Imprevisti",
+  8: "Siviglia",
+  10: "Prigione",
+  11: "Nizza",
+  12: "Società Elettrica",
+  13: "Lione",
+  14: "Parigi",
+  15: "Stazione Sud",
+  16: "Colonia",
+  17: "Probabilità",
+  18: "Monaco",
+  19: "Berlino",
+  20: "Sosta",
+  21: "Napoli",
+  22: "Imprevisti",
+  23: "Milano",
+  24: "Roma",
+  25: "Stazione Est",
+  28: "Acquedotto",
+  29: "Londra",
+  30: "In Prigione",
+  33: "Probabilità",
+  35: "Stazione Ovest",
+  36: "Imprevisti",
+  38: "Tassa di Lusso",
+};
+
+export function tileName(lang: Lang, i: number): string {
+  return lang === "it" ? (TILE_IT[i] ?? BOARD[i].name) : BOARD[i].name;
+}
+
+export function useTileName() {
+  const lang = useGame((s) => s.lang);
+  return (i: number) => tileName(lang, i);
 }

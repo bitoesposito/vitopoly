@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client"
 import "./index.css"
 import App from "./App.tsx"
 import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 // tema iniziale prima del render (no flash); poi lo store lo gestisce via setTheme
 document.documentElement.classList.toggle("dark", (localStorage.getItem("vitopoly:theme") ?? "dark") === "dark")
@@ -13,12 +14,14 @@ const DevBar = import.meta.env.DEV && location.pathname === "/dev" ? lazy(() => 
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
-    <Toaster />
-    {DevBar && (
-      <Suspense>
-        <DevBar />
-      </Suspense>
-    )}
+    <TooltipProvider delayDuration={200}>
+      <App />
+      <Toaster />
+      {DevBar && (
+        <Suspense>
+          <DevBar />
+        </Suspense>
+      )}
+    </TooltipProvider>
   </StrictMode>
 )

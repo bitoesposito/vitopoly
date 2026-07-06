@@ -13,8 +13,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource-variable/inter": "^5.2.8",
-    "@fontsource-variable/roboto-condensed": "^5.2.8",
+    "@fontsource-variable/ibm-plex-sans": "^5.2.8",
+    "@fontsource/ibm-plex-sans-condensed": "^5.2.8",
     "@tailwindcss/vite": "^4",
     "@vitopoly/game": "workspace:*",
     "class-variance-authority": "^0.7.1",

@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useT } from "@/lib/i18n";
+import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 
 // Compact game panels. Card size="sm"; status colors via --color-success/--color-warning tokens.
@@ -21,6 +21,7 @@ function Panel({ ring, className, children }: { ring?: string; className?: strin
 
 export function BuyPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
+  const tn = useTileName();
   const ph = game.phase;
   if (ph.t !== "buyPrompt" || game.stack.length > 0) return null;
   if (game.players[game.current]?.id !== myId) return null;
@@ -28,7 +29,7 @@ export function BuyPanel({ game, myId }: { game: PublicState; myId: string }) {
   return (
     <Panel ring="ring-primary/50">
       <div className="text-sm font-semibold">
-        {t("buy.q", { name: tile.name })} <span className="text-success">${tile.price}</span>?
+        {t("buy.q", { name: tn(ph.tile) })} <span className="text-success">${tile.price}</span>?
       </div>
       <div className="flex gap-2">
         <Button size="sm" onClick={() => send({ type: "buy" })}>
@@ -44,6 +45,7 @@ export function BuyPanel({ game, myId }: { game: PublicState; myId: string }) {
 
 export function AuctionPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
+  const tn = useTileName();
   const [amount, setAmount] = useState("");
   const f = game.stack.at(-1);
   if (f?.t !== "auction") return null;
@@ -52,7 +54,7 @@ export function AuctionPanel({ game, myId }: { game: PublicState; myId: string }
   const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
   return (
     <Panel ring="ring-warning/50">
-      <div className="text-sm font-semibold text-warning">{t("auction.title", { name: BOARD[a.tile].name })}</div>
+      <div className="text-sm font-semibold text-warning">{t("auction.title", { name: tn(a.tile) })}</div>
       <div className="text-muted-foreground">
         {t("auction.offer")} <b className="text-warning">${a.bid}</b> {a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")} · {t("auction.inRace")}{" "}
         {a.active.map((x) => names[x]).join(", ")}
@@ -100,6 +102,7 @@ export function DebtPanel({ game, myId }: { game: PublicState; myId: string }) {
 // My properties: build/sell/mortgage. Active in postRoll (my turn) and in my debt frame.
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
+  const tn = useTileName();
   const [open, setOpen] = useState(false);
   const node = game.stack.at(-1) ?? game.phase;
   const mine = Object.entries(game.props).filter(([, o]) => o!.owner === myId);
@@ -122,7 +125,7 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
             return (
               <div key={k} className="flex items-center gap-1.5">
                 <span className="min-w-0 flex-1 truncate">
-                  {def.name} {o!.mortgaged ? <span className="text-destructive">(M)</span> : o!.houses === 5 ? "🏨" : "🏠".repeat(o!.houses)}
+                  {tn(tileId)} {o!.mortgaged ? <span className="text-destructive">(M)</span> : o!.houses === 5 ? "🏨" : "🏠".repeat(o!.houses)}
                 </span>
                 {canManage && (
                   <span className="flex shrink-0 gap-1">
@@ -159,6 +162,7 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
 
 export function TradePanel({ game, myId }: { game: PublicState; myId: string }) {
   const tr = useT(); // `t` è già usato come var trade/tile nei loop sotto
+  const tn = useTileName();
   const [to, setTo] = useState("");
   const [giveCash, setGiveCash] = useState("0");
   const [getCash, setGetCash] = useState("0");
@@ -176,7 +180,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
   const toggle = (list: number[], setList: (v: number[]) => void, t: number) =>
     setList(list.includes(t) ? list.filter((x) => x !== t) : [...list, t]);
   const bundleText = (b: { cash: number; props: number[] }) =>
-    [b.cash > 0 ? `$${b.cash}` : null, ...b.props.map((x) => BOARD[x].name)].filter(Boolean).join(" + ") || tr("bundle.nothing");
+    [b.cash > 0 ? `$${b.cash}` : null, ...b.props.map((x) => tn(x))].filter(Boolean).join(" + ") || tr("bundle.nothing");
 
   return (
     <Panel>
@@ -228,7 +232,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
               {propsOf(myId).map((t) => (
                 <Label key={t} className="flex items-center gap-1.5 font-normal">
                   <Checkbox checked={giveProps.includes(t)} onCheckedChange={() => toggle(giveProps, setGiveProps, t)} />
-                  {BOARD[t].name}
+                  {tn(t)}
                 </Label>
               ))}
             </div>
@@ -241,7 +245,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
                 propsOf(to).map((t) => (
                   <Label key={t} className="flex items-center gap-1.5 font-normal">
                     <Checkbox checked={getProps.includes(t)} onCheckedChange={() => toggle(getProps, setGetProps, t)} />
-                    {BOARD[t].name}
+                    {tn(t)}
                   </Label>
                 ))}
             </div>

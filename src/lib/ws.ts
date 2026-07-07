@@ -1,4 +1,4 @@
-import type { ClientAction, ServerMsg } from "@vitopoly/game";
+import type { ClientAction, ServerMsg } from "@tangentopoly/game";
 import { useGame } from "./store";
 
 const HTTP_BASE = import.meta.env.VITE_SERVER_URL ?? "http://localhost:8787";
@@ -14,7 +14,7 @@ export async function createRoom(): Promise<string> {
 
 export function connect(code: string, name: string): void {
   const { myId } = useGame.getState();
-  localStorage.setItem("vitopoly:name", name);
+  localStorage.setItem("tangentopoly:name", name);
   socket?.close();
   const url = `${WS_BASE}/api/room/${code}/ws?pid=${myId}&name=${encodeURIComponent(name)}`;
   socket = new WebSocket(url);

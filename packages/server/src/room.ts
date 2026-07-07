@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
-import { activeNode, addPlayer, apply, createGame, redact, setConnected, TIMEOUT_MS, timeoutAction } from "@vitopoly/game";
-import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@vitopoly/game";
+import { activeNode, addPlayer, apply, createGame, redact, setConnected, TIMEOUT_MS, timeoutAction } from "@tangentopoly/game";
+import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@tangentopoly/game";
 import type { Env } from "./index";
 
 function seed(): number {

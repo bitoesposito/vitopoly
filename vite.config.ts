@@ -10,7 +10,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
       // Treat the workspace game package as project source so Vite transpiles its TS.
-      "@vitopoly/game": path.resolve(__dirname, "./packages/game/src/index.ts"),
+      "@tangentopoly/game": path.resolve(__dirname, "./packages/game/src/index.ts"),
     },
   },
 })

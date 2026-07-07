@@ -1,5 +1,5 @@
 {
-  "name": "@vitopoly/server",
+  "name": "@tangentopoly/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vitopoly/game": "workspace:*"
+    "@tangentopoly/game": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240909.0",

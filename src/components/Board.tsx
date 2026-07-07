@@ -1,5 +1,5 @@
-import { BOARD } from "@vitopoly/game";
-import type { PublicState } from "@vitopoly/game";
+import { BOARD } from "@tangentopoly/game";
+import type { PublicState } from "@tangentopoly/game";
 import { Tile } from "./Tile";
 import { Center } from "./Center";
 
@@ -16,7 +16,7 @@ export function Board({ game }: { game: PublicState }) {
   // gap-px + bg-border = linee di griglia uniformi (niente bordi doppi né artefatti subpixel).
   return (
     <div
-      className="m-auto grid aspect-square w-full mt-3 max-w-[min(100vmin,880px)] gap-px border border-border bg-border"
+      className="m-auto grid aspect-square w-full h-full gap-px border border-border bg-border max-h-screen flex-1"
       style={{
         gridTemplateColumns: "1.55fr repeat(9, 1fr) 1.55fr",
         gridTemplateRows: "1.55fr repeat(9, 1fr) 1.55fr",

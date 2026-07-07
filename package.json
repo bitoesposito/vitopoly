@@ -1,5 +1,5 @@
 {
-  "name": "vite-app",
+  "name": "tangentopoly",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -16,7 +16,7 @@
     "@fontsource-variable/ibm-plex-sans": "^5.2.8",
     "@fontsource/ibm-plex-sans-condensed": "^5.2.8",
     "@tailwindcss/vite": "^4",
-    "@vitopoly/game": "workspace:*",
+    "@tangentopoly/game": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.23.0",

@@ -17,7 +17,7 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4
         version: 4.3.2(vite@8.1.3(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0))
-      '@vitopoly/game':
+      '@tangentopoly/game':
         specifier: workspace:*
         version: link:packages/game
       class-variance-authority:
@@ -114,7 +114,7 @@ importers:
 
   packages/server:
     dependencies:
-      '@vitopoly/game':
+      '@tangentopoly/game':
         specifier: workspace:*
         version: link:../game
     devDependencies:

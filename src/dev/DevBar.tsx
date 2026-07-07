@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { addPlayer, createGame } from "@vitopoly/game";
-import type { GameState } from "@vitopoly/game";
+import { addPlayer, createGame } from "@tangentopoly/game";
+import type { GameState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
 

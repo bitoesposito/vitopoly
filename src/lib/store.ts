@@ -1,21 +1,21 @@
 import { create } from "zustand";
-import type { ChatMsg, GameEvent, PublicState } from "@vitopoly/game";
+import type { ChatMsg, GameEvent, PublicState } from "@tangentopoly/game";
 import type { Lang } from "./i18n";
 
 function getMyId(): string {
-  let id = localStorage.getItem("vitopoly:pid");
+  let id = localStorage.getItem("tangentopoly:pid");
   if (!id) {
     id = crypto.randomUUID();
-    localStorage.setItem("vitopoly:pid", id);
+    localStorage.setItem("tangentopoly:pid", id);
   }
   return id;
 }
 
 const initialLang: Lang =
-  (localStorage.getItem("vitopoly:lang") as Lang) || (navigator.language.startsWith("it") ? "it" : "en");
+  (localStorage.getItem("tangentopoly:lang") as Lang) || (navigator.language.startsWith("it") ? "it" : "en");
 
 export type Theme = "light" | "dark";
-const initialTheme: Theme = (localStorage.getItem("vitopoly:theme") as Theme) || "dark";
+const initialTheme: Theme = (localStorage.getItem("tangentopoly:theme") as Theme) || "dark";
 
 interface Store {
   myId: string;
@@ -37,7 +37,7 @@ interface Store {
 
 export const useGame = create<Store>((set) => ({
   myId: getMyId(),
-  name: localStorage.getItem("vitopoly:name") || "",
+  name: localStorage.getItem("tangentopoly:name") || "",
   code: null,
   game: null,
   events: [],
@@ -48,11 +48,11 @@ export const useGame = create<Store>((set) => ({
   theme: initialTheme,
   set: (p) => set(p),
   setLang: (l) => {
-    localStorage.setItem("vitopoly:lang", l);
+    localStorage.setItem("tangentopoly:lang", l);
     set({ lang: l });
   },
   setTheme: (th) => {
-    localStorage.setItem("vitopoly:theme", th);
+    localStorage.setItem("tangentopoly:theme", th);
     document.documentElement.classList.toggle("dark", th === "dark");
     set({ theme: th });
   },

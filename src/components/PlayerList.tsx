@@ -1,5 +1,5 @@
 import { Crown, Lock, Palmtree, Ticket, WifiOff } from "lucide-react";
-import type { PublicState } from "@vitopoly/game";
+import type { PublicState } from "@tangentopoly/game";
 import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";

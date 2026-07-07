@@ -10,7 +10,7 @@ export async function shareInvite(code: string | null): Promise<void> {
   toast.success(t("share.copied"));
   if (typeof navigator.share === "function" && matchMedia("(hover: none) and (pointer: coarse)").matches) {
     try {
-      await navigator.share({ title: "vitopoly", text: t("share.inviteText"), url: link });
+      await navigator.share({ title: "tangentopoly", text: t("share.inviteText"), url: link });
     } catch {
       // annullato / non supportato: il link è già negli appunti
     }

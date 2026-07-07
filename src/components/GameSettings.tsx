@@ -1,5 +1,5 @@
 import { ChevronDown, Share2 } from "lucide-react";
-import type { GameSettings, PublicState } from "@vitopoly/game";
+import type { GameSettings, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";

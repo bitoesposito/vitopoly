@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { activeNode, CHANCE, CHEST, legalActions } from "@vitopoly/game";
-import type { GameEvent, PublicState } from "@vitopoly/game";
+import { Clock, Dices, Ticket, Trophy, type LucideIcon } from "lucide-react";
+import { activeNode, CHANCE, CHEST, legalActions } from "@tangentopoly/game";
+import type { GameEvent, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { send } from "@/lib/ws";
-import { AssetsPanel, AuctionPanel, BuyPanel, DebtPanel, TradePanel } from "./Panels";
+import { AuctionPanel, BuyPanel, DebtPanel } from "./Panels";
 
 type T = ReturnType<typeof useT>;
 
@@ -17,7 +18,11 @@ function Countdown({ deadline }: { deadline?: number }) {
   }, []);
   if (!deadline || now === 0) return null;
   const left = Math.max(0, Math.round((deadline - now) / 1000));
-  return <span className={left <= 10 ? "font-bold text-destructive" : "text-muted-foreground"}> ⏱ {left}s</span>;
+  return (
+    <span className={`ml-1 inline-flex items-center gap-0.5 ${left <= 10 ? "font-bold text-destructive" : "text-muted-foreground"}`}>
+      <Clock className="size-3.5" /> {left}s
+    </span>
+  );
 }
 
 function Die({ value }: { value: number | null }) {
@@ -74,7 +79,7 @@ export function Center({ game }: { game: PublicState }) {
     return (
       <div className="grid h-full place-items-center rounded-lg bg-card">
         <div className="text-center">
-          <div className="text-5xl">🏆</div>
+          <Trophy className="mx-auto size-10 text-warning" />
           <h2 className="mt-2 text-2xl font-bold text-warning">{t("center.winner", { name: game.winner ? names[game.winner] : t("center.nobody") })}</h2>
         </div>
       </div>
@@ -84,9 +89,9 @@ export function Center({ game }: { game: PublicState }) {
   // Fluid UX: one primary action at a time.
   const primary = (() => {
     if (!isMyTurn || node.t === "auction" || node.t === "debt" || node.t === "buyPrompt") return null;
-    if (legal.has("roll") && node.t === "preRoll") return { label: t("center.roll"), action: () => send({ type: "roll" }) };
-    if (again) return { label: t("center.rollAgain"), action: () => send({ type: "roll" }) };
-    if (legal.has("endTurn") && node.t === "postRoll") return { label: t("center.endTurn"), action: () => send({ type: "endTurn" }) };
+    if (legal.has("roll") && node.t === "preRoll") return { label: t("center.roll"), icon: Dices as LucideIcon | null, action: () => send({ type: "roll" }) };
+    if (again) return { label: t("center.rollAgain"), icon: Dices as LucideIcon | null, action: () => send({ type: "roll" }) };
+    if (legal.has("endTurn") && node.t === "postRoll") return { label: t("center.endTurn"), icon: null as LucideIcon | null, action: () => send({ type: "endTurn" }) };
     return null;
   })();
 
@@ -105,6 +110,7 @@ export function Center({ game }: { game: PublicState }) {
       <div className="flex flex-wrap items-center justify-center gap-2">
         {primary && (
           <Button className="px-6" onClick={primary.action}>
+            {primary.icon && <primary.icon className="size-4" />}
             {primary.label}
           </Button>
         )}
@@ -115,6 +121,7 @@ export function Center({ game }: { game: PublicState }) {
             </Button>
             {me.jailCards > 0 && (
               <Button variant="secondary" size="sm" onClick={() => send({ type: "useJailCard" })}>
+                <Ticket className="size-4" />
                 {t("center.useJailCard")}
               </Button>
             )}
@@ -127,8 +134,6 @@ export function Center({ game }: { game: PublicState }) {
       <BuyPanel game={game} myId={myId} />
       <AuctionPanel game={game} myId={myId} />
       <DebtPanel game={game} myId={myId} />
-      <AssetsPanel game={game} myId={myId} />
-      <TradePanel game={game} myId={myId} />
 
       <div className="flex min-h-16 flex-1 flex-col-reverse overflow-y-auto rounded-md bg-muted p-2 text-[11px] leading-relaxed text-muted-foreground">
         <div>

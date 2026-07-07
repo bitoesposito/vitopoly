@@ -1,6 +1,6 @@
-import { CircleHelp, CircleParking, Gift, Landmark, Lock, Play, type LucideIcon } from "lucide-react";
-import { BOARD } from "@vitopoly/game";
-import type { PublicState, TileKind } from "@vitopoly/game";
+import { CircleHelp, CircleParking, Gift, Landmark, Lock, Play, TrainFront, type LucideIcon } from "lucide-react";
+import { BOARD } from "@tangentopoly/game";
+import type { PublicState, TileKind } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -69,11 +69,17 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
             >
               {tile.group && <div className={`absolute ${BAR[side]}`} style={{ background: GROUP_COLOR[tile.group] }} />}
 
-              <div className={`flex h-full w-full flex-col items-center justify-center gap-px text-center font-condensed leading-none lg:font-sans ${isCorner ? "text-[8px] sm:text-xs" : "text-[8px] sm:text-xs"}`}>
-                {Icon ? (
+              <div className={`flex h-full w-full flex-col items-center justify-center gap-px text-center font-condensed leading-none lg:font-sans xl:text-base lg:text-sm md:text-xs sm:text-[10px] text-[9px] ${isCorner ? "p-1" : "p-0.5"}`}>
+                {tile.kind === "railroad" ? (
+                  // icona + direzione: toglie "Stazione" (it) / "Railroad" (en), tiene Nord/Est/…
+                  <span className="flex items-center justify-center gap-0.5 px-px font-medium whitespace-nowrap text-foreground">
+                    <TrainFront className="size-3.5 shrink-0 sm:size-4" aria-label={name} />
+                    {name.replace(/stazione\s*|\s*railroad/i, "").trim()}
+                  </span>
+                ) : Icon ? (
                   <Icon className="size-4 text-foreground sm:size-6" aria-label={name} />
                 ) : (
-                  <span className="line-clamp-1 px-px font-medium break-all text-foreground sm:line-clamp-2 sm:break-normal">{name}</span>
+                  <span className="px-px font-medium text-foreground sm:break-normal">{name}</span>
                 )}
                 {/* prezzo nascosto su celle piccole: sta in tooltip/popover, evita salti di riga */}
                 {tile.price != null && !own && <span className="hidden text-muted-foreground sm:inline">${tile.price}</span>}

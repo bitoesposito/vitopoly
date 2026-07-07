@@ -19,7 +19,7 @@ export function Lobby() {
 
   return (
     <div className="m-auto flex h-dvh max-w-xs flex-col items-center justify-center gap-2 p-4">
-      <h1 className="text-xl font-bold uppercase">vitopoly</h1>
+      <h1 className="text-xl font-bold uppercase">tangentopoly</h1>
       <p className="text-center text-sm text-muted-foreground">
         {room ? <>{t("lobby.joining")} <span className="font-semibold text-foreground">{room}</span></> : t("lobby.creating")}
       </p>

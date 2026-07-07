@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, MessageSquare, Moon, Sun, Users } from "lucide-react";
+import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +9,7 @@ import { useGame } from "@/lib/store";
 import { sendChat } from "@/lib/ws";
 import { LANGS, useT, type Lang } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
+import { GamePanels } from "@/components/Panels";
 
 function LanguageToggle() {
   const lang = useGame((s) => s.lang);
@@ -40,17 +42,18 @@ function ThemeToggle() {
   );
 }
 
-// Thin bar: player count (left) + chat toggle (mobile) + theme + language.
+// Barra sottile SOLO mobile (header del bottom-sheet): conteggio + toggle chat + tema + lingua.
+// Su desktop non c'è sidebar: tema/lingua stanno nell'header della card chat.
 function TopBar({ chatOpen, onToggleChat }: { chatOpen: boolean; onToggleChat: () => void }) {
   const t = useT();
   const count = useGame((s) => s.game?.players.length ?? 0);
   return (
-    <div className="flex items-center gap-2 border-b border-border p-2">
+    <div className="flex items-center gap-2 border-b border-border p-2 md:hidden">
       <span className="mr-auto flex items-center gap-1 text-sm tabular-nums text-muted-foreground" title={t("players.title", { n: count })}>
         <Users className="size-4" />
         {count}
       </span>
-      <Button size="icon-sm" variant="outline" className="lg:hidden" aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")} onClick={onToggleChat}>
+      <Button size="icon-sm" variant="outline" className="md:hidden" aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")} onClick={onToggleChat}>
         {chatOpen ? <ChevronDown /> : <MessageSquare />}
       </Button>
       <ThemeToggle />
@@ -107,7 +110,13 @@ function Chat({ open }: { open: boolean }) {
   }, []);
 
   return (
-    <div className={`min-h-0 flex-1 flex-col ${open ? "flex" : "hidden lg:flex"}`}>
+    <div className={`min-h-0 flex-1 flex-col overflow-hidden md:bg-card md:ring-1 md:ring-foreground/10 ${open ? "flex" : "hidden md:flex"}`}>
+      {/* desktop: header della card chat con tema/lingua (su mobile stanno nella TopBar dello sheet) */}
+      <div className="hidden items-center gap-2 border-b border-border p-2 md:flex">
+        <span className="mr-auto text-sm font-semibold">Chat</span>
+        <ThemeToggle />
+        <LanguageToggle />
+      </div>
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm">
         {chat.length === 0 && <div className="text-xs text-muted-foreground">{t("chat.empty")}</div>}
         {groups.map((g, i) => (
@@ -143,35 +152,40 @@ function Chat({ open }: { open: boolean }) {
   );
 }
 
-export function Sidebar() {
-  const [chatOpen, setChatOpen] = useState(true); // collapse solo mobile: toggle nascosto su lg
-  // ponytail: resize fai-da-te via CSS var — le media query scelgono quale applicare
-  // (altezza sotto lg, larghezza da lg in su). shadcn resizable se servissero più pannelli.
-  // 3 step (stretta/media/larga): il drag snappa al più vicino, gli estremi fanno da min/max.
-  const [size, setSize] = useState<{ h?: number; w?: number }>({});
+// Colonna destra. Desktop: nessuna sidebar, solo card singole impilate (giocatori/scambi/
+// proprietà + chat come ultima). Mobile: bottom-sheet espandibile con la sola chat.
+export function Sidebar({ game }: { game: PublicState }) {
+  const [chatOpen, setChatOpen] = useState(true); // collapse solo mobile: toggle nascosto su md
+  // ponytail: resize solo mobile (altezza del bottom-sheet). Desktop = larghezza fissa, niente resize.
+  // 2 step (stretta/media): il drag snappa al più vicino, gli estremi fanno da min/max.
+  const [chatH, setChatH] = useState<number>();
   const snap = (v: number, steps: number[]) => steps.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a));
 
   return (
     <aside
-      style={{ "--chat-h": size.h && `${size.h}px`, "--chat-w": size.w && `${size.w}px` } as React.CSSProperties}
-      className={`relative flex shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 lg:h-auto lg:w-[var(--chat-w,20rem)] lg:border-t-0 lg:border-l lg:shadow-[-8px_0_20px_-6px] ${chatOpen ? "h-[var(--chat-h,45%)]" : "h-auto"}`}
+      style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
+      className={`relative flex shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${chatOpen ? "h-[var(--chat-h,45%)]" : "h-auto"}`}
     >
+      {/* resize: solo mobile (altezza sheet); nascosto su desktop */}
       <div
-        className="absolute top-0 right-0 left-0 z-10 flex h-3 shrink-0 cursor-row-resize touch-none items-center justify-center hover:bg-ring/30 lg:right-auto lg:bottom-0 lg:h-auto lg:w-1.5 lg:cursor-col-resize"
+        className="absolute top-0 right-0 left-0 z-10 flex h-3 shrink-0 cursor-row-resize touch-none items-center justify-center hover:bg-ring/30 md:hidden"
         onDoubleClick={() => setChatOpen((o) => !o)} // mobile: doppio click sul bordo apre/chiude la chat
         onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
         onPointerMove={(e) => {
           if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-          setSize({
-            h: snap(innerHeight - e.clientY, [innerHeight * 0.25, innerHeight * 0.45, innerHeight * 0.7]),
-            w: snap(innerWidth - e.clientX, [260, 320, 440]),
-          });
+          setChatH(snap(innerHeight - e.clientY, [innerHeight * 0.25, innerHeight * 0.45]));
         }}
       >
         {/* grabber stile bottom-sheet: hint visivo del resize su mobile */}
-        <span className="h-1 w-10 rounded-full bg-muted-foreground/40 lg:hidden" />
+        <span className="h-1 w-10 rounded-full bg-muted-foreground/40" />
       </div>
       <TopBar chatOpen={chatOpen} onToggleChat={() => setChatOpen(!chatOpen)} />
+      {/* desktop-only: su mobile i pannelli stanno sotto il tabellone (App.tsx), fuori da questo sheet */}
+      {game.status !== "lobby" && (
+        <div className="hidden shrink-0 overflow-y-auto md:block md:max-h-[55%]">
+          <GamePanels game={game} />
+        </div>
+      )}
       <Chat open={chatOpen} />
     </aside>
   );

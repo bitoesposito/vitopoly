@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import { BOARD } from "@vitopoly/game";
-import type { DebtFrame, PublicState, TileDef } from "@vitopoly/game";
+import { BOARD } from "@tangentopoly/game";
+import type { DebtFrame, PublicState, TileDef } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
 import { useT, useTileName } from "@/lib/i18n";

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { send } from "@/lib/ws";
-import { AuctionPanel, BuyPanel, DebtPanel } from "./Panels";
+import { BuyPanel, DebtPanel } from "./Panels";
 
 type T = ReturnType<typeof useT>;
 
@@ -132,7 +132,6 @@ export function Center({ game }: { game: PublicState }) {
       {error && <div className="text-center text-xs text-destructive">{error}</div>}
 
       <BuyPanel game={game} myId={myId} />
-      <AuctionPanel game={game} myId={myId} />
       <DebtPanel game={game} myId={myId} />
 
       <div className="flex min-h-16 flex-1 flex-col-reverse overflow-y-auto rounded-md bg-muted p-2 text-[11px] leading-relaxed text-muted-foreground">

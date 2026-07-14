@@ -154,7 +154,7 @@ function drawCard(s: GameState, p: Player, deck: "chance" | "chest", again: bool
 // ---- auctions --------------------------------------------------------
 
 export function pushAuction(s: GameState, tile: TileId, queue: TileId[]): void {
-  s.stack.push({ t: "auction", tile, queue, bid: 0, leader: null, active: alive(s).map((p) => p.id) });
+  s.stack.push({ t: "auction", tile, queue, bid: 0, leader: null, active: alive(s).map((p) => p.id), bids: [] });
 }
 
 export function settleAuction(s: GameState, frame: AuctionFrame, ev: GameEvent[]): void {

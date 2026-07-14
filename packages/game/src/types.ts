@@ -37,7 +37,7 @@ export interface AuctionFrame {
   bid: number;
   leader: PlayerId | null;
   active: PlayerId[]; // still bidding
-  deadline?: number; // for timers (DO alarm), used post-MVP
+  bids: { pid: PlayerId; amount: number }[]; // history for the UI log; amount = running total
 }
 export interface DebtFrame {
   t: "debt";
@@ -98,7 +98,7 @@ export type ClientAction =
   | { type: "useJailCard" }
   | { type: "buy" }
   | { type: "decline" }
-  | { type: "bid"; amount: number }
+  | { type: "bid"; amount: number } // increment over the current bid (quick-bid buttons)
   | { type: "fold" }
   | { type: "build"; tile: TileId }
   | { type: "sellHouse"; tile: TileId }

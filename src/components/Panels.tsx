@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Handshake, Hotel, House, Minus, Plus } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
-import type { AuctionFrame, DebtFrame, PublicState } from "@tangentopoly/game";
+import type { DebtFrame, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,37 +43,6 @@ export function BuyPanel({ game, myId }: { game: PublicState; myId: string }) {
           {game.settings.auction ? t("buy.declineAuction") : t("buy.decline")}
         </Button>
       </div>
-    </Panel>
-  );
-}
-
-export function AuctionPanel({ game, myId }: { game: PublicState; myId: string }) {
-  const t = useT();
-  const tn = useTileName();
-  const [amount, setAmount] = useState("");
-  const f = game.stack.at(-1);
-  if (f?.t !== "auction") return null;
-  const a = f as AuctionFrame;
-  const inAuction = a.active.includes(myId);
-  const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
-  return (
-    <Panel ring="ring-warning/50">
-      <div className="text-sm font-semibold text-warning">{t("auction.title", { name: tn(a.tile) })}</div>
-      <div className="text-muted-foreground">
-        {t("auction.offer")} <b className="text-warning">${a.bid}</b> {a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")} · {t("auction.inRace")}{" "}
-        {a.active.map((x) => names[x]).join(", ")}
-      </div>
-      {inAuction && (
-        <div className="flex gap-2">
-          <Input className="h-7 w-20" type="number" placeholder={`> ${a.bid}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
-          <Button size="sm" onClick={() => send({ type: "bid", amount: Number(amount) })}>
-            {t("auction.bid")}
-          </Button>
-          <Button size="sm" variant="secondary" disabled={a.leader === myId} onClick={() => send({ type: "fold" })}>
-            {t("auction.fold")}
-          </Button>
-        </div>
-      )}
     </Panel>
   );
 }

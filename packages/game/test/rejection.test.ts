@@ -59,7 +59,7 @@ describe("structural rejection matrix", () => {
 
   it("auction frame blocks everything but bid/fold", () => {
     const s = started();
-    const auction: AuctionFrame = { t: "auction", tile: 1, queue: [], bid: 0, leader: null, active: ["a", "b"] };
+    const auction: AuctionFrame = { t: "auction", tile: 1, queue: [], bid: 0, leader: null, active: ["a", "b"], bids: [] };
     s.stack.push(auction);
     assertMatrix(s, "auction");
   });

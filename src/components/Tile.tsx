@@ -2,7 +2,7 @@ import { CircleHelp, CircleParking, Gift, Landmark, Lock, Play, TrainFront, type
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileKind } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
-import { TOKEN_COLOR } from "@/lib/colors";
+import { GROUP_COLOR, TOKEN_COLOR } from "@/lib/colors";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TileDetails, tileDesc } from "./TileDetails";
@@ -15,17 +15,6 @@ const KIND_ICON: Partial<Record<TileKind, LucideIcon>> = {
   jail: Lock,
   parking: CircleParking,
   tax: Landmark,
-};
-
-const GROUP_COLOR: Record<string, string> = {
-  brown: "#955436",
-  lightblue: "#aae0fa",
-  pink: "#d93a96",
-  orange: "#f7941d",
-  red: "#ed1b24",
-  yellow: "#fef200",
-  green: "#1fb25a",
-  darkblue: "#0072bb",
 };
 
 // Which side of the tile faces the board center (for the color bar). GO top-left.

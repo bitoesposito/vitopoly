@@ -2,6 +2,7 @@ import { BOARD } from "@tangentopoly/game";
 import type { PublicState } from "@tangentopoly/game";
 import { Tile } from "./Tile";
 import { Center } from "./Center";
+import { AuctionDialog } from "./AuctionDialog";
 
 // Map a tile index 0..39 to an 11x11 grid cell. GO (0) sits top-left.
 function tileCell(i: number): { row: number; col: number } {
@@ -16,7 +17,7 @@ export function Board({ game }: { game: PublicState }) {
   // gap-px + bg-border = linee di griglia uniformi (niente bordi doppi né artefatti subpixel).
   return (
     <div
-      className="m-auto grid aspect-square w-full h-full gap-px border border-border bg-border max-h-screen flex-1"
+      className="relative m-auto grid aspect-square w-full h-full gap-px border border-border bg-border max-h-screen flex-1"
       style={{
         gridTemplateColumns: "1.55fr repeat(9, 1fr) 1.55fr",
         gridTemplateRows: "1.55fr repeat(9, 1fr) 1.55fr",
@@ -33,6 +34,7 @@ export function Board({ game }: { game: PublicState }) {
       <div className="min-h-0 min-w-0" style={{ gridRow: "2 / 11", gridColumn: "2 / 11" }}>
         <Center game={game} />
       </div>
+      <AuctionDialog game={game} />
     </div>
   );
 }

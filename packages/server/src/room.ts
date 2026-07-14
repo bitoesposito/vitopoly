@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { activeNode, addPlayer, apply, createGame, redact, setConnected, TIMEOUT_MS, timeoutAction } from "@tangentopoly/game";
+import { activeNode, addPlayer, apply, auctionTimeout, createGame, redact, setConnected, timeoutAction, timeoutMs } from "@tangentopoly/game";
 import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@tangentopoly/game";
 import type { Env } from "./index";
 
@@ -95,10 +95,15 @@ export class RoomDO extends DurableObject<Env> {
       await this.ctx.storage.setAlarm(this.game.deadline);
       return;
     }
-    const t = timeoutAction(this.game);
-    if (!t) return;
-    let r = apply(this.game, t.pid, t.action);
-    if (!r.ok && activeNode(this.game).t === "debt") r = apply(this.game, t.pid, { type: "bankrupt" }); // can't pay -> out
+    let r: Result;
+    if (activeNode(this.game).t === "auction") {
+      r = auctionTimeout(this.game); // timer expiry settles to the leader (or nobody)
+    } else {
+      const t = timeoutAction(this.game);
+      if (!t) return;
+      r = apply(this.game, t.pid, t.action);
+      if (!r.ok && activeNode(this.game).t === "debt") r = apply(this.game, t.pid, { type: "bankrupt" }); // can't pay -> out
+    }
     if (!r.ok) return; // no auto-action possible; leave the room to humans (debug endpoint shows why)
     r.events.push({ e: "info", text: "⏰ time's up — auto action" });
     await this.commit(r);
@@ -117,7 +122,7 @@ export class RoomDO extends DurableObject<Env> {
 
   private async persistAndBroadcast(events: GameEvent[] = []): Promise<void> {
     if (this.game.status === "playing") {
-      this.game.deadline = Date.now() + TIMEOUT_MS[activeNode(this.game).t];
+      this.game.deadline = Date.now() + timeoutMs(this.game);
       await this.ctx.storage.setAlarm(this.game.deadline);
     } else {
       this.game.deadline = undefined;

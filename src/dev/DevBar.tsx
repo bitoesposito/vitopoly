@@ -63,7 +63,11 @@ const SCENARIOS: [string, () => GameState | null][] = [
     };
   })],
   ["Asta", () => base((g) => {
-    g.stack = [{ t: "auction", tile: 6, queue: [], bid: 120, leader: "p2", active: [ME, "p2", "p3"] }];
+    g.stack = [{
+      t: "auction", tile: 6, queue: [], bid: 120, leader: "p2", active: [ME, "p2", "p3"],
+      bids: [{ pid: "p3", amount: 10 }, { pid: ME, amount: 20 }, { pid: "p2", amount: 120 }],
+    }];
+    g.deadline = Date.now() + 6_000;
   })],
   ["Debito", () => base((g) => {
     g.players[0].cash = 60;

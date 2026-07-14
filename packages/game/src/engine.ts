@@ -130,15 +130,20 @@ const rollAgain: Handler = (s, pid, a) => {
 
 // ---- auction ---------------------------------------------------------
 
+// amount is an INCREMENT over the current bid (+2/+10/+100 buttons): race-free
+// when two players click in the same window — both raises land, in order.
 const bid: Handler = (s, pid, a) => {
   if (a.type !== "bid") return err("bad action");
   const f = s.stack.at(-1) as AuctionFrame;
   if (!f.active.includes(pid)) return err("not in this auction");
-  if (!Number.isInteger(a.amount) || a.amount <= f.bid) return err("bid too low");
-  if (a.amount > cash(s, pid)) return err("cannot bid more than your cash"); // no debt born inside auctions, ever
-  f.bid = a.amount;
+  if (f.leader === pid) return err("already leading");
+  if (!Number.isInteger(a.amount) || a.amount <= 0) return err("bad bid");
+  const total = f.bid + a.amount;
+  if (total > cash(s, pid)) return err("cannot bid more than your cash"); // no debt born inside auctions, ever
+  f.bid = total;
   f.leader = pid;
-  return ok(s, [info(`${byId(s, pid).name} bids $${a.amount}`)]);
+  f.bids.push({ pid, amount: total });
+  return ok(s, [info(`${byId(s, pid).name} bids $${total}`)]);
 };
 
 const fold: Handler = (s, pid) => {
@@ -151,6 +156,17 @@ const fold: Handler = (s, pid) => {
   if (done) settleAuction(s, f, ev);
   return ok(s, ev);
 };
+
+// Server-only entry (NOT a ClientAction — clients could otherwise snipe an auction
+// closed early). Called by the room when the auction deadline expires: settle to
+// the current leader, or nobody.
+export function auctionTimeout(state: GameState): Result {
+  if (state.stack.at(-1)?.t !== "auction") return err("no auction");
+  const s = clone(state);
+  const ev: GameEvent[] = [];
+  settleAuction(s, s.stack.at(-1) as AuctionFrame, ev);
+  return ok(s, ev);
+}
 
 // ---- debt ------------------------------------------------------------
 

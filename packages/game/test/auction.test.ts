@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apply } from "../src/engine";
+import { apply, auctionTimeout } from "../src/engine";
 import { started } from "./helpers";
 import { checkInvariants } from "./invariants";
 import type { ClientAction, GameState, PlayerId } from "../src/types";
@@ -34,14 +34,51 @@ describe("buy / decline / auction", () => {
     s = step(s, "a", { type: "decline" });
     expect(s.stack[0]?.t).toBe("auction");
 
-    s = step(s, "b", { type: "bid", amount: 30 });
-    s = step(s, "a", { type: "bid", amount: 40 }); // decliner can bid too
+    s = step(s, "b", { type: "bid", amount: 30 }); // increments: 0 -> 30
+    s = step(s, "a", { type: "bid", amount: 10 }); // decliner can bid too: 30 -> 40
     s = step(s, "b", { type: "fold" });
 
     expect(s.stack).toHaveLength(0); // settled, popped
     expect(s.props[1]?.owner).toBe("a");
     expect(s.players[0].cash).toBe(1460);
     expect(s.phase).toEqual({ t: "postRoll", again: false }); // frozen phase resumed
+  });
+
+  it("timer expiry settles to the leader; the bid log records running totals", () => {
+    let s = started();
+    s.phase = { t: "buyPrompt", tile: 1, again: false };
+    s = step(s, "a", { type: "decline" });
+    s = step(s, "b", { type: "bid", amount: 2 });
+    s = step(s, "a", { type: "bid", amount: 10 });
+    const f = s.stack[0];
+    if (f.t !== "auction") throw new Error("expected auction");
+    expect(f.bids).toEqual([{ pid: "b", amount: 2 }, { pid: "a", amount: 12 }]);
+
+    const r = auctionTimeout(s);
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+    checkInvariants(s);
+    expect(s.stack).toHaveLength(0);
+    expect(s.props[1]?.owner).toBe("a");
+    expect(s.players[0].cash).toBe(1488);
+  });
+
+  it("timer expiry with no bids leaves the property unowned", () => {
+    let s = started();
+    s.phase = { t: "buyPrompt", tile: 1, again: false };
+    s = step(s, "a", { type: "decline" });
+    const r = auctionTimeout(s);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.stack).toHaveLength(0);
+    expect(r.state.props[1]).toBeUndefined();
+  });
+
+  it("the leader cannot raise their own bid", () => {
+    let s = started();
+    s.phase = { t: "buyPrompt", tile: 1, again: false };
+    s = step(s, "a", { type: "decline" });
+    s = step(s, "b", { type: "bid", amount: 2 });
+    expect(apply(s, "b", { type: "bid", amount: 2 }).ok).toBe(false);
   });
 
   it("nobody bids -> property stays unowned", () => {
@@ -58,7 +95,7 @@ describe("buy / decline / auction", () => {
     const s = started();
     s.phase = { t: "buyPrompt", tile: 1, again: false };
     const s2 = step(s, "a", { type: "decline" });
-    expect(apply(s2, "b", { type: "bid", amount: 99999 }).ok).toBe(false);
+    expect(apply(s2, "b", { type: "bid", amount: 99999 }).ok).toBe(false); // 0 + 99999 > cash
     const s3 = step(s2, "b", { type: "bid", amount: 30 });
     expect(apply(s3, "b", { type: "fold" }).ok).toBe(false);
   });

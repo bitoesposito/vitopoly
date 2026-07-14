@@ -26,6 +26,7 @@ export function createGame(seed: number): GameState {
     phase: { t: "preRoll" },
     stack: [],
     trades: [],
+    kickVotes: {},
     log: [],
   };
 }

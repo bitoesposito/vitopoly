@@ -55,7 +55,7 @@ export function sendToJail(s: GameState, p: Player, ev: GameEvent[]): void {
   p.jailTurns = 0;
   p.doublesCount = 0;
   s.phase = { t: "postRoll", again: false }; // going to jail ends the movement; turn ends via endTurn
-  ev.push({ e: "info", text: `${p.name} goes to jail` });
+  ev.push({ e: "jailed", pid: p.id });
 }
 
 // Movement + landing resolution. Sets the RESUME point (postRoll) first, then may
@@ -171,6 +171,32 @@ export function settleAuction(s: GameState, frame: AuctionFrame, ev: GameEvent[]
 
 // ---- elimination -----------------------------------------------------
 
+// Buildings always liquidate to the bank at half price. Returns the estate's tiles.
+export function liquidateBuildings(s: GameState, pid: PlayerId, ev: GameEvent[]): TileId[] {
+  const estate = Object.keys(s.props).map(Number).filter((t) => s.props[t]!.owner === pid);
+  for (const t of estate) {
+    const own = s.props[t]!;
+    if (own.houses > 0) {
+      const refund = (own.houses === 5 ? 5 : own.houses) * (BOARD[t].houseCost! / 2);
+      if (own.houses === 5) s.bank.hotels++;
+      else s.bank.houses += own.houses;
+      own.houses = 0;
+      transfer(s, "bank", pid, refund, "liquidation", ev);
+    }
+  }
+  return estate;
+}
+
+// The whole estate falls to the bank and the deeds get re-auctioned.
+// Shared by bank-bankruptcy and vote-kick.
+export function seizeToBank(s: GameState, pid: PlayerId, ev: GameEvent[]): void {
+  const estate = liquidateBuildings(s, pid, ev);
+  for (const t of estate) delete s.props[t];
+  if (byId(s, pid).cash > 0) transfer(s, pid, "bank", byId(s, pid).cash, "bankruptcy", ev);
+  eliminate(s, pid, ev);
+  if (s.status !== "ended" && estate.length > 0) pushAuction(s, estate[0], estate.slice(1)); // estate auction chain
+}
+
 // The single choke point: mark bankrupt, scrub from every frame/trade, hand the turn on.
 export function eliminate(s: GameState, pid: PlayerId, ev: GameEvent[]): void {
   const p = byId(s, pid);
@@ -181,6 +207,13 @@ export function eliminate(s: GameState, pid: PlayerId, ev: GameEvent[]): void {
   for (const f of s.stack) {
     if (f.t === "auction") f.active = f.active.filter((x) => x !== pid);
     // a dead leader cannot happen: leaders can't fold, bids are cash-capped, trades banned during auctions
+  }
+  // kick votes by or against the dead player are void
+  delete s.kickVotes[pid];
+  for (const k of Object.keys(s.kickVotes)) {
+    const rest = s.kickVotes[k]!.filter((v) => v !== pid);
+    if (rest.length > 0) s.kickVotes[k] = rest;
+    else delete s.kickVotes[k];
   }
 
   const survivors = alive(s);

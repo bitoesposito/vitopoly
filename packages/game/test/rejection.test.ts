@@ -5,7 +5,8 @@ import type { AuctionFrame, ClientAction, DebtFrame, GameState } from "../src/ty
 
 // Every action that isn't a key in the active node's handler table must be structurally rejected.
 // This proves the dispatcher — not scattered if-guards — protects the machine.
-// (Trades are the orthogonal region, routed outside the table — tested in trades.test.)
+// (Trades, votekick and the cash raisers mortgage/sellHouse are orthogonal regions,
+// routed outside the table — always legal, so excluded from this matrix.)
 
 const ALL_ACTIONS: ClientAction[] = [
   { type: "roll" },
@@ -16,8 +17,6 @@ const ALL_ACTIONS: ClientAction[] = [
   { type: "bid", amount: 10 },
   { type: "fold" },
   { type: "build", tile: 1 },
-  { type: "sellHouse", tile: 1 },
-  { type: "mortgage", tile: 1 },
   { type: "unmortgage", tile: 1 },
   { type: "payDebt" },
   { type: "bankrupt" },
@@ -29,9 +28,9 @@ const ALL_ACTIONS: ClientAction[] = [
 const LEGAL: Record<string, Set<string>> = {
   preRoll: new Set(["roll", "payBail", "useJailCard"]),
   buyPrompt: new Set(["buy", "decline"]),
-  postRoll: new Set(["endTurn", "build", "sellHouse", "mortgage", "unmortgage"]),
+  postRoll: new Set(["endTurn", "build", "unmortgage"]),
   auction: new Set(["bid", "fold"]),
-  debt: new Set(["payDebt", "bankrupt", "sellHouse", "mortgage"]),
+  debt: new Set(["payDebt", "bankrupt"]),
 };
 
 function assertMatrix(s: GameState, nodeKind: string) {
@@ -64,7 +63,7 @@ describe("structural rejection matrix", () => {
     assertMatrix(s, "auction");
   });
 
-  it("debt frame blocks everything but payDebt/bankrupt/sellHouse/mortgage", () => {
+  it("debt frame blocks everything but payDebt/bankrupt", () => {
     const s = started();
     const debt: DebtFrame = { t: "debt", debtor: "a", claims: [{ creditor: "bank", amount: 100 }] };
     s.stack.push(debt);

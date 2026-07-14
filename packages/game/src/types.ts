@@ -87,6 +87,7 @@ export interface GameState {
   phase: TurnPhase;
   stack: Interrupt[];
   trades: Trade[];
+  kickVotes: Partial<Record<PlayerId, PlayerId[]>>; // target -> voters; unanimity of the others kicks
   log: GameEvent[]; // capped ~100
   winner?: PlayerId;
   deadline?: number; // ms epoch — when the current wait auto-resolves. Set by the server, not the engine.
@@ -111,7 +112,8 @@ export type ClientAction =
   | { type: "updateSettings"; settings: Partial<GameSettings> } // lobby, host only
   | { type: "proposeTrade"; to: PlayerId; give: Bundle; get: Bundle }
   | { type: "respondTrade"; id: string; accept: boolean }
-  | { type: "cancelTrade"; id: string };
+  | { type: "cancelTrade"; id: string }
+  | { type: "votekick"; target: PlayerId };
 
 export type GameEvent =
   | { e: "rolled"; pid: PlayerId; d1: number; d2: number }
@@ -119,6 +121,7 @@ export type GameEvent =
   | { e: "paid"; from: PlayerId | "bank"; to: PlayerId | "bank"; amount: number; why: string }
   | { e: "card"; pid: PlayerId; deck: "chance" | "chest"; cardId: number }
   | { e: "auctionWon"; pid: PlayerId; tile: TileId; price: number }
+  | { e: "jailed"; pid: PlayerId }
   | { e: "bankrupt"; pid: PlayerId }
   | { e: "info"; text: string };
 

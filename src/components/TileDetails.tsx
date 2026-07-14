@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { BOARD } from "@tangentopoly/game";
-import type { DebtFrame, PublicState, TileDef } from "@tangentopoly/game";
+import type { PublicState, TileDef } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
 import { useT, useTileName } from "@/lib/i18n";
@@ -42,12 +42,11 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
   const name = useTileName()(index);
   const own = game.props[index];
 
-  // stesse condizioni di AssetsPanel: gestisco nel mio postRoll o nel mio debito
+  // stesse condizioni di AssetsPanel: sell/mortgage sempre, build/unmortgage nel mio postRoll
   const node = game.stack.at(-1) ?? game.phase;
   const myTurn = game.players[game.current]?.id === myId;
-  const inMyDebt = node.t === "debt" && (node as DebtFrame).debtor === myId;
   const canBuild = node.t === "postRoll" && myTurn;
-  const canManage = canBuild || inMyDebt;
+  const canManage = game.status === "playing";
   const mine = own?.owner === myId;
 
   return (

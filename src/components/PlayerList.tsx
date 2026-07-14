@@ -1,8 +1,10 @@
-import { Crown, Lock, Palmtree, Ticket, WifiOff } from "lucide-react";
+import { Crown, Lock, Palmtree, Ticket, UserX, WifiOff } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
+import { send } from "@/lib/ws";
 import { TOKEN_COLOR } from "@/lib/colors";
+import { Button } from "@/components/ui/button";
 
 // ponytail: black ring = outline di contrasto sui colori pedina, non un token themabile
 const dot = (token: number) => (
@@ -35,6 +37,24 @@ export function PlayerList({ game }: { game: PublicState }) {
           )}
           {!p.connected && <WifiOff className="size-3.5 text-muted-foreground" aria-label={t("aria.disconnected")} />}
           {game.status !== "lobby" && <span className="ml-auto tabular-nums text-success">${p.cash}</span>}
+          {/* votekick: unanimità degli altri vivi (engine). Icona + conteggio voti in corso. */}
+          {game.status === "playing" && !p.bankrupt && p.id !== myId && (
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              className="size-5 text-muted-foreground hover:text-destructive"
+              title={t("kick.vote", { name: p.name })}
+              disabled={(game.kickVotes[p.id] ?? []).includes(myId)}
+              onClick={() => send({ type: "votekick", target: p.id })}
+            >
+              <UserX className="size-3.5" />
+            </Button>
+          )}
+          {(game.kickVotes[p.id]?.length ?? 0) > 0 && (
+            <span className="text-[10px] tabular-nums text-destructive">
+              {game.kickVotes[p.id]!.length}/{game.players.filter((x) => !x.bankrupt && x.id !== p.id).length}
+            </span>
+          )}
         </div>
       ))}
       {game.status === "playing" && game.settings.vacationCash && (

@@ -52,8 +52,10 @@ describe("soak", () => {
         rejected++;
       }
     }
-    // sanity: the game actually progressed
-    expect(applied).toBeGreaterThan(100);
+    // sanity: the game actually progressed (a finished game is maximal progress).
+    // Threshold is low on purpose: the pool now includes always-legal actions with
+    // random tiles, so most picks reject — a real deadlock would sit near zero.
+    expect(s.status === "ended" || applied > 50).toBe(true);
     expect(applied + rejected).toBeGreaterThan(0);
   });
 });

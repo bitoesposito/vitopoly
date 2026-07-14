@@ -1,7 +1,7 @@
 import type { AuctionFrame, ClientAction, DebtFrame, GameEvent, GameState, Interrupt, PlayerId, Result, TurnPhase } from "./types";
 import { BAIL, BOARD } from "./board-data";
 import { roll2d6, nextInt } from "./rng";
-import { alive, byId, cash, charge, cur, eliminate, moveAndResolve, nextPlayer, pushAuction, sendToJail, settleAuction, transfer } from "./flow";
+import { alive, byId, cash, charge, cur, eliminate, liquidateBuildings, moveAndResolve, nextPlayer, pushAuction, seizeToBank, sendToJail, settleAuction, transfer } from "./flow";
 import * as props from "./properties";
 import { handleTrade } from "./trades";
 import { CHANCE, CHEST } from "./cards";
@@ -189,26 +189,11 @@ const bankrupt: Handler = (s, pid) => {
   const ev: GameEvent[] = [];
   s.stack.pop();
   const creditor = f.claims[0].creditor; // ponytail: mixed-creditor debt -> everything to the first. deviation
-  const estate = Object.keys(s.props).map(Number).filter((t) => s.props[t]!.owner === pid);
-
-  // buildings always liquidate to the bank at half price first
-  for (const t of estate) {
-    const own = s.props[t]!;
-    if (own.houses > 0) {
-      const refund = (own.houses === 5 ? 5 : own.houses) * (BOARD[t].houseCost! / 2);
-      if (own.houses === 5) s.bank.hotels++;
-      else s.bank.houses += own.houses;
-      own.houses = 0;
-      transfer(s, "bank", pid, refund, "liquidation", ev);
-    }
-  }
 
   if (creditor === "bank") {
-    for (const t of estate) delete s.props[t];
-    if (byId(s, pid).cash > 0) transfer(s, pid, "bank", byId(s, pid).cash, "bankruptcy", ev);
-    eliminate(s, pid, ev);
-    if (s.status !== "ended" && estate.length > 0) pushAuction(s, estate[0], estate.slice(1)); // estate auction chain
+    seizeToBank(s, pid, ev);
   } else {
+    const estate = liquidateBuildings(s, pid, ev);
     for (const t of estate) s.props[t]!.owner = creditor;
     const remaining = byId(s, pid).cash;
     if (remaining > 0) transfer(s, pid, creditor, remaining, "bankruptcy", ev);
@@ -219,15 +204,42 @@ const bankrupt: Handler = (s, pid) => {
   return ok(s, ev);
 };
 
-// ---- postRoll asset actions -----------------------------------------
+// ---- votekick (orthogonal, like trades) ------------------------------
 
-// properties.ts fns share one wrapper; mounted under postRoll AND debt (same fn, two legal contexts)
+// Unanimous consent of the OTHER alive players removes an AFK player: their whole
+// estate falls to the bank and gets re-auctioned (same path as bank bankruptcy).
+function votekick(s: GameState, pid: PlayerId, target: PlayerId): Result {
+  const voter = s.players.find((p) => p.id === pid);
+  const victim = s.players.find((p) => p.id === target);
+  if (!voter || voter.bankrupt) return err("not in this game");
+  if (!victim || victim.bankrupt) return err("no such player");
+  if (pid === target) return err("cannot kick yourself");
+  if (s.stack.some((f) => f.t === "auction")) return err("wait for the auction to end"); // kicking a bid leader would corrupt the auction
+  const others = alive(s).filter((p) => p.id !== target);
+  if (others.length < 2 && victim.connected) return err("cannot kick a present player 1v1"); // kick = instant win otherwise
+
+  const votes = new Set(s.kickVotes[target] ?? []);
+  votes.add(pid);
+  s.kickVotes[target] = [...votes];
+  const ev: GameEvent[] = [info(`${voter.name} votes to kick ${victim.name} (${votes.size}/${others.length})`)];
+  if (votes.size < others.length) return ok(s, ev);
+
+  // unanimous: void any debt frame the target holds (a dead debtor would block the machine)
+  s.stack = s.stack.filter((f) => !(f.t === "debt" && f.debtor === target));
+  ev.push(info(`${victim.name} was kicked`));
+  seizeToBank(s, target, ev);
+  return ok(s, ev);
+}
+
+// ---- asset actions ----------------------------------------------------
+
+// properties.ts fns share one wrapper. build/unmortgage SPEND cash, so they stay
+// gated to your own postRoll (an auction leader spending below their bid would go
+// negative at settle). mortgage/sellHouse only RAISE cash → routed orthogonally in apply().
 function asset(fn: (s: GameState, pid: PlayerId, tile: number) => string | null): Handler {
   return (s, pid, a) => {
     if (!("tile" in a)) return err("bad action");
-    const node = activeNode(s);
-    const allowed = node.t === "debt" ? (node as DebtFrame).debtor === pid : cur(s).id === pid;
-    if (!allowed) return err("not your move");
+    if (cur(s).id !== pid) return err("not your move");
     const e = fn(s, pid, a.tile);
     return e ? err(e) : ok(s);
   };
@@ -255,17 +267,10 @@ const HANDLERS: Record<Node["t"], Partial<Record<ClientAction["type"], Handler>>
     endTurn,
     roll: rollAgain,
     build: asset(props.build),
-    sellHouse: asset(props.sellHouse),
-    mortgage: asset(props.mortgage),
     unmortgage: asset(props.unmortgage),
   },
   auction: { bid, fold },
-  debt: {
-    payDebt,
-    bankrupt,
-    sellHouse: asset(props.sellHouse),
-    mortgage: asset(props.mortgage),
-  },
+  debt: { payDebt, bankrupt },
 };
 
 // ---- lobby -----------------------------------------------------------
@@ -315,6 +320,14 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
   if (state.status === "lobby") return lobby(clone(state), pid, a);
   if (a.type === "proposeTrade" || a.type === "respondTrade" || a.type === "cancelTrade")
     return handleTrade(clone(state), pid, a); // orthogonal region
+  if (a.type === "votekick") return votekick(clone(state), pid, a.target); // orthogonal region
+  if (a.type === "mortgage" || a.type === "sellHouse") {
+    // cash-raising asset moves are legal ANYTIME: mortgage to afford a buy prompt,
+    // raise rent money off-turn, sell houses while someone else's auction runs.
+    const s = clone(state);
+    const e = (a.type === "mortgage" ? props.mortgage : props.sellHouse)(s, pid, a.tile);
+    return e ? err(e) : ok(s);
+  }
 
   const node = activeNode(state);
   const h = HANDLERS[node.t][a.type];
@@ -322,9 +335,10 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
   return h(clone(state), pid, a);
 }
 
-// Derived from the SAME table. Feeds client button enablement AND the soak test.
+// Derived from the SAME table (+ the always-legal cash raisers). Feeds client
+// button enablement AND the soak test.
 export function legalActions(s: Pick<GameState, "status" | "phase" | "stack">, _pid: PlayerId): ClientAction["type"][] {
   if (s.status === "lobby") return ["start", "updateSettings"];
   if (s.status === "ended") return [];
-  return Object.keys(HANDLERS[activeNode(s).t]) as ClientAction["type"][];
+  return [...(Object.keys(HANDLERS[activeNode(s).t]) as ClientAction["type"][]), "mortgage", "sellHouse"];
 }

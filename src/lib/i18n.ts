@@ -79,8 +79,10 @@ const it: Record<string, string> = {
   "ev.paid": "{from} → {to}: ${amount} ({why})",
   "ev.bank": "banca",
   "ev.auctionWon": "{name} vince l'asta per ${price}",
+  "ev.jailed": "{name} va in prigione",
   "ev.bankrupt": "{name} è in bancarotta",
   "ev.card": "{name} pesca: {text}",
+  "kick.vote": "Vota per espellere {name}",
 
   "buy.q": "Comprare {name} per",
   "buy.buy": "Compra",
@@ -204,8 +206,10 @@ const en: Record<string, string> = {
   "ev.paid": "{from} → {to}: ${amount} ({why})",
   "ev.bank": "bank",
   "ev.auctionWon": "{name} wins the auction for ${price}",
+  "ev.jailed": "{name} goes to jail",
   "ev.bankrupt": "{name} is bankrupt",
   "ev.card": "{name} draws: {text}",
+  "kick.vote": "Vote to kick {name}",
 
   "buy.q": "Buy {name} for",
   "buy.buy": "Buy",

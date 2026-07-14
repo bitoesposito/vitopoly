@@ -17,6 +17,7 @@ export class RoomDO extends DurableObject<Env> {
     // Runs before any fetch/message, including after a hibernation wake — nothing to rehydrate but the blobs.
     ctx.blockConcurrencyWhile(async () => {
       this.game = (await ctx.storage.get<GameState>("game")) ?? createGame(seed());
+      this.game.kickVotes ??= {}; // blobs persisted before votekick existed
       this.chat = (await ctx.storage.get<ChatMsg[]>("chat")) ?? [];
     });
   }

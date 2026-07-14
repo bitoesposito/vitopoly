@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { Clock, Dices, Ticket, Trophy, type LucideIcon } from "lucide-react";
-import { activeNode, CHANCE, CHEST, legalActions } from "@tangentopoly/game";
-import type { GameEvent, PublicState } from "@tangentopoly/game";
+import { activeNode, BOARD, CHANCE, CHEST, legalActions } from "@tangentopoly/game";
+import type { DebtFrame, GameEvent, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
-import { useT } from "@/lib/i18n";
+import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
-import { BuyPanel, DebtPanel } from "./Panels";
 
 type T = ReturnType<typeof useT>;
 
@@ -53,6 +52,8 @@ function eventText(e: GameEvent, names: Record<string, string>, t: T): string {
     }
     case "auctionWon":
       return t("ev.auctionWon", { name: names[e.pid], price: e.price });
+    case "jailed":
+      return t("ev.jailed", { name: names[e.pid] });
     case "bankrupt":
       return t("ev.bankrupt", { name: names[e.pid] });
     case "card":
@@ -67,6 +68,7 @@ export function Center({ game }: { game: PublicState }) {
   const events = useGame((s) => s.events);
   const error = useGame((s) => s.error);
   const t = useT();
+  const tn = useTileName();
   const dice = lastRoll(events);
   const legal = new Set(legalActions(game, myId));
   const isMyTurn = game.players[game.current]?.id === myId;
@@ -107,32 +109,74 @@ export function Center({ game }: { game: PublicState }) {
         <Die value={dice?.[1] ?? null} />
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {primary && (
-          <Button className="px-6" onClick={primary.action}>
-            {primary.icon && <primary.icon className="size-4" />}
-            {primary.label}
-          </Button>
+      {/* zona azioni unica: qualsiasi decisione (roll/buy/debito/prigione) appare qui,
+          centrata sotto i dadi — mai pannelli sparsi altrove */}
+      <div className="flex flex-col items-center gap-2">
+        {node.t === "buyPrompt" && isMyTurn && (
+          <div className="text-center text-sm font-semibold">
+            {t("buy.q", { name: tn(node.tile) })} <span className="text-success">${BOARD[node.tile].price}</span>?
+          </div>
         )}
-        {me?.inJail && isMyTurn && node.t === "preRoll" && (
-          <>
-            <Button variant="secondary" size="sm" onClick={() => send({ type: "payBail" })}>
-              {t("center.payBail")}
+        {node.t === "debt" && ((node as DebtFrame).debtor === myId ? (
+          <div className="space-y-1 text-center">
+            <div className="text-sm font-semibold text-destructive">
+              {t("debt.youOwe", { total: (node as DebtFrame).claims.reduce((s, c) => s + c.amount, 0) })}
+            </div>
+            <div className="text-xs text-muted-foreground">{t("debt.help")}</div>
+          </div>
+        ) : (
+          <div className="text-center text-xs text-muted-foreground">
+            {t("debt.someone", {
+              name: names[(node as DebtFrame).debtor] ?? "",
+              total: (node as DebtFrame).claims.reduce((s, c) => s + c.amount, 0),
+            })}
+          </div>
+        ))}
+
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {primary && (
+            <Button className="px-6" onClick={primary.action}>
+              {primary.icon && <primary.icon className="size-4" />}
+              {primary.label}
             </Button>
-            {me.jailCards > 0 && (
-              <Button variant="secondary" size="sm" onClick={() => send({ type: "useJailCard" })}>
-                <Ticket className="size-4" />
-                {t("center.useJailCard")}
+          )}
+          {me?.inJail && isMyTurn && node.t === "preRoll" && (
+            <>
+              <Button variant="secondary" size="sm" onClick={() => send({ type: "payBail" })}>
+                {t("center.payBail")}
               </Button>
-            )}
-          </>
-        )}
+              {me.jailCards > 0 && (
+                <Button variant="secondary" size="sm" onClick={() => send({ type: "useJailCard" })}>
+                  <Ticket className="size-4" />
+                  {t("center.useJailCard")}
+                </Button>
+              )}
+            </>
+          )}
+          {node.t === "buyPrompt" && isMyTurn && (
+            <>
+              <Button size="sm" disabled={(me?.cash ?? 0) < (BOARD[node.tile].price ?? 0)} onClick={() => send({ type: "buy" })}>
+                {t("buy.buy")}
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => send({ type: "decline" })}>
+                {game.settings.auction ? t("buy.declineAuction") : t("buy.decline")}
+              </Button>
+            </>
+          )}
+          {node.t === "debt" && (node as DebtFrame).debtor === myId && (
+            <>
+              <Button size="sm" disabled={(me?.cash ?? 0) < (node as DebtFrame).claims[0].amount} onClick={() => send({ type: "payDebt" })}>
+                {t("debt.pay")}
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => send({ type: "bankrupt" })}>
+                {t("debt.bankrupt")}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {error && <div className="text-center text-xs text-destructive">{error}</div>}
-
-      <BuyPanel game={game} myId={myId} />
-      <DebtPanel game={game} myId={myId} />
 
       <div className="flex min-h-16 flex-1 flex-col-reverse overflow-y-auto rounded-md bg-muted p-2 text-[11px] leading-relaxed text-muted-foreground">
         <div>

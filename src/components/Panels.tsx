@@ -23,63 +23,13 @@ function Panel({ ring, className, children }: { ring?: string; className?: strin
   );
 }
 
-export function BuyPanel({ game, myId }: { game: PublicState; myId: string }) {
-  const t = useT();
-  const tn = useTileName();
-  const ph = game.phase;
-  if (ph.t !== "buyPrompt" || game.stack.length > 0) return null;
-  if (game.players[game.current]?.id !== myId) return null;
-  const tile = BOARD[ph.tile];
-  return (
-    <Panel ring="ring-primary/50">
-      <div className="text-sm font-semibold">
-        {t("buy.q", { name: tn(ph.tile) })} <span className="text-success">${tile.price}</span>?
-      </div>
-      <div className="flex gap-2">
-        <Button size="sm" onClick={() => send({ type: "buy" })}>
-          {t("buy.buy")}
-        </Button>
-        <Button size="sm" variant="secondary" onClick={() => send({ type: "decline" })}>
-          {game.settings.auction ? t("buy.declineAuction") : t("buy.decline")}
-        </Button>
-      </div>
-    </Panel>
-  );
-}
-
-export function DebtPanel({ game, myId }: { game: PublicState; myId: string }) {
-  const t = useT();
-  const f = game.stack.at(-1);
-  if (f?.t !== "debt") return null;
-  const d = f as DebtFrame;
-  const total = d.claims.reduce((s, c) => s + c.amount, 0);
-  const me = game.players.find((p) => p.id === myId);
-  if (d.debtor !== myId)
-    return <Panel>{t("debt.someone", { name: game.players.find((p) => p.id === d.debtor)?.name ?? "", total })}</Panel>;
-  return (
-    <Panel ring="ring-destructive/50">
-      <div className="text-sm font-semibold text-destructive">{t("debt.youOwe", { total })}</div>
-      <div className="text-muted-foreground">{t("debt.help")}</div>
-      <div className="flex gap-2">
-        <Button size="sm" disabled={(me?.cash ?? 0) < d.claims[0].amount} onClick={() => send({ type: "payDebt" })}>
-          {t("debt.pay")}
-        </Button>
-        <Button size="sm" variant="destructive" onClick={() => send({ type: "bankrupt" })}>
-          {t("debt.bankrupt")}
-        </Button>
-      </div>
-    </Panel>
-  );
-}
-
-// My properties: build/sell/mortgage. Active in postRoll (my turn) and in my debt frame.
+// My properties: sell/mortgage always (cash raisers are legal anytime); build/unmortgage on my postRoll.
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
   const tn = useTileName();
   const node = game.stack.at(-1) ?? game.phase;
   const mine = Object.entries(game.props).filter(([, o]) => o!.owner === myId);
-  const inMyDebt = node.t === "debt" && (node as DebtFrame).debtor === myId;
-  const canManage = (node.t === "postRoll" && game.players[game.current]?.id === myId) || inMyDebt;
+  const canManage = game.status === "playing"; // sell/mortgage: sempre legali (solo incassano)
   const canBuild = node.t === "postRoll" && game.players[game.current]?.id === myId;
 
   return (

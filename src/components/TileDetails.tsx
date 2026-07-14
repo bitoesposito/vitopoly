@@ -8,8 +8,8 @@ import { send } from "@/lib/ws";
 
 type T = ReturnType<typeof useT>;
 
-// Spiegazione breve "cos'è e che fa" — usata dal tooltip della tile.
-export function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
+// Spiegazione breve "cos'è e che fa" — usata nel corpo del popover.
+function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
   switch (tile.kind) {
     case "go":
       return t("info.go", { amount: 200 });

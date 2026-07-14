@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ChevronDown, Share2 } from "lucide-react";
 import type { GameSettings, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,11 @@ export function GameSettingsView({ game }: { game: PublicState }) {
   const st = game.settings;
   const patch = (settings: Partial<GameSettings>) => send({ type: "updateSettings", settings });
   const alone = game.players.length < 2;
+
+  // arrivo nelle impostazioni → copia il link d'invito (silenziosa, niente share nativo)
+  useEffect(() => {
+    shareInvite(code, true);
+  }, [code]);
 
   return (
     <div className="flex w-full max-w-xl flex-col gap-3 p-3">

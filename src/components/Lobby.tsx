@@ -23,7 +23,14 @@ export function Lobby() {
       <p className="text-center text-sm text-muted-foreground">
         {room ? <>{t("lobby.joining")} <span className="font-semibold text-foreground">{room}</span></> : t("lobby.creating")}
       </p>
-      <Input placeholder={t("lobby.name")} value={name} maxLength={20} onChange={(e) => setName(e.target.value)} />
+      <Input
+        autoFocus
+        placeholder={t("lobby.name")}
+        value={name}
+        maxLength={20}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && !busy && name.trim() && go()}
+      />
       <Button className="w-full" disabled={busy || !name.trim()} onClick={go}>
         {room ? t("lobby.enter") : t("lobby.create")}
       </Button>

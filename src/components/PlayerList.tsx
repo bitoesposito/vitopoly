@@ -5,7 +5,7 @@ import { useT } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
 
 // ponytail: black ring = outline di contrasto sui colori pedina, non un token themabile
-export const dot = (token: number) => (
+const dot = (token: number) => (
   <span className="size-3 shrink-0 rounded-full ring-1 ring-black/40" style={{ background: TOKEN_COLOR[token % 8] }} />
 );
 

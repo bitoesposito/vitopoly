@@ -99,7 +99,7 @@ function resolveLanding(s: GameState, p: Player, diceTotal: number, again: boole
 function drawCard(s: GameState, p: Player, deck: "chance" | "chest", again: boolean, ev: GameEvent[]): void {
   const pile = s.decks[deck];
   const id = pile.shift()!;
-  pile.push(id); // reinsert at the bottom. ponytail: jail cards duplicate this way — accepted
+  pile.push(id); // reinsert at the bottom. jail cards duplicate this way — accepted
   const card = (deck === "chance" ? CHANCE : CHEST)[id];
   ev.push({ e: "card", pid: p.id, deck, cardId: id });
   ev.push({ e: "info", text: `${p.name}: ${card.text}` });
@@ -118,7 +118,7 @@ function drawCard(s: GameState, p: Player, deck: "chance" | "chest", again: bool
     case "back": {
       p.pos = (p.pos - fx.n + 40) % 40;
       ev.push({ e: "moved", pid: p.id, from: (p.pos + fx.n) % 40, to: p.pos });
-      resolveLanding(s, p, fx.n, again, ev); // ponytail: dice total for a rare utility edge = n. fine
+      resolveLanding(s, p, fx.n, again, ev); // dice total for a rare utility edge = n. fine
       return;
     }
     case "collect":

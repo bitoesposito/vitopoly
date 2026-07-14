@@ -11,7 +11,7 @@ import { TileDetails } from "./TileDetails";
 
 const QUICK_BIDS = [2, 10, 100];
 
-// Barra che si svuota verso la deadline (10s all'apertura, 6s dopo ogni offerta).
+// drains toward the deadline: 10s to open, 6s after each bid
 function TimeBar({ deadline, total }: { deadline: number | undefined; total: number }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -26,8 +26,7 @@ function TimeBar({ deadline, total }: { deadline: number | undefined; total: num
   );
 }
 
-// Overlay non chiudibile reso DENTRO la Board: oscura e isola solo il tabellone (la sidebar
-// con giocatori/soldi/proprietà/chat resta intatta). Sparisce quando il frame lascia lo stack.
+// non-dismissable overlay inside the Board: dims the board only, sidebar stays usable
 export function AuctionDialog({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();

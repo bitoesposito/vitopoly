@@ -42,8 +42,7 @@ function ThemeToggle() {
   );
 }
 
-// Barra sottile SOLO mobile (header del bottom-sheet): conteggio + toggle chat + tema + lingua.
-// Su desktop non c'è sidebar: tema/lingua stanno nell'header della card chat.
+// mobile-only bottom-sheet header: player count + chat toggle + theme + language
 function TopBar({ chatOpen, onToggleChat }: { chatOpen: boolean; onToggleChat: () => void }) {
   const t = useT();
   const count = useGame((s) => s.game?.players.length ?? 0);
@@ -73,7 +72,7 @@ function Chat({ open }: { open: boolean }) {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.length]);
 
-  // chat chiusa (mobile): nuovo messaggio → toast
+  // chat closed (mobile): new message -> toast
   const prevLen = useRef(chat.length);
   useEffect(() => {
     const m = chat.at(-1);
@@ -81,7 +80,7 @@ function Chat({ open }: { open: boolean }) {
     prevLen.current = chat.length;
   }, [chat, open]);
 
-  // desktop: digitare ovunque scrive in chat (unico target da tastiera dell'app)
+  // desktop: typing anywhere focuses the chat input
   useEffect(() => {
     if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const h = (e: KeyboardEvent) => {
@@ -101,7 +100,7 @@ function Chat({ open }: { open: boolean }) {
     setText("");
   };
 
-  // raggruppa messaggi consecutivi dello stesso mittente
+  // group consecutive messages from the same sender
   const groups = chat.reduce<(typeof chat)[]>((gs, m) => {
     const last = gs.at(-1);
     if (last && last[0].pid === m.pid) last.push(m);
@@ -111,7 +110,7 @@ function Chat({ open }: { open: boolean }) {
 
   return (
     <div className={`min-h-0 flex-1 flex-col overflow-hidden md:bg-card md:ring-1 md:ring-foreground/10 ${open ? "flex" : "hidden md:flex"}`}>
-      {/* desktop: header della card chat con tema/lingua (su mobile stanno nella TopBar dello sheet) */}
+      {/* desktop: chat card header with theme/language */}
       <div className="hidden items-center gap-2 border-b border-border p-2 md:flex">
         <span className="mr-auto text-sm font-semibold">Chat</span>
         <ThemeToggle />
@@ -152,12 +151,10 @@ function Chat({ open }: { open: boolean }) {
   );
 }
 
-// Colonna destra. Desktop: nessuna sidebar, solo card singole impilate (giocatori/scambi/
-// proprietà + chat come ultima). Mobile: bottom-sheet espandibile con la sola chat.
+// right column. Desktop: stacked cards + chat. Mobile: expandable bottom-sheet with chat only.
 export function Sidebar({ game }: { game: PublicState }) {
-  const [chatOpen, setChatOpen] = useState(true); // collapse solo mobile: toggle nascosto su md
-  // ponytail: resize solo mobile (altezza del bottom-sheet). Desktop = larghezza fissa, niente resize.
-  // 2 step (stretta/media): il drag snappa al più vicino, gli estremi fanno da min/max.
+  const [chatOpen, setChatOpen] = useState(true); // collapse is mobile-only
+  // mobile-only sheet resize, 2 snap heights; desktop is fixed width
   const [chatH, setChatH] = useState<number>();
   const snap = (v: number, steps: number[]) => steps.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a));
 
@@ -166,21 +163,20 @@ export function Sidebar({ game }: { game: PublicState }) {
       style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
       className={`relative flex shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${chatOpen ? "h-[var(--chat-h,45%)]" : "h-auto"}`}
     >
-      {/* resize: solo mobile (altezza sheet); nascosto su desktop */}
+      {/* mobile-only sheet resize handle; double click toggles the chat */}
       <div
         className="absolute top-0 right-0 left-0 z-10 flex h-3 shrink-0 cursor-row-resize touch-none items-center justify-center hover:bg-ring/30 md:hidden"
-        onDoubleClick={() => setChatOpen((o) => !o)} // mobile: doppio click sul bordo apre/chiude la chat
+        onDoubleClick={() => setChatOpen((o) => !o)}
         onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
         onPointerMove={(e) => {
           if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
           setChatH(snap(innerHeight - e.clientY, [innerHeight * 0.25, innerHeight * 0.45]));
         }}
       >
-        {/* grabber stile bottom-sheet: hint visivo del resize su mobile */}
         <span className="h-1 w-10 rounded-full bg-muted-foreground/40" />
       </div>
       <TopBar chatOpen={chatOpen} onToggleChat={() => setChatOpen(!chatOpen)} />
-      {/* desktop-only: su mobile i pannelli stanno sotto il tabellone (App.tsx), fuori da questo sheet */}
+      {/* desktop-only: on mobile the panels sit below the board (App.tsx) */}
       {game.status !== "lobby" && (
         <div className="hidden shrink-0 overflow-y-auto md:block md:max-h-[55%]">
           <GamePanels game={game} />

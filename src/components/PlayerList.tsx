@@ -6,7 +6,6 @@ import { send } from "@/lib/ws";
 import { TOKEN_COLOR } from "@/lib/colors";
 import { Button } from "@/components/ui/button";
 
-// ponytail: black ring = outline di contrasto sui colori pedina, non un token themabile
 const dot = (token: number) => (
   <span className="size-3 shrink-0 rounded-full ring-1 ring-black/40" style={{ background: TOKEN_COLOR[token % 8] }} />
 );
@@ -37,7 +36,7 @@ export function PlayerList({ game }: { game: PublicState }) {
           )}
           {!p.connected && <WifiOff className="size-3.5 text-muted-foreground" aria-label={t("aria.disconnected")} />}
           {game.status !== "lobby" && <span className="ml-auto tabular-nums text-success">${p.cash}</span>}
-          {/* votekick: unanimità degli altri vivi (engine). Icona + conteggio voti in corso. */}
+          {/* votekick: unanimity of the other alive players (engine) */}
           {game.status === "playing" && !p.bankrupt && p.id !== myId && (
             <Button
               size="icon-sm"

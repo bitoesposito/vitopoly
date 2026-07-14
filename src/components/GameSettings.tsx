@@ -63,7 +63,7 @@ export function GameSettingsView({ game }: { game: PublicState }) {
   const patch = (settings: Partial<GameSettings>) => send({ type: "updateSettings", settings });
   const alone = game.players.length < 2;
 
-  // arrivo nelle impostazioni → copia il link d'invito (silenziosa, niente share nativo)
+  // landing on settings auto-copies the invite link (silent, no native share)
   useEffect(() => {
     shareInvite(code, true);
   }, [code]);

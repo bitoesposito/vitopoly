@@ -6,7 +6,7 @@ import { GROUP_COLOR, TOKEN_COLOR } from "@/lib/colors";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TileDetails } from "./TileDetails";
 
-// Caselle speciali: icona lucide (monocroma) al posto del nome.
+// special tiles: icon instead of name
 const KIND_ICON: Partial<Record<TileKind, LucideIcon>> = {
   go: Play,
   chest: Gift,
@@ -32,14 +32,13 @@ const BAR: Record<string, string> = {
   right: "right-0 top-0 bottom-0 w-1",
 };
 
-// Click = popover con costi e azioni (niente più tooltip su hover).
+// click = popover with costs and actions
 export function Tile({ index, game }: { index: number; game: PublicState }) {
   const tile = BOARD[index];
   const name = useTileName()(index);
   const Icon = KIND_ICON[tile.kind];
   const own = game.props[index];
   const owner = own ? game.players.find((p) => p.id === own.owner) : undefined;
-  const here = game.players.filter((p) => p.pos === index && !p.bankrupt);
   const side = innerSide(index);
   const isCorner = index % 10 === 0;
 
@@ -55,7 +54,6 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
 
           <div className={`flex h-full w-full flex-col items-center justify-center gap-px text-center font-condensed leading-none lg:font-sans xl:text-base lg:text-sm md:text-xs sm:text-[10px] text-[9px] ${isCorner ? "p-1" : "p-0.5"}`}>
             {tile.kind === "railroad" ? (
-              // icona + direzione: su mobile impila (icona sopra, testo sotto), da sm in riga
               <span className="flex flex-col items-center justify-center gap-0.5 px-px font-medium text-foreground sm:flex-row">
                 <TrainFront className="size-3.5 shrink-0 sm:size-4" aria-label={name} />
                 {name.replace(/stazione\s*|\s*railroad/i, "").trim()}
@@ -65,7 +63,6 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
             ) : (
               <span className="px-px font-medium text-foreground sm:break-normal">{name}</span>
             )}
-            {/* prezzo nascosto su celle piccole: sta nel popover, evita salti di riga */}
             {tile.price != null && !own && <span className="hidden text-muted-foreground sm:inline">${tile.price}</span>}
             {own?.mortgaged && <span className="font-bold text-destructive">(M)</span>}
             {(own?.houses ?? 0) > 0 && (
@@ -73,18 +70,6 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
             )}
           </div>
 
-          {here.length > 0 && (
-            <div className="absolute right-0.5 bottom-0.5 flex flex-wrap justify-end gap-0.5">
-              {here.map((p) => (
-                <span
-                  key={p.id}
-                  title={p.name}
-                  className="size-2.5 rounded-[2px] ring-1 ring-black/40 sm:size-3"
-                  style={{ background: TOKEN_COLOR[p.token % 8] }}
-                />
-              ))}
-            </div>
-          )}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64">

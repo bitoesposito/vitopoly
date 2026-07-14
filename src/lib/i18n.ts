@@ -1,8 +1,8 @@
 import { BOARD } from "@tangentopoly/game";
 import { useGame } from "./store";
 
-// ponytail: i18n custom su zustand (2 lingue) — niente react-i18next.
-// t(key, vars) sostituisce {var}; en manca → fallback it. Aggiungi lingue in DICT + LANGS.
+// hand-rolled i18n on zustand (2 languages), no react-i18next.
+// t(key, vars) replaces {var}; missing en falls back to it. Add languages in DICT + LANGS.
 
 export type Lang = "it" | "en";
 type Vars = Record<string, string | number>;
@@ -65,6 +65,7 @@ const it: Record<string, string> = {
 
   "share.copied": "Link copiato negli appunti",
   "share.inviteText": "Unisciti alla partita!",
+  "net.reconnecting": "Connessione persa — riconnessione…",
 
   "center.turnOf": "turno di",
   "center.roll": "Tira i dadi",
@@ -192,6 +193,7 @@ const en: Record<string, string> = {
 
   "share.copied": "Link copied to clipboard",
   "share.inviteText": "Join the game!",
+  "net.reconnecting": "Connection lost — reconnecting…",
 
   "center.turnOf": "turn of",
   "center.roll": "Roll the dice",
@@ -294,7 +296,7 @@ const TILE_IT: Record<number, string> = {
   12: "Società Elettrica",
   13: "Lione",
   14: "Parigi",
-  15: "Stazione Sud",
+  15: "Stazione Est",
   16: "Colonia",
   17: "Probabilità",
   18: "Monaco",
@@ -304,7 +306,7 @@ const TILE_IT: Record<number, string> = {
   22: "Imprevisti",
   23: "Milano",
   24: "Roma",
-  25: "Stazione Est",
+  25: "Stazione Sud",
   28: "Acquedotto",
   29: "Londra",
   30: "In Prigione",

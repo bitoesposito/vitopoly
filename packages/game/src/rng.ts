@@ -1,5 +1,5 @@
 // xorshift32: deterministic, seed lives in GameState so tests + replay are reproducible.
-// ponytail: seeded rng, not injectable dice. Add a test-only dice queue if scripted flow tests need exact rolls.
+// seeded rng, not injectable dice. Add a test-only dice queue if scripted flow tests need exact rolls.
 
 function xorshift32(x: number): number {
   x ^= x << 13;

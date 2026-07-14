@@ -51,7 +51,7 @@ export function sellHouse(s: GameState, pid: PlayerId, tile: TileId): string | n
       own.houses = 4;
       p.cash += def.houseCost! / 2;
     } else {
-      // ponytail: building shortage — sell the whole hotel in one block (documented deviation)
+      // building shortage — sell the whole hotel in one block (documented deviation)
       s.bank.hotels++;
       own.houses = 0;
       p.cash += (def.houseCost! * 5) / 2;

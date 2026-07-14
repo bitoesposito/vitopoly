@@ -50,7 +50,17 @@ export class RoomDO extends DurableObject<Env> {
     return new Response(null, { status: 101, webSocket: client });
   }
 
+  // an unhandled exception here resets the DO and drops every socket in the room
   async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
+    try {
+      await this.handleMessage(ws, raw);
+    } catch (e) {
+      console.error("webSocketMessage crashed:", e);
+      this.send(ws, { type: "error", error: "internal error" });
+    }
+  }
+
+  private async handleMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
     const { pid } = ws.deserializeAttachment() as { pid: string };
     let msg: ClientMsg;
     try {
@@ -89,7 +99,17 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   // Timer: fires when the current wait-node's deadline passes; applies the default action.
+  // Same deal as webSocketMessage: a throw would reset the DO, so catch and retry.
   async alarm(): Promise<void> {
+    try {
+      await this.handleAlarm();
+    } catch (e) {
+      console.error("alarm crashed:", e);
+      await this.ctx.storage.setAlarm(Date.now() + 10_000);
+    }
+  }
+
+  private async handleAlarm(): Promise<void> {
     if (this.game.status !== "playing" || !this.game.deadline) return;
     if (Date.now() < this.game.deadline - 1000) {
       // an action moved the deadline after this alarm was queued — re-arm
@@ -113,6 +133,7 @@ export class RoomDO extends DurableObject<Env> {
   // Single commit path: cap log, persist, broadcast, re-arm the timer.
   private async commit(r: Extract<Result, { ok: true }>, from?: WebSocket): Promise<void> {
     if (!invariantsOk(r.state)) {
+      console.error("invariant violation, state not persisted:", JSON.stringify(r.events));
       if (from) this.send(from, { type: "error", error: "invariant violation (not persisted)" });
       return;
     }

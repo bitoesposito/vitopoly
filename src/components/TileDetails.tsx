@@ -8,7 +8,7 @@ import { send } from "@/lib/ws";
 
 type T = ReturnType<typeof useT>;
 
-// Spiegazione breve "cos'è e che fa" — usata nel corpo del popover.
+// short "what is it" line for the popover body
 function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
   switch (tile.kind) {
     case "go":
@@ -34,7 +34,7 @@ function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
   }
 }
 
-// Contenuto del popover: titolo, tabella costi (vie) o info, azioni build/mortgage se è mia.
+// popover content: title, rent table or info, asset actions if mine
 export function TileDetails({ index, game }: { index: number; game: PublicState }) {
   const tile = BOARD[index];
   const myId = useGame((s) => s.myId);
@@ -42,7 +42,7 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
   const name = useTileName()(index);
   const own = game.props[index];
 
-  // stesse condizioni di AssetsPanel: sell/mortgage sempre, build/unmortgage nel mio postRoll
+  // same rules as AssetsPanel: sell/mortgage always, build/unmortgage on my postRoll
   const node = game.stack.at(-1) ?? game.phase;
   const myTurn = game.players[game.current]?.id === myId;
   const canBuild = node.t === "postRoll" && myTurn;

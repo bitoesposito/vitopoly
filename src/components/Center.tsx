@@ -109,8 +109,7 @@ export function Center({ game }: { game: PublicState }) {
         <Die value={dice?.[1] ?? null} />
       </div>
 
-      {/* zona azioni unica: qualsiasi decisione (roll/buy/debito/prigione) appare qui,
-          centrata sotto i dadi — mai pannelli sparsi altrove */}
+      {/* single action zone: every decision (roll/buy/debt/jail) shows here, under the dice */}
       <div className="flex flex-col items-center gap-2">
         {node.t === "buyPrompt" && isMyTurn && (
           <div className="text-center text-sm font-semibold">
@@ -178,8 +177,8 @@ export function Center({ game }: { game: PublicState }) {
 
       {error && <div className="text-center text-xs text-destructive">{error}</div>}
 
-      <div className="flex min-h-16 flex-1 flex-col-reverse overflow-y-auto rounded-md bg-muted p-2 text-[11px] leading-relaxed text-muted-foreground">
-        <div>
+      <div className="flex min-h-16 flex-1 w-full overflow-y-auto rounded-md p-2 text-[11px] leading-relaxed text-muted-foreground">
+        <div className="flex-1 flex-col text-center">
           {game.log.map((e, i) => (
             <div key={i}>{eventText(e, names, t)}</div>
           ))}

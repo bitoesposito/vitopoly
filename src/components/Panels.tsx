@@ -14,7 +14,7 @@ import { send } from "@/lib/ws";
 import { useGame } from "@/lib/store";
 import { PlayerList } from "./PlayerList";
 
-// Compact game panels. Card size="sm"; status colors via --color-success/--color-warning tokens.
+// compact game panels
 function Panel({ ring, className, children }: { ring?: string; className?: string; children: React.ReactNode }) {
   return (
     <Card size="sm" className={ring}>
@@ -23,13 +23,13 @@ function Panel({ ring, className, children }: { ring?: string; className?: strin
   );
 }
 
-// My properties: sell/mortgage always (cash raisers are legal anytime); build/unmortgage on my postRoll.
+// my properties: sell/mortgage always legal (cash raisers); build/unmortgage only on my postRoll
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
   const tn = useTileName();
   const node = game.stack.at(-1) ?? game.phase;
   const mine = Object.entries(game.props).filter(([, o]) => o!.owner === myId);
-  const canManage = game.status === "playing"; // sell/mortgage: sempre legali (solo incassano)
+  const canManage = game.status === "playing";
   const canBuild = node.t === "postRoll" && game.players[game.current]?.id === myId;
 
   return (
@@ -89,7 +89,7 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
 }
 
 export function TradePanel({ game, myId }: { game: PublicState; myId: string }) {
-  const tr = useT(); // `t` è già usato come var trade/tile nei loop sotto
+  const tr = useT(); // `t` is taken by trade/tile loop vars below
   const tn = useTileName();
   const [to, setTo] = useState("");
   const [giveCash, setGiveCash] = useState("0");
@@ -98,8 +98,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
   const [getProps, setGetProps] = useState<number[]>([]);
   const [open, setOpen] = useState(false);
 
-  // sezione fissa in colonna: durante un'asta il crea è disabilitato, non nascosto (niente layout jump)
-  const inAuction = game.stack.some((f) => f.t === "auction");
+  const inAuction = game.stack.some((f) => f.t === "auction"); // trading is blocked during auctions
 
   const others = game.players.filter((p) => p.id !== myId && !p.bankrupt);
   const incoming = game.trades.filter((t) => t.to === myId);
@@ -222,8 +221,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
   );
 }
 
-// Colonna alla destra del tabellone (stile richup): giocatori+bancarotta, scambi, proprietà.
-// Su schermi stretti finisce sotto il tabellone, sempre in colonna (layout in App.tsx).
+// right-hand column: players + bankrupt, trades, properties
 export function GamePanels({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();
@@ -234,7 +232,7 @@ export function GamePanels({ game }: { game: PublicState }) {
       <Panel>
         <PlayerList game={game} />
         <div className="flex justify-end border-t border-border pt-2">
-          {/* bankrupt è legale solo nel proprio frame di debito (engine): visibile sempre, attivo solo allora */}
+          {/* bankrupt is only legal in your own debt frame; always visible, enabled only then */}
           <Button size="xs" variant="destructive" disabled={!canBankrupt} onClick={() => send({ type: "bankrupt" })}>
             {t("debt.bankrupt")}
           </Button>

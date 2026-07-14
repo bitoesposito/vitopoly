@@ -130,8 +130,7 @@ const rollAgain: Handler = (s, pid, a) => {
 
 // ---- auction ---------------------------------------------------------
 
-// amount is an INCREMENT over the current bid (+2/+10/+100 buttons): race-free
-// when two players click in the same window — both raises land, in order.
+// amount is an increment over the current bid: concurrent quick-bids both land, in order
 const bid: Handler = (s, pid, a) => {
   if (a.type !== "bid") return err("bad action");
   const f = s.stack.at(-1) as AuctionFrame;
@@ -157,9 +156,7 @@ const fold: Handler = (s, pid) => {
   return ok(s, ev);
 };
 
-// Server-only entry (NOT a ClientAction — clients could otherwise snipe an auction
-// closed early). Called by the room when the auction deadline expires: settle to
-// the current leader, or nobody.
+// server-only (not a ClientAction, or clients could snipe): deadline expired -> settle
 export function auctionTimeout(state: GameState): Result {
   if (state.stack.at(-1)?.t !== "auction") return err("no auction");
   const s = clone(state);
@@ -188,7 +185,7 @@ const bankrupt: Handler = (s, pid) => {
   if (f.debtor !== pid) return err("not your debt");
   const ev: GameEvent[] = [];
   s.stack.pop();
-  const creditor = f.claims[0].creditor; // ponytail: mixed-creditor debt -> everything to the first. deviation
+  const creditor = f.claims[0].creditor; // mixed-creditor debt -> everything to the first. deviation
 
   if (creditor === "bank") {
     seizeToBank(s, pid, ev);
@@ -206,8 +203,8 @@ const bankrupt: Handler = (s, pid) => {
 
 // ---- votekick (orthogonal, like trades) ------------------------------
 
-// Unanimous consent of the OTHER alive players removes an AFK player: their whole
-// estate falls to the bank and gets re-auctioned (same path as bank bankruptcy).
+// unanimous consent of the other alive players kicks an AFK player;
+// their estate falls to the bank and gets re-auctioned
 function votekick(s: GameState, pid: PlayerId, target: PlayerId): Result {
   const voter = s.players.find((p) => p.id === pid);
   const victim = s.players.find((p) => p.id === target);
@@ -233,9 +230,9 @@ function votekick(s: GameState, pid: PlayerId, target: PlayerId): Result {
 
 // ---- asset actions ----------------------------------------------------
 
-// properties.ts fns share one wrapper. build/unmortgage SPEND cash, so they stay
-// gated to your own postRoll (an auction leader spending below their bid would go
-// negative at settle). mortgage/sellHouse only RAISE cash → routed orthogonally in apply().
+// build/unmortgage SPEND cash -> gated to your own postRoll (a bid leader spending
+// below their bid would go negative at settle). mortgage/sellHouse only raise cash
+// and are routed orthogonally in apply().
 function asset(fn: (s: GameState, pid: PlayerId, tile: number) => string | null): Handler {
   return (s, pid, a) => {
     if (!("tile" in a)) return err("bad action");
@@ -322,8 +319,7 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
     return handleTrade(clone(state), pid, a); // orthogonal region
   if (a.type === "votekick") return votekick(clone(state), pid, a.target); // orthogonal region
   if (a.type === "mortgage" || a.type === "sellHouse") {
-    // cash-raising asset moves are legal ANYTIME: mortgage to afford a buy prompt,
-    // raise rent money off-turn, sell houses while someone else's auction runs.
+    // cash raisers are legal anytime (afford a buy, raise rent money off-turn)
     const s = clone(state);
     const e = (a.type === "mortgage" ? props.mortgage : props.sellHouse)(s, pid, a.tile);
     return e ? err(e) : ok(s);

@@ -4,7 +4,7 @@ import type { GameState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
 
-// ponytail: dev-only screen simulator. Reachable at /dev in `pnpm dev` builds only
+// dev-only screen simulator. Reachable at /dev in `pnpm dev` builds only
 // (gated in main.tsx by import.meta.env.DEV — never bundled in prod).
 // To remove: delete src/dev/ and the DevBar lines in main.tsx.
 

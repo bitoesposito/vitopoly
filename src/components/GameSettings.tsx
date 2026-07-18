@@ -29,6 +29,8 @@ const SECTIONS: { titleKey: string; toggles: Toggle[] }[] = [
   { titleKey: "settings.sec.extra", toggles: [{ key: "vacationCash", invert: true }] },
 ];
 
+let autoCopied: string | null = null;
+
 function NumberSetting({ label, desc, value, options, prefix, disabled, onChange }: {
   label: string; desc: string; value: number; options: number[]; prefix?: string; disabled: boolean; onChange: (n: number) => void;
 }) {
@@ -63,8 +65,11 @@ export function GameSettingsView({ game }: { game: PublicState }) {
   const patch = (settings: Partial<GameSettings>) => send({ type: "updateSettings", settings });
   const alone = game.players.length < 2;
 
-  // landing on settings auto-copies the invite link (silent, no native share)
+  // landing on settings auto-copies the invite link (silent, no native share);
+  // module-level guard: once per room, StrictMode/remounts don't double-copy
   useEffect(() => {
+    if (!code || autoCopied === code) return;
+    autoCopied = code;
     shareInvite(code, true);
   }, [code]);
 

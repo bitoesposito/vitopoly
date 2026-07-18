@@ -5,8 +5,8 @@ import type { AuctionFrame, ClientAction, DebtFrame, GameState } from "../src/ty
 
 // Every action that isn't a key in the active node's handler table must be structurally rejected.
 // This proves the dispatcher — not scattered if-guards — protects the machine.
-// (Trades, votekick and the cash raisers mortgage/sellHouse are orthogonal regions,
-// routed outside the table — always legal, so excluded from this matrix.)
+// (Trades, votekick, voluntary bankrupt and the cash raisers mortgage/sellHouse/sellProperty
+// are orthogonal regions, routed outside the table with their own guards — excluded here.)
 
 const ALL_ACTIONS: ClientAction[] = [
   { type: "roll" },
@@ -19,18 +19,17 @@ const ALL_ACTIONS: ClientAction[] = [
   { type: "build", tile: 1 },
   { type: "unmortgage", tile: 1 },
   { type: "payDebt" },
-  { type: "bankrupt" },
   { type: "endTurn" },
   { type: "start" },
 ];
 
 // which actions each node's handler table mounts (mirror of HANDLERS in engine.ts)
 const LEGAL: Record<string, Set<string>> = {
-  preRoll: new Set(["roll", "payBail", "useJailCard"]),
+  preRoll: new Set(["roll", "payBail", "useJailCard", "build", "unmortgage"]),
   buyPrompt: new Set(["buy", "decline"]),
   postRoll: new Set(["endTurn", "build", "unmortgage"]),
   auction: new Set(["bid", "fold"]),
-  debt: new Set(["payDebt", "bankrupt"]),
+  debt: new Set(["payDebt"]),
 };
 
 function assertMatrix(s: GameState, nodeKind: string) {

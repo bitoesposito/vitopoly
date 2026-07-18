@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Handshake, Hotel, House, Minus, Plus } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
-import type { DebtFrame, PublicState } from "@tangentopoly/game";
+import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,14 +23,16 @@ function Panel({ ring, className, children }: { ring?: string; className?: strin
   );
 }
 
-// my properties: sell/mortgage always legal (cash raisers); build/unmortgage only on my postRoll
+// my properties: sell/mortgage on my turn or my debt (cash raisers); build/unmortgage on my preRoll/postRoll
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
   const tn = useTileName();
   const node = game.stack.at(-1) ?? game.phase;
   const mine = Object.entries(game.props).filter(([, o]) => o!.owner === myId);
-  const canManage = game.status === "playing";
-  const canBuild = node.t === "postRoll" && game.players[game.current]?.id === myId;
+  const myTurn = game.players[game.current]?.id === myId;
+  const inMyDebt = game.stack.some((f) => f.t === "debt" && f.debtor === myId);
+  const canRaise = game.status === "playing" && (myTurn || inMyDebt);
+  const canBuild = (node.t === "preRoll" || node.t === "postRoll") && myTurn;
 
   return (
     <Panel>
@@ -54,7 +56,7 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
                     Array.from({ length: o!.houses }, (_, h) => <House key={h} className="size-3.5" />)
                   )}
                 </span>
-                {canManage && (
+                {(canRaise || canBuild) && (
                   <span className="flex shrink-0 gap-1">
                     {canBuild && def.kind === "street" && !o!.mortgaged && (
                       <Button size="xs" variant="secondary" onClick={() => send({ type: "build", tile: tileId })}>
@@ -62,15 +64,20 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
                         <House className="size-3.5" />${def.houseCost}
                       </Button>
                     )}
-                    {o!.houses > 0 && (
+                    {canRaise && o!.houses > 0 && (
                       <Button size="xs" variant="secondary" onClick={() => send({ type: "sellHouse", tile: tileId })}>
                         <Minus className="size-3.5" />
                         <House className="size-3.5" />
                       </Button>
                     )}
-                    {game.settings.mortgageAllowed && o!.houses === 0 && !o!.mortgaged && (
+                    {canRaise && game.settings.mortgageAllowed && o!.houses === 0 && !o!.mortgaged && (
                       <Button size="xs" variant="secondary" onClick={() => send({ type: "mortgage", tile: tileId })}>
                         {t("assets.mortgage", { amount: def.price! / 2 })}
+                      </Button>
+                    )}
+                    {canRaise && o!.houses === 0 && !o!.mortgaged && (
+                      <Button size="xs" variant="secondary" onClick={() => send({ type: "sellProperty", tile: tileId })}>
+                        {t("assets.sell", { amount: def.price! / 2 })}
                       </Button>
                     )}
                     {canBuild && o!.mortgaged && (
@@ -99,6 +106,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
   const [open, setOpen] = useState(false);
 
   const inAuction = game.stack.some((f) => f.t === "auction"); // trading is blocked during auctions
+  const me = game.players.find((p) => p.id === myId); // spectators/bankrupt can't trade
 
   const others = game.players.filter((p) => p.id !== myId && !p.bankrupt);
   const incoming = game.trades.filter((t) => t.to === myId);
@@ -119,7 +127,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
         </span>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="xs" disabled={inAuction}>
+            <Button size="xs" disabled={inAuction || !me || me.bankrupt}>
               <Plus className="size-3.5" />
               {tr("trade.create")}
             </Button>
@@ -225,15 +233,21 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
 export function GamePanels({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();
-  const node = game.stack.at(-1) ?? game.phase;
-  const canBankrupt = node.t === "debt" && (node as DebtFrame).debtor === myId;
+  const me = game.players.find((p) => p.id === myId);
+  const inAuction = game.stack.some((f) => f.t === "auction");
+  // voluntary bankruptcy is legal anytime (engine blocks it mid-auction)
+  const canBankrupt = game.status === "playing" && !!me && !me.bankrupt && !inAuction;
   return (
     <div className="flex w-full flex-col gap-2">
       <Panel>
         <PlayerList game={game} />
         <div className="flex justify-end border-t border-border pt-2">
-          {/* bankrupt is only legal in your own debt frame; always visible, enabled only then */}
-          <Button size="xs" variant="destructive" disabled={!canBankrupt} onClick={() => send({ type: "bankrupt" })}>
+          <Button
+            size="xs"
+            variant="destructive"
+            disabled={!canBankrupt}
+            onClick={() => confirm(t("debt.confirmBankrupt")) && send({ type: "bankrupt" })}
+          >
             {t("debt.bankrupt")}
           </Button>
         </div>

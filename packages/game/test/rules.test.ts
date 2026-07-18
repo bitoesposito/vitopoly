@@ -68,6 +68,42 @@ describe("building", () => {
   });
 });
 
+describe("asset actions: own turn only", () => {
+  it("build is legal on your own preRoll, before rolling", () => {
+    const s = started();
+    s.players[0].cash = 10000;
+    ownGroup(s, [1, 3], "a");
+    expect(s.phase.t).toBe("preRoll");
+    const r = apply(s, "a", { type: "build", tile: 1 });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.state.props[1]!.houses).toBe(1);
+  });
+
+  it("cash raisers are rejected off-turn, allowed for an off-turn debtor", () => {
+    const s = started();
+    s.props[6] = { owner: "b", mortgaged: false, houses: 0 };
+    expect(apply(s, "b", { type: "mortgage", tile: 6 }).ok).toBe(false); // a's turn
+    expect(apply(s, "b", { type: "sellProperty", tile: 6 }).ok).toBe(false);
+    // b owes (e.g. a "pay each player" card) -> b may raise cash even off-turn
+    s.stack.push({ t: "debt", debtor: "b", claims: [{ creditor: "a", amount: 500 }] });
+    expect(apply(s, "b", { type: "mortgage", tile: 6 }).ok).toBe(true);
+  });
+
+  it("sellProperty: deed back to the bank at half price", () => {
+    const s = started();
+    s.props[6] = { owner: "a", mortgaged: false, houses: 0 };
+    const r = apply(s, "a", { type: "sellProperty", tile: 6 });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.state.props[6]).toBeUndefined();
+    expect(r.state.players[0].cash).toBe(1500 + 50); // price 100 / 2
+    // mortgaged deeds have nothing left to sell
+    const m = started();
+    m.props[6] = { owner: "a", mortgaged: true, houses: 0 };
+    expect(apply(m, "a", { type: "sellProperty", tile: 6 }).ok).toBe(false);
+  });
+});
+
 describe("jail", () => {
   it("payBail frees and lets you roll", () => {
     let s = started();

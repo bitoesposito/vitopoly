@@ -76,6 +76,19 @@ export function mortgage(s: GameState, pid: PlayerId, tile: TileId): string | nu
   return null;
 }
 
+// ponytail: sale to the bank at flat half price (mortgage parity); tune if it warps the economy
+export function sellProperty(s: GameState, pid: PlayerId, tile: TileId): string | null {
+  const def = BOARD[tile];
+  const own = s.props[tile];
+  if (!own || own.owner !== pid) return "not yours";
+  if (own.mortgaged) return "already mortgaged — nothing left to sell";
+  if (own.houses > 0) return "sell the buildings first";
+  if (def.group && groupTiles(def.group).some((t) => (s.props[t]?.houses ?? 0) > 0)) return "group has buildings";
+  delete s.props[tile];
+  findPlayer(s, pid).cash += def.price! / 2;
+  return null;
+}
+
 export function unmortgage(s: GameState, pid: PlayerId, tile: TileId): string | null {
   const def = BOARD[tile];
   const own = s.props[tile];

@@ -105,6 +105,7 @@ export type ClientAction =
   | { type: "sellHouse"; tile: TileId }
   | { type: "mortgage"; tile: TileId }
   | { type: "unmortgage"; tile: TileId }
+  | { type: "sellProperty"; tile: TileId } // sell the deed back to the bank at half price
   | { type: "payDebt" }
   | { type: "bankrupt" }
   | { type: "endTurn" }

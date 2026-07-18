@@ -21,6 +21,7 @@ function randomAction(s: GameState, rng: { seed: number }): { pid: string; a: Cl
     case "sellHouse":
     case "mortgage":
     case "unmortgage":
+    case "sellProperty":
       return { pid, a: { type, tile } };
     default:
       return { pid, a: { type } as ClientAction };

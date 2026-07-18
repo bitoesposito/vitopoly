@@ -35,17 +35,22 @@ export class RoomDO extends DurableObject<Env> {
 
     const { 0: client, 1: server } = new WebSocketPair();
     this.ctx.acceptWebSocket(server);
-    server.serializeAttachment({ pid }); // survives hibernation — the trust boundary
+    server.serializeAttachment({ pid, name }); // survives hibernation — the trust boundary
 
     const joined = addPlayer(this.game, pid, name); // no-op if already joined (reconnect)
-    if (!joined) {
-      this.send(server, { type: "error", error: this.game.status === "lobby" ? "room is full" : "game already started" });
+    if (!joined && this.game.status === "lobby") {
+      this.send(server, { type: "error", error: "room is full" });
       server.close(4000, "cannot join");
       return new Response(null, { status: 101, webSocket: client });
     }
-    setConnected(this.game, pid, true);
     this.send(server, { type: "chatHistory", msgs: this.chat });
-    await this.persistAndBroadcast();
+    if (joined) {
+      setConnected(this.game, pid, true);
+      await this.persistAndBroadcast();
+    } else {
+      // game already started: stay as a spectator — sees state and chat, no seat
+      this.send(server, { type: "state", state: redact(this.game), events: [] });
+    }
 
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -61,7 +66,8 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private async handleMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
-    const { pid } = ws.deserializeAttachment() as { pid: string };
+    const att = ws.deserializeAttachment() as { pid: string; name?: string };
+    const pid = att.pid;
     let msg: ClientMsg;
     try {
       msg = JSON.parse(typeof raw === "string" ? raw : new TextDecoder().decode(raw)) as ClientMsg;
@@ -70,7 +76,7 @@ export class RoomDO extends DurableObject<Env> {
     }
     if (msg?.type === "chat") {
       const text = String(msg.text ?? "").slice(0, 300).trim();
-      const name = this.game.players.find((p) => p.id === pid)?.name ?? "?";
+      const name = this.game.players.find((p) => p.id === pid)?.name ?? att.name ?? "?";
       if (!text) return;
       const m: ChatMsg = { pid, name, text, ts: Date.now() };
       this.chat = [...this.chat, m].slice(-100);
@@ -86,6 +92,7 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
     if (!msg || msg.type !== "action") return this.send(ws, { type: "error", error: "unknown message" });
+    if (!this.game.players.some((p) => p.id === pid)) return this.send(ws, { type: "error", error: "spectators cannot act" });
 
     const r = apply(this.game, pid, msg.action);
     if (!r.ok) return this.send(ws, { type: "error", error: r.error });

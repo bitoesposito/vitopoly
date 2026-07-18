@@ -46,14 +46,21 @@ describe("debt resolution", () => {
     expect(r.state.players[0].cash).toBe(10);
   });
 
-  it("bankrupt to a player: estate transfers, player eliminated, game ends at 1 survivor", () => {
+  it("bankrupt to a player: estate expropriated by the bank, creditor paid from the proceeds", () => {
     let s = inDebt(9999);
     s = step(s, "a", { type: "bankrupt" });
     expect(s.players[0].bankrupt).toBe(true);
-    expect(s.props[1]?.owner).toBe("b"); // estate transferred
-    expect(s.players[1].cash).toBe(1510); // + debtor's 10 cash
+    expect(s.props[1]).toBeUndefined(); // deed sold to the bank, not inherited
+    expect(s.players[1].cash).toBe(1540); // + debtor's 10 cash + 30 deed sale (60/2)
     expect(s.status).toBe("ended"); // 2-player game -> winner
     expect(s.winner).toBe("b");
+  });
+
+  it("bankrupt to a player covers the claim when proceeds suffice, leftover goes to the bank", () => {
+    let s = inDebt(25); // proceeds: 10 cash + 30 deed = 40 vs claim 25
+    s = step(s, "a", { type: "bankrupt" });
+    expect(s.players[1].cash).toBe(1525); // exactly the claim, not the whole estate
+    expect(s.players[0].cash).toBe(0); // leftover 15 went to the bank
   });
 
   it("bankrupt to the bank: estate auctioned, next player frozen until it drains", () => {
@@ -94,6 +101,28 @@ describe("debt resolution", () => {
     s.stack.push({ t: "debt", debtor: "a", claims: [{ creditor: "b", amount: 9999 }] });
     const s2 = step(s, "a", { type: "bankrupt" });
     expect(s2.bank.houses).toBe(32); // houses back
-    expect(s2.players[1].cash).toBe(1500 + 100); // 4 houses * 50/2 went debtor -> creditor
+    expect(s2.players[1].cash).toBe(1500 + 100 + 60); // 4 houses * 50/2 + two deeds at 60/2
+  });
+});
+
+describe("voluntary bankruptcy", () => {
+  it("legal anytime on demand: estate seized to the bank, player out", () => {
+    const s = started();
+    s.props[1] = { owner: "a", mortgaged: false, houses: 0 };
+    const r = apply(s, "a", { type: "bankrupt" }); // preRoll, no debt
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    checkInvariants(r.state);
+    expect(r.state.players[0].bankrupt).toBe(true);
+    expect(r.state.status).toBe("ended"); // 2 players -> b wins
+    expect(r.state.winner).toBe("b");
+  });
+
+  it("also legal off-turn, but never during an auction", () => {
+    const s = started();
+    s.players.push({ ...s.players[0], id: "c", name: "Cleo", token: 2, cash: 1500 });
+    expect(apply(s, "b", { type: "bankrupt" }).ok).toBe(true); // b exits on a's turn
+    s.stack.push({ t: "auction", tile: 1, queue: [], bid: 0, leader: null, active: ["a", "b", "c"], bids: [] });
+    expect(apply(s, "b", { type: "bankrupt" }).ok).toBe(false); // a dead bid leader would corrupt it
   });
 });

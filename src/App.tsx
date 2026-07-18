@@ -9,16 +9,24 @@ import { Sidebar } from "@/components/Sidebar";
 export default function App() {
   const game = useGame((s) => s.game);
   const connected = useGame((s) => s.connected);
+  const myId = useGame((s) => s.myId);
   const t = useT();
 
   // ws.ts reconnects on its own; just show a banner while offline
   if (!game) return <Lobby />;
+
+  const spectator = !game.players.some((p) => p.id === myId); // joined after the game started
 
   return (
     <div className="flex h-dvh flex-col bg-background text-foreground md:flex-row">
       {!connected && (
         <div className="fixed inset-x-0 top-0 z-50 bg-warning py-1 text-center text-xs font-semibold text-black">
           {t("net.reconnecting")}
+        </div>
+      )}
+      {connected && spectator && (
+        <div className="fixed inset-x-0 top-0 z-40 bg-muted py-1 text-center text-xs font-semibold text-muted-foreground">
+          {t("spec.banner")}
         </div>
       )}
       {/* panels render twice with responsive visibility: mobile below the board, desktop in the Sidebar */}

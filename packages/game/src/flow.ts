@@ -101,8 +101,7 @@ function drawCard(s: GameState, p: Player, deck: "chance" | "chest", again: bool
   const id = pile.shift()!;
   pile.push(id); // reinsert at the bottom. jail cards duplicate this way — accepted
   const card = (deck === "chance" ? CHANCE : CHEST)[id];
-  ev.push({ e: "card", pid: p.id, deck, cardId: id });
-  ev.push({ e: "info", text: `${p.name}: ${card.text}` });
+  ev.push({ e: "card", pid: p.id, deck, cardId: id }); // the UI renders this — no duplicate info line
 
   const fx = card.fx;
   switch (fx.k) {
@@ -187,8 +186,26 @@ export function liquidateBuildings(s: GameState, pid: PlayerId, ev: GameEvent[])
   return estate;
 }
 
+// Bankruptcy toward players: the bank expropriates the estate (buildings and deeds
+// at half price), creditors get paid from the proceeds — partially if short — and
+// the deeds return to play via auction. Nobody inherits a whole estate.
+export function expropriate(s: GameState, pid: PlayerId, claims: Claim[], ev: GameEvent[]): void {
+  const estate = liquidateBuildings(s, pid, ev);
+  for (const t of estate) {
+    if (!s.props[t]!.mortgaged) transfer(s, "bank", pid, BOARD[t].price! / 2, "expropriation", ev);
+    delete s.props[t];
+  }
+  for (const c of claims) {
+    const pay = Math.min(byId(s, pid).cash, c.amount);
+    if (pay > 0) transfer(s, pid, c.creditor, pay, "bankruptcy", ev);
+  }
+  if (byId(s, pid).cash > 0) transfer(s, pid, "bank", byId(s, pid).cash, "bankruptcy", ev);
+  eliminate(s, pid, ev);
+  if (s.status !== "ended" && estate.length > 0) pushAuction(s, estate[0], estate.slice(1));
+}
+
 // The whole estate falls to the bank and the deeds get re-auctioned.
-// Shared by bank-bankruptcy and vote-kick.
+// Shared by bank-bankruptcy, voluntary bankruptcy and vote-kick.
 export function seizeToBank(s: GameState, pid: PlayerId, ev: GameEvent[]): void {
   const estate = liquidateBuildings(s, pid, ev);
   for (const t of estate) delete s.props[t];

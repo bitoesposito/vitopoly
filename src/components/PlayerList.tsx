@@ -15,6 +15,7 @@ const isTurn = (game: PublicState, pid: string) => game.status === "playing" && 
 export function PlayerList({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();
+  const canVote = game.players.some((p) => p.id === myId && !p.bankrupt); // spectators/bankrupt can't kick
   return (
     <div className="space-y-1">
       {game.players.map((p, i) => (
@@ -37,7 +38,7 @@ export function PlayerList({ game }: { game: PublicState }) {
           {!p.connected && <WifiOff className="size-3.5 text-muted-foreground" aria-label={t("aria.disconnected")} />}
           {game.status !== "lobby" && <span className="ml-auto tabular-nums text-success">${p.cash}</span>}
           {/* votekick: unanimity of the other alive players (engine) */}
-          {game.status === "playing" && !p.bankrupt && p.id !== myId && (
+          {game.status === "playing" && canVote && !p.bankrupt && p.id !== myId && (
             <Button
               size="icon-sm"
               variant="ghost"

@@ -40,12 +40,12 @@ function lastRoll(events: GameEvent[]): [number, number] | null {
   return null;
 }
 
-function eventText(e: GameEvent, names: Record<string, string>, t: T): string {
+function eventText(e: GameEvent, names: Record<string, string>, t: T, tn: (i: number) => string): string {
   switch (e.e) {
     case "rolled":
       return t("ev.rolled", { name: names[e.pid], d1: e.d1, d2: e.d2 });
     case "moved":
-      return t("ev.moved", { name: names[e.pid], to: e.to });
+      return t("ev.moved", { name: names[e.pid], to: tn(e.to) });
     case "paid": {
       const who = (x: string) => (x === "bank" ? t("ev.bank") : names[x]);
       return t("ev.paid", { from: who(e.from), to: who(e.to), amount: e.amount, why: e.why });
@@ -177,10 +177,13 @@ export function Center({ game }: { game: PublicState }) {
 
       {error && <div className="text-center text-xs text-destructive">{error}</div>}
 
-      <div className="flex min-h-16 flex-1 w-full overflow-y-auto rounded-md p-2 text-[11px] leading-relaxed text-muted-foreground">
-        <div className="flex-1 flex-col text-center">
-          {game.log.map((e, i) => (
-            <div key={i}>{eventText(e, names, t)}</div>
+      {/* game log: newest on top, no scrollbar — older lines fade out below */}
+      <div className="min-h-16 w-full flex-1 overflow-hidden rounded-md p-2 text-[11px] leading-relaxed text-muted-foreground [mask-image:linear-gradient(to_bottom,black_40%,transparent_95%)]">
+        <div className="flex flex-col text-center">
+          {[...game.log].slice(-30).reverse().map((e, i) => (
+            <div key={game.log.length - i} className={i === 0 ? "font-semibold text-foreground" : ""}>
+              {eventText(e, names, t, tn)}
+            </div>
           ))}
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Gavel } from "lucide-react";
 import { AUCTION_MS, BOARD } from "@tangentopoly/game";
 import type { AuctionFrame, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { GROUP_COLOR } from "@/lib/colors";
 import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
@@ -31,6 +32,7 @@ export function AuctionDialog({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();
   const tn = useTileName();
+  const [raise, setRaise] = useState("");
   const f = game.stack.at(-1);
   if (f?.t !== "auction") return null;
   const a = f as AuctionFrame;
@@ -67,6 +69,35 @@ export function AuctionDialog({ game }: { game: PublicState }) {
                 </Button>
               ))}
             </div>
+
+            {/* custom raise: increment over the current bid, same wire semantics as the quick buttons */}
+            {(() => {
+              const n = Math.floor(Number(raise));
+              const raiseOk = canBid && n > 0 && a.bid + n <= myCash;
+              const doRaise = () => {
+                if (!raiseOk) return;
+                send({ type: "bid", amount: n });
+                setRaise("");
+              };
+              return (
+                <div className="flex gap-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    placeholder={t("auction.custom")}
+                    className="h-9 flex-1 tabular-nums"
+                    value={raise}
+                    disabled={!canBid}
+                    onChange={(e) => setRaise(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && doRaise()}
+                  />
+                  <Button disabled={!raiseOk} onClick={doRaise}>
+                    {t("auction.raise")}
+                  </Button>
+                </div>
+              );
+            })()}
 
             <div className="overflow-y-auto bg-muted p-2 text-muted-foreground flex flex-col gap-1 h-[6rem]">
               {a.bids.length === 0 && <div>{t("auction.noBids")}</div>}

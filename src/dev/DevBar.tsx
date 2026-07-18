@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { addPlayer, createGame } from "@tangentopoly/game";
+import { addPlayer, CHANCE, CHEST, createGame } from "@tangentopoly/game";
 import type { GameState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
-import { useGame } from "@/lib/store";
+import { useGame, type PopupInput } from "@/lib/store";
 
 // dev-only screen simulator. Reachable at /dev in `pnpm dev` builds only
 // (gated in main.tsx by import.meta.env.DEV — never bundled in prod).
@@ -20,7 +20,7 @@ function base(mut?: (g: GameState) => void): GameState {
   g.status = "playing";
   g.log = [
     { e: "rolled", pid: "p2", d1: 3, d2: 4 },
-    { e: "paid", from: "p2", to: "bank", amount: 200, why: "Income Tax" },
+    { e: "paid", from: "p2", to: "bank", amount: 200, why: "Tasse" },
     { e: "info", text: "— stato simulato /dev —" },
   ];
   mut?.(g);
@@ -33,6 +33,8 @@ function show(g: GameState | null) {
     connected: g !== null,
     code: "dev",
     error: null,
+    tokenPos: {},
+    popups: [],
     events: g?.log ?? [],
     chat: g
       ? [
@@ -90,6 +92,44 @@ const SCENARIOS: [string, () => GameState | null][] = [
   })],
 ];
 
+// EventCard test triggers: every kind the animation can play (+ a stacked burst)
+const POPUPS: [string, PopupInput[]][] = [
+  ["Imprevisti", [{ kind: "chance", name: "Anna", text: CHANCE[9].text }]],
+  ["Probabilità", [{ kind: "chest", name: "Anna", text: CHEST[1].text }]],
+  ["Prigione", [{ kind: "jailed", name: "Anna" }]],
+  ["Acquisto", [{ kind: "buy", name: "Tu", tile: 39, price: 400 }]],
+  ["Scambio", [{
+    kind: "trade", from: "Anna", to: "Bruno",
+    give: { cash: 150, props: [21, 23], jailCards: 0 },
+    get: { cash: 0, props: [5], jailCards: 1 },
+  }]],
+  ["Sequenza", [
+    { kind: "chance", name: "Bruno", text: CHANCE[8].text },
+    { kind: "jailed", name: "Bruno" },
+    { kind: "buy", name: "Anna", tile: 21, price: 220 },
+  ]],
+];
+
+function popup(ps: PopupInput[]) {
+  if (!useGame.getState().game) show(base()); // the overlay lives inside the Board
+  useGame.getState().pushPopups(ps);
+}
+
+// full choreography rehearsal: walk to Chance, card pops, then off to jail —
+// same beats the ws.ts timeline plays with real events
+function jailTrip() {
+  if (!useGame.getState().game) show(base());
+  const g = useGame.getState();
+  const me = g.game!.players[0].id;
+  g.setTokenPos(me, 15);
+  setTimeout(() => useGame.getState().setTokenPos(me, 22), 400); // 15 -> 22 (Chance)
+  setTimeout(() => useGame.getState().pushPopups([{ kind: "chance", name: "Tu", text: CHANCE[8].text }]), 1250);
+  setTimeout(() => {
+    useGame.getState().pushPopups([{ kind: "jailed", name: "Tu" }]);
+    setTimeout(() => useGame.getState().setTokenPos(me, 10), 350);
+  }, 2350);
+}
+
 export default function DevBar() {
   const [open, setOpen] = useState(true);
   return (
@@ -104,6 +144,15 @@ export default function DevBar() {
               {label}
             </Button>
           ))}
+          <div className="w-full pt-1 text-[10px] font-bold text-muted-foreground uppercase">event card</div>
+          {POPUPS.map(([label, ps]) => (
+            <Button key={label} size="xs" variant="outline" onClick={() => popup(ps)}>
+              🎴 {label}
+            </Button>
+          ))}
+          <Button size="xs" variant="outline" onClick={jailTrip}>
+            🎴 Pedina→carta→prigione
+          </Button>
         </div>
       )}
     </div>

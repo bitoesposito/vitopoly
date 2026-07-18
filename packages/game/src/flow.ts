@@ -45,7 +45,7 @@ export function charge(s: GameState, debtor: PlayerId, claims: Claim[], why: str
   }
   if (rest.length > 0) {
     s.stack.push({ t: "debt", debtor, claims: rest });
-    ev.push({ e: "info", text: `${byId(s, debtor).name} owes $${rest.reduce((a, c) => a + c.amount, 0)} (${why})` });
+    ev.push({ e: "info", text: `${byId(s, debtor).name} deve $${rest.reduce((a, c) => a + c.amount, 0)}` });
   }
 }
 
@@ -162,7 +162,7 @@ export function settleAuction(s: GameState, frame: AuctionFrame, ev: GameEvent[]
     s.props[frame.tile] = { owner: frame.leader, mortgaged: false, houses: 0 };
     ev.push({ e: "auctionWon", pid: frame.leader, tile: frame.tile, price: frame.bid });
   } else {
-    ev.push({ e: "info", text: `nobody bid on ${BOARD[frame.tile].name}` });
+    ev.push({ e: "info", text: `nessuna offerta per ${BOARD[frame.tile].name}` });
   }
   s.stack.pop();
   if (frame.queue.length > 0) pushAuction(s, frame.queue[0], frame.queue.slice(1)); // estate chain

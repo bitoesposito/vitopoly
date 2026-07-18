@@ -1,18 +1,19 @@
 import { useState } from "react";
-import { Handshake, Hotel, House, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Handshake, Hotel, House, Minus, Plus, Ticket } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
-import type { PublicState } from "@tangentopoly/game";
+import type { Bundle, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 import { useGame } from "@/lib/store";
+import { GROUP_COLOR } from "@/lib/colors";
 import { PlayerList } from "./PlayerList";
+import { AuctionPanel } from "./AuctionDialog";
 
 // compact game panels
 function Panel({ ring, className, children }: { ring?: string; className?: string; children: React.ReactNode }) {
@@ -95,136 +96,198 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
   );
 }
 
-export function TradePanel({ game, myId }: { game: PublicState; myId: string }) {
-  const tr = useT(); // `t` is taken by trade/tile loop vars below
+// Vista "nuovo scambio" del pannello Scambi (header e freccia indietro nel pannello)
+function TradeComposer({ game, myId }: { game: PublicState; myId: string }) {
+  const tr = useT();
   const tn = useTileName();
+  const close = () => useGame.setState({ tradeOpen: false });
   const [to, setTo] = useState("");
   const [giveCash, setGiveCash] = useState("0");
   const [getCash, setGetCash] = useState("0");
   const [giveProps, setGiveProps] = useState<number[]>([]);
   const [getProps, setGetProps] = useState<number[]>([]);
-  const [open, setOpen] = useState(false);
-
-  const inAuction = game.stack.some((f) => f.t === "auction"); // trading is blocked during auctions
-  const me = game.players.find((p) => p.id === myId); // spectators/bankrupt can't trade
 
   const others = game.players.filter((p) => p.id !== myId && !p.bankrupt);
-  const incoming = game.trades.filter((t) => t.to === myId);
-  const outgoing = game.trades.filter((t) => t.from === myId);
-  const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
   const propsOf = (pid: string) => Object.entries(game.props).filter(([, o]) => o!.owner === pid).map(([k]) => Number(k));
   const toggle = (list: number[], setList: (v: number[]) => void, t: number) =>
     setList(list.includes(t) ? list.filter((x) => x !== t) : [...list, t]);
-  const bundleText = (b: { cash: number; props: number[] }) =>
-    [b.cash > 0 ? `$${b.cash}` : null, ...b.props.map((x) => tn(x))].filter(Boolean).join(" + ") || tr("bundle.nothing");
 
   return (
-    <Panel>
+    <div className="space-y-2 text-sm">
+      <Select value={to} onValueChange={setTo}>
+        <SelectTrigger size="sm" className="w-full">
+          <SelectValue placeholder={tr("trade.pickPlayer")} />
+        </SelectTrigger>
+        <SelectContent>
+          {others.map((p) => (
+            <SelectItem key={p.id} value={p.id}>
+              {p.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <div className="space-y-1">
+        <div className="text-muted-foreground">{tr("trade.youGive")}</div>
+        <Input className="inline-flex h-7 w-24" type="number" value={giveCash} onChange={(e) => setGiveCash(e.target.value)} /> $
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {propsOf(myId).map((t) => (
+            <Label key={t} className="flex items-center gap-1.5 font-normal">
+              <Checkbox checked={giveProps.includes(t)} onCheckedChange={() => toggle(giveProps, setGiveProps, t)} />
+              {tn(t)}
+            </Label>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-1">
+        <div className="text-muted-foreground">{tr("trade.youGet")}</div>
+        <Input className="inline-flex h-7 w-24" type="number" value={getCash} onChange={(e) => setGetCash(e.target.value)} /> $
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {to &&
+            propsOf(to).map((t) => (
+              <Label key={t} className="flex items-center gap-1.5 font-normal">
+                <Checkbox checked={getProps.includes(t)} onCheckedChange={() => toggle(getProps, setGetProps, t)} />
+                {tn(t)}
+              </Label>
+            ))}
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          disabled={!to}
+          onClick={() => {
+            send({
+              type: "proposeTrade",
+              to,
+              give: { cash: Number(giveCash) || 0, props: giveProps, jailCards: 0 },
+              get: { cash: Number(getCash) || 0, props: getProps, jailCards: 0 },
+            });
+            close();
+          }}
+        >
+          {tr("trade.send")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// una parte dell'offerta come chips: cash, atti (pallino colore gruppo), carte prigione
+function BundleChips({ b }: { b: Bundle }) {
+  const tr = useT();
+  const tn = useTileName();
+  const chips: React.ReactNode[] = [];
+  if (b.cash > 0) chips.push(<span key="$" className="font-semibold text-success">${b.cash}</span>);
+  for (const t of b.props)
+    chips.push(
+      <span key={t} className="flex items-center gap-1">
+        <span className="size-2 shrink-0 rounded-full" style={{ background: GROUP_COLOR[BOARD[t].group ?? ""] ?? "var(--color-muted-foreground)" }} />
+        {tn(t)}
+      </span>,
+    );
+  if (b.jailCards > 0)
+    chips.push(
+      <span key="j" className="flex items-center gap-1">
+        <Ticket className="size-3" />×{b.jailCards}
+      </span>,
+    );
+  if (chips.length === 0) return <span className="text-xs text-muted-foreground">{tr("bundle.nothing")}</span>;
+  return (
+    <span className="flex flex-wrap gap-1">
+      {chips.map((c, i) => (
+        <span key={i} className="flex items-center border border-border bg-muted px-1.5 py-0.5 text-xs">
+          {c}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// Pannello Scambi unico e navigabile: lista <-> dettaglio proposta / nuovo scambio.
+// La freccia in header torna alla lista; una proposta nuova apre da sola il dettaglio
+// e resta listata (con "Mostra") finché non si conclude o viene rifiutata.
+export function TradePanel({ game, myId }: { game: PublicState; myId: string }) {
+  const tr = useT();
+  const tradeOpen = useGame((s) => s.tradeOpen);
+  const hidden = useGame((s) => s.tradeHidden);
+  const inAuction = game.stack.some((f) => f.t === "auction"); // il motore vieta gli scambi in asta
+  const me = game.players.find((p) => p.id === myId); // spectators/bankrupt can't trade
+  const incoming = game.trades.filter((t) => t.to === myId);
+  const outgoing = game.trades.filter((t) => t.from === myId);
+  const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
+  const setHidden = (id: string, v: boolean) => useGame.setState((s) => ({ tradeHidden: { ...s.tradeHidden, [id]: v } }));
+
+  const compose = !inAuction && tradeOpen;
+  const detail = !inAuction && !compose ? incoming.find((t) => !hidden[t.id]) : undefined;
+  const back = () => (compose ? useGame.setState({ tradeOpen: false }) : detail && setHidden(detail.id, true));
+
+  return (
+    <Panel ring={compose || detail ? "ring-2 ring-success/50" : undefined}>
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-sm font-semibold">
-          <Handshake className="size-3.5" />
-          {tr("trade.title")}
-        </span>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="xs" disabled={inAuction || !me || me.bankrupt}>
-              <Plus className="size-3.5" />
-              {tr("trade.create")}
+          {compose || detail ? (
+            <Button size="icon-xs" variant="ghost" aria-label={tr("trade.back")} onClick={back}>
+              <ArrowLeft className="size-3.5" />
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-1.5">
-                <Handshake className="size-3.5" />
-                {tr("trade.propose")}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-2 text-sm">
-              <Select value={to} onValueChange={setTo}>
-                <SelectTrigger size="sm" className="w-full">
-                  <SelectValue placeholder={tr("trade.pickPlayer")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {others.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          ) : (
+            <Handshake className="size-3.5" />
+          )}
+          {compose ? tr("trade.propose") : detail ? tr("trade.incoming", { name: names[detail.from] }) : tr("trade.title")}
+        </span>
+        {!compose && !detail && (
+          <Button size="xs" disabled={inAuction || !me || me.bankrupt} onClick={() => useGame.setState({ tradeOpen: true })}>
+            <Plus className="size-3.5" />
+            {tr("trade.create")}
+          </Button>
+        )}
+      </div>
+
+      <div key={compose ? "compose" : (detail?.id ?? "list")} className="space-y-2 duration-300 animate-in fade-in slide-in-from-top-1">
+        {compose ? (
+          <TradeComposer game={game} myId={myId} />
+        ) : detail ? (
+          <>
+            <div className="h-1.5 rounded-full bg-success/50" />
+            <div className="space-y-1.5 text-sm">
               <div className="space-y-1">
-                <div className="text-muted-foreground">{tr("trade.youGive")}</div>
-                <Input className="inline-flex h-7 w-24" type="number" value={giveCash} onChange={(e) => setGiveCash(e.target.value)} /> $
-                <div className="flex flex-wrap gap-x-3 gap-y-1">
-                  {propsOf(myId).map((t) => (
-                    <Label key={t} className="flex items-center gap-1.5 font-normal">
-                      <Checkbox checked={giveProps.includes(t)} onCheckedChange={() => toggle(giveProps, setGiveProps, t)} />
-                      {tn(t)}
-                    </Label>
-                  ))}
-                </div>
+                <div className="text-xs text-muted-foreground">{tr("trade.youGet")}</div>
+                <BundleChips b={detail.give} />
               </div>
               <div className="space-y-1">
-                <div className="text-muted-foreground">{tr("trade.youGet")}</div>
-                <Input className="inline-flex h-7 w-24" type="number" value={getCash} onChange={(e) => setGetCash(e.target.value)} /> $
-                <div className="flex flex-wrap gap-x-3 gap-y-1">
-                  {to &&
-                    propsOf(to).map((t) => (
-                      <Label key={t} className="flex items-center gap-1.5 font-normal">
-                        <Checkbox checked={getProps.includes(t)} onCheckedChange={() => toggle(getProps, setGetProps, t)} />
-                        {tn(t)}
-                      </Label>
-                    ))}
-                </div>
+                <div className="text-xs text-muted-foreground">{tr("trade.youGive")}</div>
+                <BundleChips b={detail.get} />
               </div>
             </div>
-            <DialogFooter>
-              <Button
-                size="sm"
-                disabled={!to}
-                onClick={() => {
-                  send({
-                    type: "proposeTrade",
-                    to,
-                    give: { cash: Number(giveCash) || 0, props: giveProps, jailCards: 0 },
-                    get: { cash: Number(getCash) || 0, props: getProps, jailCards: 0 },
-                  });
-                  setOpen(false);
-                  setGiveProps([]);
-                  setGetProps([]);
-                  setGiveCash("0");
-                  setGetCash("0");
-                }}
-              >
-                {tr("trade.send")}
+            <div className="flex gap-1.5">
+              <Button size="sm" className="flex-1" onClick={() => send({ type: "respondTrade", id: detail.id, accept: true })}>
+                {tr("trade.accept")}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <Button size="sm" variant="secondary" className="flex-1" onClick={() => send({ type: "respondTrade", id: detail.id, accept: false })}>
+                {tr("trade.reject")}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            {incoming.map((t) => (
+              <div key={t.id} className="flex items-center gap-2 text-muted-foreground">
+                {tr("trade.incomingRow", { name: names[t.from] })}
+                <Button size="xs" variant="ghost" disabled={inAuction} onClick={() => setHidden(t.id, false)}>
+                  {tr("trade.show")}
+                </Button>
+              </div>
+            ))}
+            {outgoing.map((t) => (
+              <div key={t.id} className="flex items-center gap-2 text-muted-foreground">
+                {tr("trade.waiting", { name: names[t.to] })}
+                <Button size="xs" variant="ghost" onClick={() => send({ type: "cancelTrade", id: t.id })}>
+                  {tr("trade.cancel")}
+                </Button>
+              </div>
+            ))}
+          </>
+        )}
       </div>
-      {incoming.map((t) => (
-        <div key={t.id} className="space-y-1.5 rounded-md border border-success/40 bg-success/5 p-2">
-          <div>
-            <b className="text-success">{names[t.from]}</b> {tr("trade.offers")} <b>{bundleText(t.give)}</b> {tr("trade.inExchange")} <b>{bundleText(t.get)}</b>
-          </div>
-          <div className="flex gap-1.5">
-            <Button size="xs" onClick={() => send({ type: "respondTrade", id: t.id, accept: true })}>
-              {tr("trade.accept")}
-            </Button>
-            <Button size="xs" variant="secondary" onClick={() => send({ type: "respondTrade", id: t.id, accept: false })}>
-              {tr("trade.reject")}
-            </Button>
-          </div>
-        </div>
-      ))}
-      {outgoing.map((t) => (
-        <div key={t.id} className="flex items-center gap-2 text-muted-foreground">
-          {tr("trade.waiting", { name: names[t.to] })}
-          <Button size="xs" variant="ghost" onClick={() => send({ type: "cancelTrade", id: t.id })}>
-            {tr("trade.cancel")}
-          </Button>
-        </div>
-      ))}
     </Panel>
   );
 }
@@ -252,6 +315,8 @@ export function GamePanels({ game }: { game: PublicState }) {
           </Button>
         </div>
       </Panel>
+      {/* asta tra giocatori e scambi */}
+      <AuctionPanel game={game} />
       <TradePanel game={game} myId={myId} />
       <AssetsPanel game={game} myId={myId} />
     </div>

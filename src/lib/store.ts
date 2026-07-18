@@ -1,6 +1,17 @@
 import { create } from "zustand";
-import type { ChatMsg, GameEvent, PublicState } from "@tangentopoly/game";
-import type { Lang } from "./i18n";
+import type { Bundle, ChatMsg, GameEvent, PublicState, TileId } from "@tangentopoly/game";
+
+// Event card popup: an animated card for the notable moments (see EventCard.tsx).
+// Popups stack visually and each dismisses itself; `wait` delays the entrance
+// (used to stagger same-batch bursts pushed together).
+export type CardPopup = { id: number; wait: number } & (
+  | { kind: "chance" | "chest"; name: string; text: string }
+  | { kind: "jailed"; name: string }
+  | { kind: "buy"; name: string; tile: TileId; price: number }
+  | { kind: "trade"; from: string; to: string; give: Bundle; get: Bundle }
+);
+export type PopupInput = Omit<CardPopup, "id" | "wait"> & { wait?: number };
+let popupSeq = 0;
 
 function getMyId(): string {
   let id = localStorage.getItem("tangentopoly:pid");
@@ -11,12 +22,6 @@ function getMyId(): string {
   return id;
 }
 
-const initialLang: Lang =
-  (localStorage.getItem("tangentopoly:lang") as Lang) || (navigator.language.startsWith("it") ? "it" : "en");
-
-export type Theme = "light" | "dark";
-const initialTheme: Theme = (localStorage.getItem("tangentopoly:theme") as Theme) || "dark";
-
 interface Store {
   myId: string;
   name: string;
@@ -26,13 +31,16 @@ interface Store {
   chat: ChatMsg[];
   connected: boolean;
   error: string | null;
-  lang: Lang;
-  theme: Theme;
+  tradeOpen: boolean; // composer scambi aperto (sezione sotto gli scambi, non blocca nulla)
+  tradeHidden: Record<string, boolean>; // proposte in arrivo nascoste (restano listate negli scambi)
+  popups: CardPopup[];
+  tokenPos: Partial<Record<string, TileId>>; // display positions, choreographed by ws.ts; fallback = game pos
   set: (p: Partial<Store>) => void;
-  setLang: (l: Lang) => void;
-  setTheme: (t: Theme) => void;
   pushEvents: (e: GameEvent[]) => void;
   pushChat: (m: ChatMsg) => void;
+  pushPopups: (p: PopupInput[]) => void;
+  removePopup: (id: number) => void;
+  setTokenPos: (pid: string, pos: TileId) => void;
 }
 
 export const useGame = create<Store>((set) => ({
@@ -44,18 +52,18 @@ export const useGame = create<Store>((set) => ({
   chat: [],
   connected: false,
   error: null,
-  lang: initialLang,
-  theme: initialTheme,
+  tradeOpen: false,
+  tradeHidden: {},
+  popups: [],
+  tokenPos: {},
   set: (p) => set(p),
-  setLang: (l) => {
-    localStorage.setItem("tangentopoly:lang", l);
-    set({ lang: l });
-  },
-  setTheme: (th) => {
-    localStorage.setItem("tangentopoly:theme", th);
-    document.documentElement.classList.toggle("dark", th === "dark");
-    set({ theme: th });
-  },
   pushEvents: (e) => set((s) => ({ events: [...s.events, ...e].slice(-100) })),
   pushChat: (m) => set((s) => ({ chat: [...s.chat, m].slice(-100) })),
+  // same-batch pushes get a built-in stagger so they enter one after the other, stacked
+  pushPopups: (p) =>
+    set((s) => ({
+      popups: [...s.popups, ...p.map((x, i) => ({ ...x, wait: x.wait ?? i * 700, id: ++popupSeq }) as CardPopup)].slice(-8),
+    })),
+  removePopup: (id) => set((s) => ({ popups: s.popups.filter((x) => x.id !== id) })),
+  setTokenPos: (pid, pos) => set((s) => ({ tokenPos: { ...s.tokenPos, [pid]: pos } })),
 }));

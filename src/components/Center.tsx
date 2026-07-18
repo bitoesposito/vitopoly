@@ -4,7 +4,7 @@ import { activeNode, BOARD, CHANCE, CHEST, legalActions } from "@tangentopoly/ga
 import type { DebtFrame, GameEvent, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
-import { useT, useTileName } from "@/lib/i18n";
+import { useT, useTileName, whyText } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 
 type T = ReturnType<typeof useT>;
@@ -48,7 +48,7 @@ function eventText(e: GameEvent, names: Record<string, string>, t: T, tn: (i: nu
       return t("ev.moved", { name: names[e.pid], to: tn(e.to) });
     case "paid": {
       const who = (x: string) => (x === "bank" ? t("ev.bank") : names[x]);
-      return t("ev.paid", { from: who(e.from), to: who(e.to), amount: e.amount, why: e.why });
+      return t("ev.paid", { from: who(e.from), to: who(e.to), amount: e.amount, why: whyText(e.why) });
     }
     case "auctionWon":
       return t("ev.auctionWon", { name: names[e.pid], price: e.price });
@@ -58,6 +58,8 @@ function eventText(e: GameEvent, names: Record<string, string>, t: T, tn: (i: nu
       return t("ev.bankrupt", { name: names[e.pid] });
     case "card":
       return t("ev.card", { name: names[e.pid], text: (e.deck === "chance" ? CHANCE : CHEST)[e.cardId].text });
+    case "traded":
+      return t("ev.traded", { a: names[e.from], b: names[e.to] });
     case "info":
       return e.text;
   }

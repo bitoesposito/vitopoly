@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { PublicState } from "@tangentopoly/game";
 import { TOKEN_COLOR } from "@/lib/colors";
-import { tileCell } from "@/lib/utils";
+import { tileCell, walkMs } from "@/lib/utils";
+import { useGame } from "@/lib/store";
 
 // board grid tracks: 1.55fr corners, 1fr edges
 const TRACKS = [1.55, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.55];
@@ -27,7 +28,7 @@ function useEdgeWalk(target: number): readonly [number, number] {
     const pts = Array.from({ length: n + 1 }, (_, i) => pct((from + i) % 40));
     const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
     const total = seg.reduce((a, b) => a + b, 0);
-    const dur = Math.min(300 + n * 45, 800); // scale with distance: ~245ms short hops, capped for long runs
+    const dur = walkMs(n); // scale with distance: ~245ms short hops, capped for long runs
     const t0 = performance.now();
     let raf = 0;
     const tick = (now: number) => {
@@ -79,10 +80,11 @@ function Token({ name, token, pos, current }: { name: string; token: number; pos
 // overlay above the board; clicks fall through to the tiles
 export function Tokens({ game }: { game: PublicState }) {
   const currentId = game.players[game.current]?.id;
+  const tokenPos = useGame((s) => s.tokenPos); // choreographed display pos (ws.ts); state pos is the fallback
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
       {game.players.filter((p) => !p.bankrupt).map((p) => (
-        <Token key={p.id} name={p.name} token={p.token} pos={p.pos} current={game.status === "playing" && p.id === currentId} />
+        <Token key={p.id} name={p.name} token={p.token} pos={tokenPos[p.id] ?? p.pos} current={game.status === "playing" && p.id === currentId} />
       ))}
     </div>
   );

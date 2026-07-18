@@ -3,7 +3,7 @@ import { BAIL, BOARD } from "./board-data";
 import { roll2d6, nextInt } from "./rng";
 import { alive, byId, cash, charge, cur, expropriate, moveAndResolve, nextPlayer, pushAuction, seizeToBank, sendToJail, settleAuction, transfer } from "./flow";
 import * as props from "./properties";
-import { handleTrade } from "./trades";
+import { handleTrade, voidTradesTouching } from "./trades";
 import { CHANCE, CHEST } from "./cards";
 
 type Node = TurnPhase | Interrupt;
@@ -35,7 +35,7 @@ function advanceTurn(s: GameState): GameState {
 
 const roll: Handler = (s, pid) => {
   const p = cur(s);
-  if (p.id !== pid) return err("not your turn");
+  if (p.id !== pid) return err("non è il tuo turno");
   const [d1, d2] = roll2d6(s);
   const ev: GameEvent[] = [{ e: "rolled", pid, d1, d2 }];
   const doubles = d1 === d2;
@@ -44,25 +44,25 @@ const roll: Handler = (s, pid) => {
     if (doubles) {
       p.inJail = false;
       p.jailTurns = 0;
-      ev.push(info(`${p.name} rolled doubles and leaves jail`));
+      ev.push(info(`${p.name} fa doppio ed esce di prigione`));
       moveAndResolve(s, p, d1 + d2, false, ev); // jail-exit doubles do NOT roll again
     } else if (++p.jailTurns >= 3) {
       // 3rd failed attempt: forced bail. MOVE FIRST, then charge — a debt frame pushed
       // before movement would lose the "then move by your throw" continuation.
       p.inJail = false;
       p.jailTurns = 0;
-      ev.push(info(`${p.name} must pay bail after 3 failed attempts`));
+      ev.push(info(`${p.name} paga la cauzione dopo 3 tentativi falliti`));
       moveAndResolve(s, p, d1 + d2, false, ev);
       charge(s, pid, [{ creditor: "bank", amount: BAIL }], "bail", ev);
     } else {
-      ev.push(info(`${p.name} stays in jail (${p.jailTurns}/3)`));
+      ev.push(info(`${p.name} resta in prigione (${p.jailTurns}/3)`));
       s.phase = { t: "postRoll", again: false };
     }
     return ok(s, ev);
   }
 
   if (doubles && ++p.doublesCount === 3) {
-    ev.push(info(`${p.name} rolled 3 doubles in a row`));
+    ev.push(info(`${p.name} fa 3 doppi di fila`));
     sendToJail(s, p, ev);
     return ok(s, ev);
   }
@@ -72,9 +72,9 @@ const roll: Handler = (s, pid) => {
 
 const payBail: Handler = (s, pid) => {
   const p = cur(s);
-  if (p.id !== pid) return err("not your turn");
-  if (!p.inJail) return err("not in jail");
-  if (p.cash < BAIL) return err("cannot afford bail");
+  if (p.id !== pid) return err("non è il tuo turno");
+  if (!p.inJail) return err("non sei in prigione");
+  if (p.cash < BAIL) return err("non puoi permetterti la cauzione");
   const ev: GameEvent[] = [];
   transfer(s, pid, "bank", BAIL, "bail", ev);
   p.inJail = false;
@@ -84,24 +84,24 @@ const payBail: Handler = (s, pid) => {
 
 const useJailCard: Handler = (s, pid) => {
   const p = cur(s);
-  if (p.id !== pid) return err("not your turn");
-  if (!p.inJail) return err("not in jail");
-  if (p.jailCards < 1) return err("no jail card");
+  if (p.id !== pid) return err("non è il tuo turno");
+  if (!p.inJail) return err("non sei in prigione");
+  if (p.jailCards < 1) return err("nessuna carta prigione");
   p.jailCards--;
   p.inJail = false;
   p.jailTurns = 0;
-  return ok(s, [info(`${p.name} uses a Get Out of Jail Free card`)]);
+  return ok(s, [info(`${p.name} usa una carta Esci gratis di prigione`)]);
 };
 
 // ---- buyPrompt -------------------------------------------------------
 
 const buy: Handler = (s, pid) => {
   const ph = s.phase;
-  if (ph.t !== "buyPrompt") return err("no purchase pending");
+  if (ph.t !== "buyPrompt") return err("nessun acquisto in corso");
   const p = cur(s);
-  if (p.id !== pid) return err("not your turn");
+  if (p.id !== pid) return err("non è il tuo turno");
   const price = BOARD[ph.tile].price!;
-  if (p.cash < price) return err("cannot afford");
+  if (p.cash < price) return err("non te lo puoi permettere");
   const ev: GameEvent[] = [];
   transfer(s, pid, "bank", price, `buy ${BOARD[ph.tile].name}`, ev);
   s.props[ph.tile] = { owner: pid, mortgaged: false, houses: 0 };
@@ -111,19 +111,19 @@ const buy: Handler = (s, pid) => {
 
 const decline: Handler = (s, pid) => {
   const ph = s.phase;
-  if (ph.t !== "buyPrompt") return err("no purchase pending");
-  if (cur(s).id !== pid) return err("not your turn");
+  if (ph.t !== "buyPrompt") return err("nessun acquisto in corso");
+  if (cur(s).id !== pid) return err("non è il tuo turno");
   s.phase = { t: "postRoll", again: ph.again }; // resume point FIRST, then interrupt on top
-  if (!s.settings.auction) return ok(s, [info(`${cur(s).name} declined ${BOARD[ph.tile].name}`)]);
+  if (!s.settings.auction) return ok(s, [info(`${cur(s).name} rifiuta ${BOARD[ph.tile].name}`)]);
   pushAuction(s, ph.tile, []);
-  return ok(s, [info(`${cur(s).name} declined — auction for ${BOARD[ph.tile].name}`)]);
+  return ok(s, [info(`${cur(s).name} rifiuta — asta per ${BOARD[ph.tile].name}`)]);
 };
 
 // Doubles UX: roll again straight from postRoll, no endTurn click in between.
 const rollAgain: Handler = (s, pid, a) => {
   const ph = s.phase;
-  if (ph.t !== "postRoll" || !ph.again) return err("already rolled");
-  if (cur(s).id !== pid) return err("not your turn");
+  if (ph.t !== "postRoll" || !ph.again) return err("hai già tirato");
+  if (cur(s).id !== pid) return err("non è il tuo turno");
   s.phase = { t: "preRoll" };
   return roll(s, pid, a);
 };
@@ -132,23 +132,23 @@ const rollAgain: Handler = (s, pid, a) => {
 
 // amount is an increment over the current bid: concurrent quick-bids both land, in order
 const bid: Handler = (s, pid, a) => {
-  if (a.type !== "bid") return err("bad action");
+  if (a.type !== "bid") return err("azione non valida");
   const f = s.stack.at(-1) as AuctionFrame;
-  if (!f.active.includes(pid)) return err("not in this auction");
-  if (f.leader === pid) return err("already leading");
-  if (!Number.isInteger(a.amount) || a.amount <= 0) return err("bad bid");
+  if (!f.active.includes(pid)) return err("non sei in questa asta");
+  if (f.leader === pid) return err("sei già in testa");
+  if (!Number.isInteger(a.amount) || a.amount <= 0) return err("offerta non valida");
   const total = f.bid + a.amount;
-  if (total > cash(s, pid)) return err("cannot bid more than your cash"); // no debt born inside auctions, ever
+  if (total > cash(s, pid)) return err("non puoi offrire più dei tuoi contanti"); // no debt born inside auctions, ever
   f.bid = total;
   f.leader = pid;
   f.bids.push({ pid, amount: total });
-  return ok(s, [info(`${byId(s, pid).name} bids $${total}`)]);
+  return ok(s, [info(`${byId(s, pid).name} offre $${total}`)]);
 };
 
 const fold: Handler = (s, pid) => {
   const f = s.stack.at(-1) as AuctionFrame;
-  if (!f.active.includes(pid)) return err("not in this auction");
-  if (f.leader === pid) return err("highest bidder cannot fold");
+  if (!f.active.includes(pid)) return err("non sei in questa asta");
+  if (f.leader === pid) return err("il miglior offerente non può ritirarsi");
   f.active = f.active.filter((x) => x !== pid);
   const ev: GameEvent[] = [];
   const done = f.active.length === 0 || (f.leader !== null && f.active.every((x) => x === f.leader));
@@ -158,7 +158,7 @@ const fold: Handler = (s, pid) => {
 
 // server-only (not a ClientAction, or clients could snipe): deadline expired -> settle
 export function auctionTimeout(state: GameState): Result {
-  if (state.stack.at(-1)?.t !== "auction") return err("no auction");
+  if (state.stack.at(-1)?.t !== "auction") return err("nessuna asta");
   const s = clone(state);
   const ev: GameEvent[] = [];
   settleAuction(s, s.stack.at(-1) as AuctionFrame, ev);
@@ -169,20 +169,20 @@ export function auctionTimeout(state: GameState): Result {
 
 const payDebt: Handler = (s, pid) => {
   const f = s.stack.at(-1) as DebtFrame;
-  if (f.debtor !== pid) return err("not your debt");
+  if (f.debtor !== pid) return err("non è il tuo debito");
   const ev: GameEvent[] = [];
   while (f.claims.length > 0 && cash(s, pid) >= f.claims[0].amount) {
     const c = f.claims.shift()!;
     transfer(s, pid, c.creditor, c.amount, "debt", ev);
   }
-  if (f.claims.length > 0) return ev.length ? ok(s, ev) : err("not enough cash — sell, mortgage, trade or go bankrupt");
+  if (f.claims.length > 0) return ev.length ? ok(s, ev) : err("contanti insufficienti — vendi, ipoteca, scambia o dichiara bancarotta");
   s.stack.pop(); // resume: whatever is underneath speaks
   return ok(s, ev);
 };
 
 const bankrupt: Handler = (s, pid) => {
   const f = s.stack.at(-1) as DebtFrame;
-  if (f.debtor !== pid) return err("not your debt");
+  if (f.debtor !== pid) return err("non è il tuo debito");
   const ev: GameEvent[] = [];
   s.stack.pop();
   if (f.claims.every((c) => c.creditor === "bank")) seizeToBank(s, pid, ev);
@@ -197,22 +197,22 @@ const bankrupt: Handler = (s, pid) => {
 function votekick(s: GameState, pid: PlayerId, target: PlayerId): Result {
   const voter = s.players.find((p) => p.id === pid);
   const victim = s.players.find((p) => p.id === target);
-  if (!voter || voter.bankrupt) return err("not in this game");
-  if (!victim || victim.bankrupt) return err("no such player");
-  if (pid === target) return err("cannot kick yourself");
-  if (s.stack.some((f) => f.t === "auction")) return err("wait for the auction to end"); // kicking a bid leader would corrupt the auction
+  if (!voter || voter.bankrupt) return err("non sei in partita");
+  if (!victim || victim.bankrupt) return err("giocatore inesistente");
+  if (pid === target) return err("non puoi espellere te stesso");
+  if (s.stack.some((f) => f.t === "auction")) return err("aspetta la fine dell'asta"); // kicking a bid leader would corrupt the auction
   const others = alive(s).filter((p) => p.id !== target);
-  if (others.length < 2 && victim.connected) return err("cannot kick a present player 1v1"); // kick = instant win otherwise
+  if (others.length < 2 && victim.connected) return err("non puoi espellere un giocatore presente in 1v1"); // kick = instant win otherwise
 
   const votes = new Set(s.kickVotes[target] ?? []);
   votes.add(pid);
   s.kickVotes[target] = [...votes];
-  const ev: GameEvent[] = [info(`${voter.name} votes to kick ${victim.name} (${votes.size}/${others.length})`)];
+  const ev: GameEvent[] = [info(`${voter.name} vota per espellere ${victim.name} (${votes.size}/${others.length})`)];
   if (votes.size < others.length) return ok(s, ev);
 
   // unanimous: void any debt frame the target holds (a dead debtor would block the machine)
   s.stack = s.stack.filter((f) => !(f.t === "debt" && f.debtor === target));
-  ev.push(info(`${victim.name} was kicked`));
+  ev.push(info(`${victim.name} è stato espulso`));
   seizeToBank(s, target, ev);
   return ok(s, ev);
 }
@@ -224,21 +224,21 @@ function votekick(s: GameState, pid: PlayerId, target: PlayerId): Result {
 // mortgage/sellHouse/sellProperty are routed orthogonally in apply().
 function asset(fn: (s: GameState, pid: PlayerId, tile: number) => string | null): Handler {
   return (s, pid, a) => {
-    if (!("tile" in a)) return err("bad action");
-    if (cur(s).id !== pid) return err("not your move");
+    if (!("tile" in a)) return err("azione non valida");
+    if (cur(s).id !== pid) return err("non è il tuo turno");
     const e = fn(s, pid, a.tile);
-    return e ? err(e) : ok(s);
+    return e ? err(e) : ok(s, voidTradesTouching(s, a.tile));
   };
 }
 
 const endTurn: Handler = (s, pid) => {
   const ph = s.phase;
-  if (ph.t !== "postRoll") return err("cannot end turn now");
+  if (ph.t !== "postRoll") return err("non puoi finire il turno ora");
   const p = cur(s);
-  if (p.id !== pid) return err("not your turn");
+  if (p.id !== pid) return err("non è il tuo turno");
   if (ph.again && !p.inJail) {
     s.phase = { t: "preRoll" };
-    return ok(s, [info(`${p.name} rolled doubles — roll again`)]);
+    return ok(s, [info(`${p.name} ha fatto doppio — tira ancora`)]);
   }
   p.doublesCount = 0;
   return ok(advanceTurn(s));
@@ -274,7 +274,7 @@ function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   const isHost = s.players[0]?.id === pid;
 
   if (a.type === "updateSettings") {
-    if (!isHost) return err("only the host can change settings");
+    if (!isHost) return err("solo l'host può cambiare le impostazioni");
     const base = s.settings;
     const n = { ...base, ...a.settings };
     n.maxPlayers = Math.max(2, Math.min(8, Math.floor(n.maxPlayers) || base.maxPlayers));
@@ -284,9 +284,9 @@ function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
     return ok(s);
   }
 
-  if (a.type !== "start") return err("game not started");
-  if (!isHost) return err("only the host can start");
-  if (s.players.length < 2) return err("need 2+ players");
+  if (a.type !== "start") return err("partita non iniziata");
+  if (!isHost) return err("solo l'host può iniziare");
+  if (s.players.length < 2) return err("servono almeno 2 giocatori");
   s.status = "playing";
   if (s.settings.randomOrder) {
     const order = shuffled(s, s.players.length);
@@ -296,13 +296,13 @@ function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   s.current = 0;
   s.phase = { t: "preRoll" };
   s.decks = { chance: shuffled(s, CHANCE.length), chest: shuffled(s, CHEST.length) };
-  return ok(s, [info("game started")]);
+  return ok(s, [info("partita iniziata")]);
 }
 
 // ---- the ONLY entry point -------------------------------------------
 
 export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result {
-  if (state.status === "ended") return err("game over");
+  if (state.status === "ended") return err("partita finita");
   if (state.status === "lobby") return lobby(clone(state), pid, a);
   if (a.type === "proposeTrade" || a.type === "respondTrade" || a.type === "cancelTrade")
     return handleTrade(clone(state), pid, a); // orthogonal region
@@ -310,27 +310,27 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
   if (a.type === "mortgage" || a.type === "sellHouse" || a.type === "sellProperty") {
     // cash raisers: own turn or own debt only — no off-turn asset stripping
     const s = clone(state);
-    if (cur(s).id !== pid && !s.stack.some((f) => f.t === "debt" && f.debtor === pid)) return err("not your turn");
+    if (cur(s).id !== pid && !s.stack.some((f) => f.t === "debt" && f.debtor === pid)) return err("non è il tuo turno");
     const fn = { mortgage: props.mortgage, sellHouse: props.sellHouse, sellProperty: props.sellProperty }[a.type];
     const e = fn(s, pid, a.tile);
-    return e ? err(e) : ok(s);
+    return e ? err(e) : ok(s, voidTradesTouching(s, a.tile));
   }
   if (a.type === "bankrupt" && !(activeNode(state).t === "debt" && (activeNode(state) as DebtFrame).debtor === pid)) {
     // voluntary exit, anytime: estate to the bank, re-auctioned. In-debt bankruptcy
     // stays on the debt handler below (creditors get paid from the proceeds).
     const s = clone(state);
     const p = s.players.find((x) => x.id === pid);
-    if (!p || p.bankrupt) return err("not in this game");
-    if (s.stack.some((f) => f.t === "auction")) return err("wait for the auction to end"); // a dead bid leader would corrupt the auction
-    if (s.stack.some((f) => f.t === "debt" && f.debtor === pid)) return err("resolve your debt first");
-    const ev: GameEvent[] = [info(`${p.name} declares bankruptcy`)];
+    if (!p || p.bankrupt) return err("non sei in partita");
+    if (s.stack.some((f) => f.t === "auction")) return err("aspetta la fine dell'asta"); // a dead bid leader would corrupt the auction
+    if (s.stack.some((f) => f.t === "debt" && f.debtor === pid)) return err("prima risolvi il tuo debito");
+    const ev: GameEvent[] = [info(`${p.name} dichiara bancarotta`)];
     seizeToBank(s, pid, ev);
     return ok(s, ev);
   }
 
   const node = activeNode(state);
   const h = HANDLERS[node.t][a.type];
-  if (!h) return err(`${a.type} is not legal while ${node.t}`); // <- structural rejection
+  if (!h) return err(`${a.type} non è consentito durante ${node.t}`); // <- structural rejection
   return h(clone(state), pid, a);
 }
 

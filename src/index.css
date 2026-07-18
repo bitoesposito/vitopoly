@@ -122,6 +122,35 @@
     --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* EventCard.tsx: springy pop-in from the bottom with rotation + focus pull, quick toss-out */
+@keyframes card-in {
+    0% { opacity: 0; transform: translateY(80%) rotate(16deg) scale(0.65); filter: blur(6px); }
+    55% { opacity: 1; transform: translateY(-3%) rotate(-4deg) scale(1.04); filter: blur(0); }
+    75% { transform: translateY(1%) rotate(1.5deg) scale(0.99); }
+    100% { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); }
+}
+@keyframes card-out {
+    to { opacity: 0; transform: translateY(-35%) rotate(8deg) scale(0.85); filter: blur(4px); }
+}
+.card-pop-in { animation: card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.card-pop-out { animation: card-out 0.24s ease-in both; }
+
+/* trade card: rises without spin, then the exchanged chips fly between the players */
+@keyframes trade-in {
+    0% { opacity: 0; transform: translateY(45%) scale(0.92); }
+    60% { opacity: 1; transform: translateY(-2%) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes chip-r { from { opacity: 0; transform: translateX(-42px); } to { opacity: 1; transform: none; } }
+@keyframes chip-l { from { opacity: 0; transform: translateX(42px); } to { opacity: 1; transform: none; } }
+.trade-pop-in { animation: trade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.chip-fly-r { animation: chip-r 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.chip-fly-l { animation: chip-l 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .card-pop-in, .card-pop-out, .trade-pop-in, .chip-fly-r, .chip-fly-l { animation-duration: 0.15s; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

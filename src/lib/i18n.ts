@@ -1,18 +1,11 @@
 import { BOARD } from "@tangentopoly/game";
-import { useGame } from "./store";
 
-// hand-rolled i18n on zustand (2 languages), no react-i18next.
-// t(key, vars) replaces {var}; missing en falls back to it. Add languages in DICT + LANGS.
+// Gioco monolingua italiano. t(key, vars) sostituisce {var}; chiave mancante -> chiave.
+// I nomi delle caselle vivono in BOARD (già in italiano).
 
-export type Lang = "it" | "en";
 type Vars = Record<string, string | number>;
 
-export const LANGS: { code: Lang; label: string; flag: string }[] = [
-  { code: "it", label: "ITA", flag: "🇮🇹" },
-  { code: "en", label: "ENG", flag: "🇬🇧" },
-];
-
-const it: Record<string, string> = {
+const IT: Record<string, string> = {
   "lobby.joining": "Unisciti alla stanza",
   "lobby.creating": "Crea una nuova partita",
   "lobby.name": "Il tuo nome",
@@ -57,8 +50,6 @@ const it: Record<string, string> = {
   "aria.disconnected": "disconnesso",
   "aria.openChat": "Apri chat",
   "aria.closeChat": "Chiudi chat",
-  "aria.language": "Cambia lingua",
-  "aria.theme": "Cambia tema",
   "chat.empty": "Nessun messaggio. Scrivi qualcosa 👋",
   "chat.placeholder": "Messaggio…",
   "chat.send": "Invia",
@@ -66,6 +57,7 @@ const it: Record<string, string> = {
   "share.copied": "Link copiato negli appunti",
   "share.inviteText": "Unisciti alla partita!",
   "net.reconnecting": "Connessione persa — riconnessione…",
+  "spec.banner": "Partita già iniziata — stai guardando come spettatore",
 
   "center.turnOf": "turno di",
   "center.roll": "Tira i dadi",
@@ -83,6 +75,7 @@ const it: Record<string, string> = {
   "ev.jailed": "{name} va in prigione",
   "ev.bankrupt": "{name} è in bancarotta",
   "ev.card": "{name} pesca: {text}",
+  "ev.traded": "{a} e {b} completano uno scambio",
   "kick.vote": "Vota per espellere {name}",
 
   "buy.q": "Comprare {name} per",
@@ -96,6 +89,11 @@ const it: Record<string, string> = {
   "auction.noBids": "Ancora nessuna offerta",
   "auction.custom": "Rilancio…",
   "auction.raise": "Rilancia",
+  "popup.chance": "Imprevisti",
+  "popup.chest": "Probabilità",
+  "popup.jail": "Prigione",
+  "popup.buy": "Nuova proprietà",
+  "popup.trade": "Scambio",
   "debt.someone": "{name} sta risolvendo un debito da ${total}…",
   "debt.youOwe": "Devi ${total}",
   "debt.help": "Vendi case / ipoteca dalle tue proprietà per raccogliere contanti, poi paga — o dichiara bancarotta.",
@@ -106,7 +104,6 @@ const it: Record<string, string> = {
   "assets.mortgage": "Ipoteca +${amount}",
   "assets.unmortgage": "Riscatta ${amount}",
   "assets.sell": "Vendi +${amount}",
-  "spec.banner": "Partita già iniziata — stai guardando come spettatore",
   "trade.title": "Scambi",
   "trade.create": "Crea",
   "trade.offers": "offre",
@@ -115,6 +112,11 @@ const it: Record<string, string> = {
   "trade.reject": "Rifiuta",
   "trade.waiting": "scambio con {name} in attesa…",
   "trade.cancel": "Annulla",
+  "trade.incoming": "Proposta di {name}",
+  "trade.incomingRow": "proposta di {name}",
+  "trade.show": "Vedi",
+  "trade.back": "Torna agli scambi",
+  "ui.details": "Dettagli",
   "trade.propose": "Proponi scambio",
   "trade.pickPlayer": "— scegli giocatore —",
   "trade.youGive": "Tu dai:",
@@ -145,192 +147,43 @@ const it: Record<string, string> = {
   "info.utility": "Affitto = tiro dei dadi ×4 (×10 se possiedi entrambi i servizi).",
 };
 
-const en: Record<string, string> = {
-  "lobby.joining": "You're joining room",
-  "lobby.creating": "You're creating a new game",
-  "lobby.name": "Your name",
-  "lobby.enter": "Join",
-  "lobby.create": "Create room",
-
-  "settings.title": "Game settings",
-  "settings.hostOnly": "Only the host ({name}) can change the settings.",
-  "settings.maxPlayers": "Max players",
-  "settings.maxPlayersDesc": "How many can join",
-  "settings.startingCash": "Starting cash",
-  "settings.startingCashDesc": "Starting cash each",
-  "settings.sec.game": "Game",
-  "settings.sec.property": "Property",
-  "settings.sec.rent": "Rent",
-  "settings.sec.extra": "Extra",
-  "settings.randomOrder": "Fixed order",
-  "settings.randomOrderDesc": "Turn order by join order instead of random",
-  "settings.auction": "No auctions",
-  "settings.auctionDesc": "If you decline a purchase, the property stays with the bank",
-  "settings.mortgageAllowed": "No mortgages",
-  "settings.mortgageAllowedDesc": "Mortgaging properties is not allowed",
-  "settings.evenBuild": "Even build",
-  "settings.evenBuildDesc": "Houses and hotels built/sold evenly across the set",
-  "settings.doubleRentFullSet": "No x2 on full sets",
-  "settings.doubleRentFullSetDesc": "Base rent even when you own the full set",
-  "settings.noRentInPrison": "No rent while in jail",
-  "settings.noRentInPrisonDesc": "An owner in jail collects no rent",
-  "settings.vacationCash": "No vacation cash",
-  "settings.vacationCashDesc": "Taxes and fees stay with the bank instead of piling on Free Parking",
-  "settings.invite": "Invite players",
-  "settings.inviteAlone": "You're alone — share the link to let others in",
-  "settings.inviteDesc": "Copy and share the room link",
-  "settings.waiting": "Waiting for players…",
-  "settings.start": "Start game",
-
-  "players.title": "Players ({n})",
-  "players.you": "(you)",
-  "players.vacationPot": "Vacation pot",
-  "aria.host": "host",
-  "aria.jail": "in jail",
-  "aria.disconnected": "disconnected",
-  "aria.openChat": "Open chat",
-  "aria.closeChat": "Close chat",
-  "aria.language": "Change language",
-  "aria.theme": "Toggle theme",
-  "chat.empty": "No messages. Say something 👋",
-  "chat.placeholder": "Message…",
-  "chat.send": "Send",
-
-  "share.copied": "Link copied to clipboard",
-  "share.inviteText": "Join the game!",
-  "net.reconnecting": "Connection lost — reconnecting…",
-
-  "center.turnOf": "turn of",
-  "center.roll": "Roll the dice",
-  "center.rollAgain": "Doubles! Roll again",
-  "center.endTurn": "End turn →",
-  "center.payBail": "Pay bail $50",
-  "center.useJailCard": "Use card",
-  "center.winner": "{name} wins!",
-  "center.nobody": "Nobody",
-  "ev.rolled": "{name} rolls {d1} + {d2}",
-  "ev.moved": "{name} moves to {to}",
-  "ev.paid": "{from} → {to}: ${amount} ({why})",
-  "ev.bank": "bank",
-  "ev.auctionWon": "{name} wins the auction for ${price}",
-  "ev.jailed": "{name} goes to jail",
-  "ev.bankrupt": "{name} is bankrupt",
-  "ev.card": "{name} draws: {text}",
-  "kick.vote": "Vote to kick {name}",
-
-  "buy.q": "Buy {name} for",
-  "buy.buy": "Buy",
-  "buy.declineAuction": "Decline (auction)",
-  "buy.decline": "Decline",
-  "auction.title": "Auction: {name}",
-  "auction.current": "Current bid",
-  "auction.none": "(no bids)",
-  "auction.by": "by {name}",
-  "auction.noBids": "No bids yet",
-  "auction.custom": "Raise…",
-  "auction.raise": "Raise",
-  "debt.someone": "{name} is settling a debt of ${total}…",
-  "debt.youOwe": "You owe ${total}",
-  "debt.help": "Sell houses / mortgage from your properties to raise cash, then pay — or declare bankruptcy.",
-  "debt.pay": "Pay",
-  "debt.bankrupt": "Bankruptcy",
-  "debt.confirmBankrupt": "Declare bankruptcy? Your estate returns to the bank and you leave the game.",
-  "assets.title": "Your properties ({n})",
-  "assets.mortgage": "Mortgage +${amount}",
-  "assets.unmortgage": "Redeem ${amount}",
-  "assets.sell": "Sell +${amount}",
-  "spec.banner": "Game already started — you're watching as a spectator",
-  "trade.title": "Trades",
-  "trade.create": "Create",
-  "trade.offers": "offers",
-  "trade.inExchange": "in exchange for",
-  "trade.accept": "Accept",
-  "trade.reject": "Decline",
-  "trade.waiting": "trade with {name} pending…",
-  "trade.cancel": "Cancel",
-  "trade.propose": "Propose trade",
-  "trade.pickPlayer": "— pick a player —",
-  "trade.youGive": "You give:",
-  "trade.youGet": "You get:",
-  "trade.send": "Send",
-  "bundle.nothing": "nothing",
-
-  "info.when": "when",
-  "info.get": "get",
-  "info.rent0": "Base rent",
-  "info.rent1": "1 house",
-  "info.rent2": "2 houses",
-  "info.rent3": "3 houses",
-  "info.rent4": "4 houses",
-  "info.rent5": "Hotel",
-  "info.price": "Price",
-  "info.house": "House",
-  "info.hotel": "Hotel",
-  "info.go": "Pass GO and collect ${amount}.",
-  "info.jail": "Just visiting — unless you're in jail.",
-  "info.parking": "Free parking: you pay nothing.",
-  "info.parkingPot": "Free parking: landing collects the pot (${pot}).",
-  "info.gotojail": "Go directly to jail, without passing GO.",
-  "info.chance": "Draw a Chance card.",
-  "info.chest": "Draw a Community Chest card.",
-  "info.tax": "Land here and pay ${amount} to the bank.",
-  "info.railroad": "Rent by stations owned: $25 / $50 / $100 / $200.",
-  "info.utility": "Rent = dice roll ×4 (×10 if you own both utilities).",
-};
-
-const DICT: Record<Lang, Record<string, string>> = { it, en };
-
-export function translate(lang: Lang, key: string, vars?: Vars): string {
-  let s = DICT[lang][key] ?? it[key] ?? key;
+export function translate(key: string, vars?: Vars): string {
+  let s = IT[key] ?? key;
   if (vars) for (const k in vars) s = s.replaceAll(`{${k}}`, String(vars[k]));
   return s;
 }
 
-// Hook: si abbona a `lang` → i componenti si ri-renderano al cambio lingua.
+// Hook mantenuto per compatibilità di firma: t(key, vars). Nessuna sottoscrizione.
 export function useT() {
-  const lang = useGame((s) => s.lang);
-  return (key: string, vars?: Vars) => translate(lang, key, vars);
+  return translate;
 }
 
-// Nomi caselle: EN = BOARD.name (fonte), IT sovrascritto qui. Fallback all'inglese.
-const TILE_IT: Record<number, string> = {
-  0: "VIA",
-  2: "Probabilità",
-  3: "Lisbona",
-  4: "Tasse",
-  5: "Stazione Nord",
-  7: "Imprevisti",
-  8: "Siviglia",
-  10: "Prigione",
-  11: "Nizza",
-  12: "Società Elettrica",
-  13: "Lione",
-  14: "Parigi",
-  15: "Stazione Est",
-  16: "Colonia",
-  17: "Probabilità",
-  18: "Monaco",
-  19: "Berlino",
-  20: "Sosta",
-  21: "Napoli",
-  22: "Imprevisti",
-  23: "Milano",
-  24: "Roma",
-  25: "Stazione Sud",
-  28: "Acquedotto",
-  29: "Londra",
-  30: "In Prigione",
-  33: "Probabilità",
-  35: "Stazione Ovest",
-  36: "Imprevisti",
-  38: "Tassa di Lusso",
-};
-
-export function tileName(lang: Lang, i: number): string {
-  return lang === "it" ? (TILE_IT[i] ?? BOARD[i].name) : BOARD[i].name;
+export function tileName(i: number): string {
+  return BOARD[i].name;
 }
 
 export function useTileName() {
-  const lang = useGame((s) => s.lang);
-  return (i: number) => tileName(lang, i);
+  return tileName;
+}
+
+// I `why` dei pagamenti restano identificatori interni (NO_POT, parser "buy X"):
+// qui la traduzione solo per il log. "buy X"/"rent X" portano già il nome italiano.
+const WHY_IT: Record<string, string> = {
+  bail: "cauzione",
+  debt: "debito",
+  card: "carta",
+  repairs: "riparazioni",
+  "GO salary": "stipendio VIA",
+  auction: "asta",
+  bankruptcy: "bancarotta",
+  trade: "scambio",
+  liquidation: "liquidazione",
+  expropriation: "esproprio",
+  "vacation cash": "vacation cash",
+};
+
+export function whyText(why: string): string {
+  if (why.startsWith("buy ")) return `acquisto ${why.slice(4)}`;
+  if (why.startsWith("rent ")) return `affitto ${why.slice(5)}`;
+  return WHY_IT[why] ?? why;
 }

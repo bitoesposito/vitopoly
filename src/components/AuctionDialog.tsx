@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Gavel } from "lucide-react";
+import { ChevronDown, Gavel } from "lucide-react";
 import { AUCTION_MS, BOARD } from "@tangentopoly/game";
 import type { AuctionFrame, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { GROUP_COLOR } from "@/lib/colors";
 import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
@@ -27,8 +28,9 @@ function TimeBar({ deadline, total }: { deadline: number | undefined; total: num
   );
 }
 
-// non-dismissable overlay inside the Board: dims the board only, sidebar stays usable
-export function AuctionDialog({ game }: { game: PublicState }) {
+// Pannello inline dell'asta (tra giocatori e scambi): l'asta è un interrupt di gioco,
+// quindi la Board resta bloccata (overlay in Board.tsx) e questa è l'unica sezione attiva.
+export function AuctionPanel({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();
   const tn = useTileName();
@@ -41,79 +43,79 @@ export function AuctionDialog({ game }: { game: PublicState }) {
   const myCash = game.players.find((p) => p.id === myId)?.cash ?? 0;
   const canBid = a.active.includes(myId) && a.leader !== myId;
 
+  const n = Math.floor(Number(raise));
+  const raiseOk = canBid && n > 0 && a.bid + n <= myCash;
+  const doRaise = () => {
+    if (!raiseOk) return;
+    send({ type: "bid", amount: n });
+    setRaise("");
+  };
+
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/80 p-2 backdrop-blur-sm sm:p-4">
-      <div className="flex flex-col gap-2 flex-1 max-w-[30rem] p-3 border border-border">
-        <div>
-          <div className="flex items-center gap-2 font-heading text-sm font-medium">
-            <Gavel className="size-4" />
-            {t("auction.title", { name: tn(a.tile) })}
+    <Card size="sm" className="ring-2 ring-warning/60 duration-300 animate-in fade-in slide-in-from-top-2">
+      <CardContent className="space-y-2">
+        <div className="flex items-center gap-1.5 text-sm font-semibold">
+          <Gavel className="size-3.5" />
+          {t("auction.title", { name: tn(a.tile) })}
+        </div>
+        {tile.group && <div className="h-1.5 rounded-full" style={{ background: GROUP_COLOR[tile.group] }} />}
+
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="text-xs uppercase text-muted-foreground">{t("auction.current")}</div>
+            <div className="text-2xl font-bold tabular-nums text-warning">${a.bid}</div>
           </div>
-          {tile.group && <div className="mt-2 h-1.5 rounded-full" style={{ background: GROUP_COLOR[tile.group] }} />}
+          <div className="text-sm text-muted-foreground">{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
         </div>
 
-        <div className="grid gap-4 grid-cols-2">
-          <div className="space-y-3">
-            <div>
-              <div className="text-xs uppercase text-muted-foreground">{t("auction.current")}</div>
-              <div className="text-2xl font-bold tabular-nums text-warning">${a.bid}</div>
-              <div className="text-muted-foreground text-sm">{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
+        <TimeBar deadline={game.deadline} total={a.bids.length ? AUCTION_MS.bid : AUCTION_MS.start} />
+
+        <div className="flex gap-1">
+          {QUICK_BIDS.map((d) => (
+            <Button key={d} className="flex-1 tabular-nums" size="sm" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
+              +${d}
+            </Button>
+          ))}
+        </div>
+
+        {/* rilancio personalizzato: incremento sull'offerta corrente, come i quick bid */}
+        <div className="flex gap-1">
+          <Input
+            type="number"
+            min={1}
+            inputMode="numeric"
+            placeholder={t("auction.custom")}
+            className="h-8 flex-1 tabular-nums"
+            value={raise}
+            disabled={!canBid}
+            onChange={(e) => setRaise(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && doRaise()}
+          />
+          <Button size="sm" disabled={!raiseOk} onClick={doRaise}>
+            {t("auction.raise")}
+          </Button>
+        </div>
+
+        <div className="flex h-16 flex-col gap-1 overflow-y-auto bg-muted p-2 text-muted-foreground">
+          {a.bids.length === 0 && <div className="text-xs">{t("auction.noBids")}</div>}
+          {[...a.bids].reverse().map((b, i) => (
+            <div className="flex items-center gap-1 text-xs leading-none" key={a.bids.length - i}>
+              <b className="text-foreground">{names[b.pid]}</b> -{" "}
+              <span className={i === 0 ? "tabular-nums text-warning" : "text-muted-foreground"}>${b.amount}</span>
             </div>
+          ))}
+        </div>
 
-            <TimeBar deadline={game.deadline} total={a.bids.length ? AUCTION_MS.bid : AUCTION_MS.start} />
-
-            <div className="flex gap-1">
-              {QUICK_BIDS.map((d) => (
-                <Button key={d} className="flex-1 tabular-nums" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
-                  +${d}
-                </Button>
-              ))}
-            </div>
-
-            {/* custom raise: increment over the current bid, same wire semantics as the quick buttons */}
-            {(() => {
-              const n = Math.floor(Number(raise));
-              const raiseOk = canBid && n > 0 && a.bid + n <= myCash;
-              const doRaise = () => {
-                if (!raiseOk) return;
-                send({ type: "bid", amount: n });
-                setRaise("");
-              };
-              return (
-                <div className="flex gap-1">
-                  <Input
-                    type="number"
-                    min={1}
-                    inputMode="numeric"
-                    placeholder={t("auction.custom")}
-                    className="h-9 flex-1 tabular-nums"
-                    value={raise}
-                    disabled={!canBid}
-                    onChange={(e) => setRaise(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && doRaise()}
-                  />
-                  <Button disabled={!raiseOk} onClick={doRaise}>
-                    {t("auction.raise")}
-                  </Button>
-                </div>
-              );
-            })()}
-
-            <div className="overflow-y-auto bg-muted p-2 text-muted-foreground flex flex-col gap-1 h-[6rem]">
-              {a.bids.length === 0 && <div>{t("auction.noBids")}</div>}
-              {[...a.bids].reverse().map((b, i) => (
-                <div className="flex items-center gap-1 leading-none text-xs" key={a.bids.length - i}>
-                  <b className="text-foreground">{names[b.pid]}</b> - <span className={i == 0 ? 'tabular-nums text-warning' : 'text-muted-foreground'}>${b.amount}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t border-border pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
+        <details className="group">
+          <summary className="flex cursor-pointer list-none items-center justify-between text-xs text-muted-foreground [&::-webkit-details-marker]:hidden">
+            {t("ui.details")}
+            <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="pt-2">
             <TileDetails index={a.tile} game={game} />
           </div>
-        </div>
-      </div>
-    </div>
+        </details>
+      </CardContent>
+    </Card>
   );
 }

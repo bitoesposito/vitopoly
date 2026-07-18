@@ -39,7 +39,7 @@ export class RoomDO extends DurableObject<Env> {
 
     const joined = addPlayer(this.game, pid, name); // no-op if already joined (reconnect)
     if (!joined && this.game.status === "lobby") {
-      this.send(server, { type: "error", error: "room is full" });
+      this.send(server, { type: "error", error: "stanza piena" });
       server.close(4000, "cannot join");
       return new Response(null, { status: 101, webSocket: client });
     }
@@ -61,7 +61,7 @@ export class RoomDO extends DurableObject<Env> {
       await this.handleMessage(ws, raw);
     } catch (e) {
       console.error("webSocketMessage crashed:", e);
-      this.send(ws, { type: "error", error: "internal error" });
+      this.send(ws, { type: "error", error: "errore interno" });
     }
   }
 
@@ -72,7 +72,7 @@ export class RoomDO extends DurableObject<Env> {
     try {
       msg = JSON.parse(typeof raw === "string" ? raw : new TextDecoder().decode(raw)) as ClientMsg;
     } catch {
-      return this.send(ws, { type: "error", error: "bad json" });
+      return this.send(ws, { type: "error", error: "messaggio non valido" });
     }
     if (msg?.type === "chat") {
       const text = String(msg.text ?? "").slice(0, 300).trim();
@@ -91,8 +91,8 @@ export class RoomDO extends DurableObject<Env> {
       }
       return;
     }
-    if (!msg || msg.type !== "action") return this.send(ws, { type: "error", error: "unknown message" });
-    if (!this.game.players.some((p) => p.id === pid)) return this.send(ws, { type: "error", error: "spectators cannot act" });
+    if (!msg || msg.type !== "action") return this.send(ws, { type: "error", error: "messaggio sconosciuto" });
+    if (!this.game.players.some((p) => p.id === pid)) return this.send(ws, { type: "error", error: "gli spettatori non possono agire" });
 
     const r = apply(this.game, pid, msg.action);
     if (!r.ok) return this.send(ws, { type: "error", error: r.error });
@@ -133,7 +133,7 @@ export class RoomDO extends DurableObject<Env> {
       if (!r.ok && activeNode(this.game).t === "debt") r = apply(this.game, t.pid, { type: "bankrupt" }); // can't pay -> out
     }
     if (!r.ok) return; // no auto-action possible; leave the room to humans (debug endpoint shows why)
-    r.events.push({ e: "info", text: "⏰ time's up — auto action" });
+    r.events.push({ e: "info", text: "⏰ tempo scaduto — azione automatica" });
     await this.commit(r);
   }
 
@@ -141,7 +141,7 @@ export class RoomDO extends DurableObject<Env> {
   private async commit(r: Extract<Result, { ok: true }>, from?: WebSocket): Promise<void> {
     if (!invariantsOk(r.state)) {
       console.error("invariant violation, state not persisted:", JSON.stringify(r.events));
-      if (from) this.send(from, { type: "error", error: "invariant violation (not persisted)" });
+      if (from) this.send(from, { type: "error", error: "errore interno (stato non salvato)" });
       return;
     }
     r.state.log = [...r.state.log, ...r.events].slice(-100);

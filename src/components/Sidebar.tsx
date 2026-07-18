@@ -1,67 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, MessageSquare, Moon, Sun, Users } from "lucide-react";
+import { ChevronDown, MessageSquare } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { useGame } from "@/lib/store";
 import { sendChat } from "@/lib/ws";
-import { LANGS, useT, type Lang } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
 import { GamePanels } from "@/components/Panels";
 
-function LanguageToggle() {
-  const lang = useGame((s) => s.lang);
-  const setLang = useGame((s) => s.setLang);
-  const t = useT();
-  return (
-    <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
-      <SelectTrigger size="sm" aria-label={t("aria.language")}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {LANGS.map((l) => (
-          <SelectItem key={l.code} value={l.code}>
-          {l.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
-function ThemeToggle() {
-  const theme = useGame((s) => s.theme);
-  const setTheme = useGame((s) => s.setTheme);
-  const t = useT();
-  return (
-    <Button size="icon-sm" variant="outline" aria-label={t("aria.theme")} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-      {theme === "dark" ? <Sun /> : <Moon />}
-    </Button>
-  );
-}
-
-// mobile-only bottom-sheet header: player count + chat toggle + theme + language
-function TopBar({ chatOpen, onToggleChat }: { chatOpen: boolean; onToggleChat: () => void }) {
-  const t = useT();
-  const count = useGame((s) => s.game?.players.length ?? 0);
-  return (
-    <div className="flex items-center gap-2 border-b border-border p-2 md:hidden">
-      <span className="mr-auto flex items-center gap-1 text-sm tabular-nums text-muted-foreground" title={t("players.title", { n: count })}>
-        <Users className="size-4" />
-        {count}
-      </span>
-      <Button size="icon-sm" variant="outline" className="md:hidden" aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")} onClick={onToggleChat}>
-        {chatOpen ? <ChevronDown /> : <MessageSquare />}
-      </Button>
-      <ThemeToggle />
-      <LanguageToggle />
-    </div>
-  );
-}
-
-function Chat({ open }: { open: boolean }) {
+// Chat collassabile: su desktop una sezione in fondo alla sidebar (chiusa di default,
+// tutto lo spazio ai pannelli); su mobile un bottom-sheet aperto dal FAB.
+function Chat({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const chat = useGame((s) => s.chat);
   const game = useGame((s) => s.game);
   const t = useT();
@@ -72,7 +23,7 @@ function Chat({ open }: { open: boolean }) {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.length]);
 
-  // chat closed (mobile): new message -> toast
+  // chat chiusa: nuovo messaggio -> toast
   const prevLen = useRef(chat.length);
   useEffect(() => {
     const m = chat.at(-1);
@@ -80,9 +31,9 @@ function Chat({ open }: { open: boolean }) {
     prevLen.current = chat.length;
   }, [chat, open]);
 
-  // desktop: typing anywhere focuses the chat input
+  // desktop: digitando ovunque il focus va all'input della chat (se aperta)
   useEffect(() => {
-    if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (!open || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const h = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
       const t = e.target as HTMLElement;
@@ -91,7 +42,7 @@ function Chat({ open }: { open: boolean }) {
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, []);
+  }, [open]);
 
   const colorOf = (pid: string) => TOKEN_COLOR[(game?.players.find((p) => p.id === pid)?.token ?? 0) % 8];
   const time = (ts: number) => new Date(ts).toLocaleTimeString(navigator.language, { hour: "2-digit", minute: "2-digit" });
@@ -109,14 +60,15 @@ function Chat({ open }: { open: boolean }) {
   }, []);
 
   return (
-    <div className={`min-h-0 flex-1 flex-col overflow-hidden md:bg-card md:ring-1 md:ring-foreground/10 ${open ? "flex" : "hidden md:flex"}`}>
-      {/* desktop: chat card header with theme/language */}
-      <div className="hidden items-center gap-2 border-b border-border p-2 md:flex">
-        <span className="mr-auto text-sm font-semibold">Chat</span>
-        <ThemeToggle />
-        <LanguageToggle />
+    <div className={`flex min-h-0 flex-1 flex-col overflow-hidden md:flex-none md:bg-card md:ring-1 md:ring-foreground/10 ${open ? "md:h-72" : ""}`}>
+      {/* header desktop: titolo + toggle collasso */}
+      <div className="hidden items-center justify-between border-b border-border p-2 md:flex">
+        <span className="text-sm font-semibold">Chat</span>
+        <Button size="icon-sm" variant="outline" aria-label={open ? t("aria.closeChat") : t("aria.openChat")} onClick={onToggle}>
+          {open ? <ChevronDown /> : <MessageSquare />}
+        </Button>
       </div>
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm">
+      <div className={`min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm ${open ? "" : "md:hidden"}`}>
         {chat.length === 0 && <div className="text-xs text-muted-foreground">{t("chat.empty")}</div>}
         {groups.map((g, i) => (
           <div key={i} className="border border-border px-2 py-1">
@@ -133,7 +85,7 @@ function Chat({ open }: { open: boolean }) {
         ))}
         <div ref={bottom} />
       </div>
-      <div className="flex gap-2 border-t border-border p-2">
+      <div className={`flex gap-2 border-t border-border p-2 ${open ? "" : "md:hidden"}`}>
         <Input
           ref={inputRef}
           className="h-8 flex-1"
@@ -151,38 +103,51 @@ function Chat({ open }: { open: boolean }) {
   );
 }
 
-// right column. Desktop: stacked cards + chat. Mobile: expandable bottom-sheet with chat only.
+// colonna destra. Desktop: pannelli a tutta altezza + chat collassabile in fondo.
+// Mobile: FAB flottante -> bottom-sheet con la sola chat (i pannelli stanno sotto la board).
 export function Sidebar({ game }: { game: PublicState }) {
-  const [chatOpen, setChatOpen] = useState(true); // collapse is mobile-only
+  const [chatOpen, setChatOpen] = useState(false);
+  const t = useT();
   // mobile-only sheet resize, 2 snap heights; desktop is fixed width
   const [chatH, setChatH] = useState<number>();
   const snap = (v: number, steps: number[]) => steps.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a));
 
   return (
-    <aside
-      style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
-      className={`relative flex shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${chatOpen ? "h-[var(--chat-h,45%)]" : "h-auto"}`}
-    >
-      {/* mobile-only sheet resize handle; double click toggles the chat */}
-      <div
-        className="absolute top-0 right-0 left-0 z-10 flex h-3 shrink-0 cursor-row-resize touch-none items-center justify-center hover:bg-ring/30 md:hidden"
-        onDoubleClick={() => setChatOpen((o) => !o)}
-        onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
-        onPointerMove={(e) => {
-          if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-          setChatH(snap(innerHeight - e.clientY, [innerHeight * 0.25, innerHeight * 0.45]));
-        }}
+    <>
+      {/* FAB mobile: toggla lo sheet; quando è aperto si sposta sopra di esso */}
+      <Button
+        size="icon"
+        className="fixed right-3 bottom-3 z-50 size-12 rounded-full shadow-lg md:hidden"
+        style={chatOpen ? { bottom: `calc(${chatH ? `${chatH}px` : "45%"} + 12px)` } : undefined}
+        aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
+        onClick={() => setChatOpen((o) => !o)}
       >
-        <span className="h-1 w-10 rounded-full bg-muted-foreground/40" />
-      </div>
-      <TopBar chatOpen={chatOpen} onToggleChat={() => setChatOpen(!chatOpen)} />
-      {/* desktop-only: on mobile the panels sit below the board (App.tsx) */}
-      {game.status !== "lobby" && (
-        <div className="hidden shrink-0 overflow-y-auto md:block md:max-h-[55%]">
-          <GamePanels game={game} />
+        {chatOpen ? <ChevronDown /> : <MessageSquare />}
+      </Button>
+      <aside
+        style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
+        className={`relative shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none`}
+      >
+        {/* mobile-only sheet resize handle; double click chiude la chat */}
+        <div
+          className="absolute top-0 right-0 left-0 z-10 flex h-3 shrink-0 cursor-row-resize touch-none items-center justify-center hover:bg-ring/30 md:hidden"
+          onDoubleClick={() => setChatOpen(false)}
+          onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
+          onPointerMove={(e) => {
+            if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+            setChatH(snap(innerHeight - e.clientY, [innerHeight * 0.25, innerHeight * 0.45]));
+          }}
+        >
+          <span className="h-1 w-10 rounded-full bg-muted-foreground/40" />
         </div>
-      )}
-      <Chat open={chatOpen} />
-    </aside>
+        {/* desktop-only: tutto lo spazio ai pannelli (su mobile stanno sotto la board, App.tsx) */}
+        {game.status !== "lobby" && (
+          <div className="hidden min-h-0 md:block md:flex-1 md:overflow-y-auto">
+            <GamePanels game={game} />
+          </div>
+        )}
+        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
+      </aside>
+    </>
   );
 }

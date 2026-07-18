@@ -1,12 +1,14 @@
-import { BOARD } from "@tangentopoly/game";
+import { activeNode, BOARD } from "@tangentopoly/game";
 import type { PublicState } from "@tangentopoly/game";
 import { Tile } from "./Tile";
 import { Center } from "./Center";
-import { AuctionDialog } from "./AuctionDialog";
+import { EventCardOverlay } from "./EventCard";
 import { Tokens } from "./Tokens";
 import { tileCell } from "@/lib/utils";
 
 export function Board({ game }: { game: PublicState }) {
+  // l'asta è un interrupt di gioco: board bloccata (niente blur), si agisce dal pannello asta
+  const auctionLive = game.status === "playing" && activeNode(game).t === "auction";
   // square board; gap-px + bg-border = uniform grid lines
   return (
     <div
@@ -28,7 +30,8 @@ export function Board({ game }: { game: PublicState }) {
         <Center game={game} />
       </div>
       <Tokens game={game} />
-      <AuctionDialog game={game} />
+      <EventCardOverlay />
+      {auctionLive && <div className="absolute inset-0 z-40 bg-background/50" aria-hidden />}
     </div>
   );
 }

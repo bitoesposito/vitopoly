@@ -124,6 +124,7 @@ export type GameEvent =
   | { e: "auctionWon"; pid: PlayerId; tile: TileId; price: number }
   | { e: "jailed"; pid: PlayerId }
   | { e: "bankrupt"; pid: PlayerId }
+  | { e: "traded"; from: PlayerId; to: PlayerId; give: Bundle; get: Bundle }
   | { e: "info"; text: string };
 
 export type Result = { ok: true; state: GameState; events: GameEvent[] } | { ok: false; error: string };

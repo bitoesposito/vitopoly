@@ -12,17 +12,17 @@ export function build(s: GameState, pid: PlayerId, tile: TileId): string | null 
   const def = BOARD[tile];
   const own = s.props[tile];
   const p = findPlayer(s, pid);
-  if (def.kind !== "street" || !own || own.owner !== pid) return "not your street";
-  if (own.houses >= 5) return "already a hotel";
+  if (def.kind !== "street" || !own || own.owner !== pid) return "non è una tua strada";
+  if (own.houses >= 5) return "c'è già un hotel";
   const group = groupTiles(def.group!);
-  if (!group.every((t) => s.props[t]?.owner === pid)) return "need the full color group";
-  if (group.some((t) => s.props[t]!.mortgaged)) return "group has mortgaged streets";
+  if (!group.every((t) => s.props[t]?.owner === pid)) return "serve l'intero gruppo di colore";
+  if (group.some((t) => s.props[t]!.mortgaged)) return "il gruppo ha strade ipotecate";
   // even-build: can only build on a street at the group's minimum level
-  if (s.settings.evenBuild && own.houses !== Math.min(...group.map((t) => s.props[t]!.houses))) return "build evenly";
-  if (p.cash < def.houseCost!) return "cannot afford";
+  if (s.settings.evenBuild && own.houses !== Math.min(...group.map((t) => s.props[t]!.houses))) return "costruisci in modo uniforme";
+  if (p.cash < def.houseCost!) return "non te lo puoi permettere";
   const toHotel = own.houses === 4;
-  if (toHotel && s.bank.hotels < 1) return "bank out of hotels";
-  if (!toHotel && s.bank.houses < 1) return "bank out of houses";
+  if (toHotel && s.bank.hotels < 1) return "la banca ha finito gli hotel";
+  if (!toHotel && s.bank.houses < 1) return "la banca ha finito le case";
   p.cash -= def.houseCost!;
   if (toHotel) {
     s.bank.hotels--;
@@ -38,11 +38,11 @@ export function sellHouse(s: GameState, pid: PlayerId, tile: TileId): string | n
   const def = BOARD[tile];
   const own = s.props[tile];
   const p = findPlayer(s, pid);
-  if (def.kind !== "street" || !own || own.owner !== pid) return "not your street";
-  if (own.houses === 0) return "nothing to sell";
+  if (def.kind !== "street" || !own || own.owner !== pid) return "non è una tua strada";
+  if (own.houses === 0) return "niente da vendere";
   const group = groupTiles(def.group!);
   // even-sell: can only sell from a street at the group's maximum level
-  if (s.settings.evenBuild && own.houses !== Math.max(...group.map((t) => s.props[t]!.houses))) return "sell evenly";
+  if (s.settings.evenBuild && own.houses !== Math.max(...group.map((t) => s.props[t]!.houses))) return "vendi in modo uniforme";
   if (own.houses === 5) {
     if (s.bank.houses >= 4) {
       // hotel -> 4 houses
@@ -65,12 +65,12 @@ export function sellHouse(s: GameState, pid: PlayerId, tile: TileId): string | n
 }
 
 export function mortgage(s: GameState, pid: PlayerId, tile: TileId): string | null {
-  if (!s.settings.mortgageAllowed) return "mortgage disabled in this game";
+  if (!s.settings.mortgageAllowed) return "ipoteche disabilitate in questa partita";
   const def = BOARD[tile];
   const own = s.props[tile];
-  if (!own || own.owner !== pid) return "not yours";
-  if (own.mortgaged) return "already mortgaged";
-  if (def.group && groupTiles(def.group).some((t) => (s.props[t]?.houses ?? 0) > 0)) return "group has buildings";
+  if (!own || own.owner !== pid) return "non è tua";
+  if (own.mortgaged) return "già ipotecata";
+  if (def.group && groupTiles(def.group).some((t) => (s.props[t]?.houses ?? 0) > 0)) return "il gruppo ha edifici";
   own.mortgaged = true;
   findPlayer(s, pid).cash += def.price! / 2;
   return null;
@@ -80,10 +80,10 @@ export function mortgage(s: GameState, pid: PlayerId, tile: TileId): string | nu
 export function sellProperty(s: GameState, pid: PlayerId, tile: TileId): string | null {
   const def = BOARD[tile];
   const own = s.props[tile];
-  if (!own || own.owner !== pid) return "not yours";
-  if (own.mortgaged) return "already mortgaged — nothing left to sell";
-  if (own.houses > 0) return "sell the buildings first";
-  if (def.group && groupTiles(def.group).some((t) => (s.props[t]?.houses ?? 0) > 0)) return "group has buildings";
+  if (!own || own.owner !== pid) return "non è tua";
+  if (own.mortgaged) return "già ipotecata — niente da vendere";
+  if (own.houses > 0) return "prima vendi gli edifici";
+  if (def.group && groupTiles(def.group).some((t) => (s.props[t]?.houses ?? 0) > 0)) return "il gruppo ha edifici";
   delete s.props[tile];
   findPlayer(s, pid).cash += def.price! / 2;
   return null;
@@ -93,10 +93,10 @@ export function unmortgage(s: GameState, pid: PlayerId, tile: TileId): string | 
   const def = BOARD[tile];
   const own = s.props[tile];
   const p = findPlayer(s, pid);
-  if (!own || own.owner !== pid) return "not yours";
-  if (!own.mortgaged) return "not mortgaged";
+  if (!own || own.owner !== pid) return "non è tua";
+  if (!own.mortgaged) return "non è ipotecata";
   const cost = Math.ceil((def.price! / 2) * 1.1);
-  if (p.cash < cost) return "cannot afford";
+  if (p.cash < cost) return "non te lo puoi permettere";
   p.cash -= cost;
   own.mortgaged = false;
   return null;

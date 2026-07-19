@@ -50,7 +50,7 @@ function PropCell({ game, tile, sel, onClick }: { game: PublicState; tile: numbe
             <span>×{o.houses}</span>
           </>
         ) : (
-          <span className="tabular-nums">${def.price}</span>
+          <span className="tabular-nums">€{def.price}</span>
         )}
       </div>
     </button>
@@ -93,13 +93,13 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
           {canBuild && def.kind === "street" && !own.mortgaged && own.houses < 5 && (
             <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "build", tile: selTile })}>
               <Plus className="size-3.5" />
-              <House className="size-3.5" />${def.houseCost}
+              <House className="size-3.5" />€{def.houseCost}
             </Button>
           )}
           {canRaise && own.houses > 0 && (
             <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "sellHouse", tile: selTile })}>
               <Minus className="size-3.5" />
-              <House className="size-3.5" />+${def.houseCost! / 2}
+              <House className="size-3.5" />+€{def.houseCost! / 2}
             </Button>
           )}
           {canRaise && game.settings.mortgageAllowed && own.houses === 0 && !own.mortgaged && (
@@ -141,9 +141,9 @@ function BundleEditor({ game, player, title, accent, cash, setCash, picked, setP
     <div className="space-y-1.5 border border-border/60 bg-muted/20 p-2">
       <div className={`text-2xs font-semibold tracking-wide uppercase ${accent}`}>{title}</div>
       <div className="flex items-center gap-1.5 text-sm">
-        <span className="text-muted-foreground">$</span>
+        <span className="text-muted-foreground">€</span>
         <Input className="h-7 flex-1 tabular-nums" type="number" min={0} max={player.cash} value={cash} onChange={(e) => setCash(e.target.value)} />
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">/ ${player.cash}</span>
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">/ €{player.cash}</span>
       </div>
       {tiles.length === 0 ? (
         <div className="text-xs text-muted-foreground">{tr("trade.noProps")}</div>
@@ -248,7 +248,7 @@ export function BundleChips({ b, fly }: { b: Bundle; fly?: "r" | "l" }) {
   const tr = useT();
   const tn = useTileName();
   const chips: React.ReactNode[] = [];
-  if (b.cash > 0) chips.push(<span key="$" className="font-semibold text-success">${b.cash}</span>);
+  if (b.cash > 0) chips.push(<span key="€" className="font-semibold text-success">€{b.cash}</span>);
   for (const t of b.props)
     chips.push(
       <span key={t} className="flex items-center gap-1">

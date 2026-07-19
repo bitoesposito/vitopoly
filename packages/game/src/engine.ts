@@ -140,7 +140,7 @@ const bid: Handler = (s, pid, a) => {
   f.bid = total;
   f.leader = pid;
   f.bids.push({ pid, amount: total }); // lo storico del pannello asta basta: niente riga di log
-  return ok(s);
+  return ok(s); // (importi in € solo a display: qui girano numeri)
 };
 
 const fold: Handler = (s, pid) => {

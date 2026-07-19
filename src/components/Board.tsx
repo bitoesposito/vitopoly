@@ -22,12 +22,14 @@ export function Board({ game }: { game: PublicState }) {
       {BOARD.map((_, i) => {
         const { row, col } = tileCell(i);
         return (
-          <div key={i} className="min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }}>
+          // grid (non block): il button è un item stretchato, MAI su una baseline di testo —
+          // l'inline-block dentro un div si sfalsa con le metriche del font caricato
+          <div key={i} className="grid min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }}>
             <Tile index={i} game={game} />
           </div>
         );
       })}
-      <div className="min-h-0 min-w-0" style={{ gridRow: "2 / 11", gridColumn: "2 / 11" }}>
+      <div className="grid min-h-0 min-w-0" style={{ gridRow: "2 / 11", gridColumn: "2 / 11" }}>
         <Center game={game} />
       </div>
       <Tokens game={game} />

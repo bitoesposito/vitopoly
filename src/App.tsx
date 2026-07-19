@@ -35,8 +35,9 @@ export default function App() {
         <Chat open />
       </aside>
       <main className="min-h-0 max-h-[100vh] flex-1 overflow-auto">
-        {/* md:p-2 = stesso gutter dal bordo pagina delle sidebar */}
-        <div className="flex flex-col items-center justify-center gap-3 sm:h-full md:p-2">
+        {/* md:p-2 = stesso gutter dal bordo pagina delle sidebar; center-safe: se il
+            contenuto supera l'altezza non taglia la parte alta, la lascia scrollabile */}
+        <div className="flex flex-col items-center justify-center-safe gap-3 sm:h-full md:p-2">
           {game.status === "lobby" ? (
             <GameSettingsView game={game} />
           ) : (

@@ -50,13 +50,13 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
             {tile.rent.map((r, i) => (
               <Fragment key={i}>
                 <span>{t(`info.rent${i}`)}</span>
-                <span className="text-right tabular-nums text-success">${r}</span>
+                <span className="text-right tabular-nums text-success">€{r}</span>
               </Fragment>
             ))}
           </div>
           <div className="flex justify-between gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
-            <span>{t("info.price")}: <b className="text-foreground">${tile.price}</b></span>
-            <span>{t("info.house")}: <b className="text-foreground">${tile.houseCost}</b></span>
+            <span>{t("info.price")}: <b className="text-foreground">€{tile.price}</b></span>
+            <span>{t("info.house")}: <b className="text-foreground">€{tile.houseCost}</b></span>
           </div>
         </>
       ) : (
@@ -64,7 +64,7 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
           <p>{tileDesc(t, tile, game)}</p>
           {tile.price != null && (
             <p>
-              {t("info.price")}: <b className="text-foreground">${tile.price}</b>
+              {t("info.price")}: <b className="text-foreground">€{tile.price}</b>
             </p>
           )}
         </div>

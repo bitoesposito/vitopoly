@@ -4,13 +4,14 @@ import type { Bundle, ChatMsg, GameEvent, PublicState, TileId } from "@tangentop
 // Event card popup: an animated card for the notable moments (see EventCard.tsx).
 // Popups stack visually and each dismisses itself; `wait` delays the entrance
 // (used to stagger same-batch bursts pushed together).
-export type CardPopup = { id: number; wait: number } & (
+// PopupBody separato: Omit su (unione & oggetto) collasserebbe alle sole chiavi comuni.
+type PopupBody =
   | { kind: "chance" | "chest"; name: string; text: string }
   | { kind: "jailed"; name: string; you: boolean }
   | { kind: "buy"; name: string; tile: TileId; price: number }
-  | { kind: "trade"; from: string; to: string; give: Bundle; get: Bundle }
-);
-export type PopupInput = Omit<CardPopup, "id" | "wait"> & { wait?: number };
+  | { kind: "trade"; from: string; to: string; give: Bundle; get: Bundle };
+export type CardPopup = PopupBody & { id: number; wait: number };
+export type PopupInput = PopupBody & { wait?: number };
 let popupSeq = 0;
 
 function getMyId(): string {

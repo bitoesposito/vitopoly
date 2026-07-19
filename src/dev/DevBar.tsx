@@ -95,8 +95,8 @@ const SCENARIOS: [string, () => GameState | null][] = [
 
 // EventCard test triggers: every kind the animation can play (+ a stacked burst)
 const POPUPS: [string, PopupInput[]][] = [
-  ["Imprevisti", [{ kind: "chance", name: "Anna", text: CHANCE[9].text }]],
-  ["Probabilità", [{ kind: "chest", name: "Anna", text: CHEST[1].text }]],
+  ["Blitz", [{ kind: "chance", name: "Anna", text: CHANCE[9].text }]],
+  ["Favori", [{ kind: "chest", name: "Anna", text: CHEST[1].text }]],
   ["Prigione", [{ kind: "jailed", name: "Anna", you: false }]],
   ["Acquisto", [{ kind: "buy", name: "Tu", tile: 39, price: 400 }]],
   ["Scambio", [{

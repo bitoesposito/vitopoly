@@ -107,7 +107,7 @@ export function GameSettingsView({ game }: { game: PublicState }) {
               {!isHost && <p className="text-xs text-muted-foreground">{t("settings.hostOnly", { name: game.players[0]?.name ?? "" })}</p>}
               <div className="grid gap-4 sm:grid-cols-2">
                 <NumberSetting label={t("settings.maxPlayers")} desc={t("settings.maxPlayersDesc")} value={st.maxPlayers} options={[2, 3, 4, 5, 6, 7, 8]} disabled={!isHost} onChange={(n) => patch({ maxPlayers: n })} />
-                <NumberSetting label={t("settings.startingCash")} desc={t("settings.startingCashDesc")} value={st.startingCash} options={[500, 1000, 1500, 2000, 2500, 3000]} prefix="$" disabled={!isHost} onChange={(n) => patch({ startingCash: n })} />
+                <NumberSetting label={t("settings.startingCash")} desc={t("settings.startingCashDesc")} value={st.startingCash} options={[500, 1000, 1500, 2000, 2500, 3000]} prefix="€" disabled={!isHost} onChange={(n) => patch({ startingCash: n })} />
               </div>
               <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {SECTIONS.map(({ titleKey, toggles }) => (

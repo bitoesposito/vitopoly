@@ -108,7 +108,7 @@ function PopCard({ popup, depth }: { popup: CardPopup; depth: number }) {
                 <div className="text-xs text-muted-foreground">
                   {popup.kind === "buy" ? (
                     <>
-                      {popup.name} · <span className="text-success">${popup.price}</span>
+                      {popup.name} · <span className="text-success">€{popup.price}</span>
                     </>
                   ) : (
                     popup.name

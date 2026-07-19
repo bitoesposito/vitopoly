@@ -65,14 +65,14 @@ export function PlayerList({ game }: { game: PublicState }) {
                 <span className="size-5 shrink-0" /> // slot riservato: cash allineata su tutte le righe
               )
             )}
-            {game.status !== "lobby" && <span className="tabular-nums text-success">${p.cash}</span>}
+            {game.status !== "lobby" && <span className="tabular-nums text-success">€{p.cash}</span>}
           </span>
         </div>
       ))}
       {game.status === "playing" && game.settings.vacationCash && (
         <div className="flex items-center gap-1.5 border-t border-border px-2 pt-1.5 text-xs text-muted-foreground">
           <Palmtree className="size-3.5" /> {t("players.vacationPot")}
-          <span className="ml-auto tabular-nums text-warning">${game.vacationPot}</span>
+          <span className="ml-auto tabular-nums text-warning">€{game.vacationPot}</span>
         </div>
       )}
     </div>

@@ -71,7 +71,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         <div className="flex items-end justify-between">
           <div>
             <div className="text-2xs font-semibold tracking-wide uppercase text-muted-foreground">{t("auction.current")}</div>
-            <div className="text-2xl font-bold tabular-nums text-warning">${a.bid}</div>
+            <div className="text-2xl font-bold tabular-nums text-warning">€{a.bid}</div>
           </div>
           <div className="text-xs text-muted-foreground">{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
         </div>
@@ -81,7 +81,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         <div className="flex gap-1">
           {QUICK_BIDS.map((d) => (
             <Button key={d} className="flex-1 tabular-nums" size="sm" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
-              +${d}
+              +€{d}
             </Button>
           ))}
         </div>
@@ -109,7 +109,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
           {[...a.bids].reverse().map((b, i) => (
             <div className="flex items-center gap-1 text-xs leading-none" key={a.bids.length - i}>
               <b className="text-foreground">{names[b.pid]}</b> -{" "}
-              <span className={i === 0 ? "tabular-nums text-warning" : "text-muted-foreground"}>${b.amount}</span>
+              <span className={i === 0 ? "tabular-nums text-warning" : "text-muted-foreground"}>€{b.amount}</span>
             </div>
           ))}
         </div>

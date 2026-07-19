@@ -4,6 +4,8 @@
 @import "@fontsource-variable/ibm-plex-sans";
 @import "@fontsource/ibm-plex-sans-condensed/400.css";
 @import "@fontsource/ibm-plex-sans-condensed/500.css";
+@import "@fontsource/ibm-plex-sans-condensed/600.css";
+@import "@fontsource/ibm-plex-sans-condensed/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -144,6 +146,9 @@
     height: 100%;
     font-size: var(--die, 3rem);
     transform-style: preserve-3d;
+    /* tilt (hover) composto con la faccia corrente: l'inclinazione mostra i lati
+       del cubo senza perdere il valore uscito */
+    transform: var(--die-tilt, rotateZ(0)) var(--face, rotateZ(0));
     transition: transform .5s cubic-bezier(.2, .9, .3, 1.15);
 }
 .die-face {
@@ -185,14 +190,24 @@
 .die-right::after { margin: -.3em 0 0 -.3em; box-shadow: .4em 0, 0 .4em, .4em .4em; }
 .die-left::after { margin: -.35em 0 0 -.35em; box-shadow: .25em .25em, .5em .5em; }
 
-@keyframes die-roll { to { transform: rotateX(2turn) rotateY(2.5turn) rotateZ(.5turn); } }
-@keyframes die-roll-alt { to { transform: rotateX(-2.5turn) rotateY(2turn) rotateZ(-.5turn); } }
+/* perspective() DENTRO i keyframe: scorcio prospettico al cubo in movimento (senza,
+   l'ortografica lo appiattisce in rettangoli); a riposo il cubo è axis-aligned e la
+   prospettiva è ininfluente -> faccia frontale pulita, zero artefatti agli angoli */
+@keyframes die-roll {
+    50% { transform: perspective(4em) rotateX(1turn) rotateY(1.25turn) rotateZ(.25turn) scale(.7); }
+    to { transform: perspective(4em) rotateX(2turn) rotateY(2.5turn) rotateZ(.5turn); }
+}
+@keyframes die-roll-alt {
+    50% { transform: perspective(4em) rotateX(-1.25turn) rotateY(1turn) rotateZ(-.25turn) scale(.7); }
+    to { transform: perspective(4em) rotateX(-2.5turn) rotateY(2turn) rotateZ(-.5turn); }
+}
 .die-rolling { animation: die-roll .88s cubic-bezier(.35, .1, .3, .9); }
 .die-rolling-alt { animation: die-roll-alt 1s cubic-bezier(.35, .1, .3, .9); }
 
-/* tray cliccabile: hover = invito al lancio, click = "pressione" sui dadi */
-.dice-tray:not(:disabled):hover .die-scene:first-child { transform: scale(1.08) rotate(5deg); }
-.dice-tray:not(:disabled):hover .die-scene:last-child { transform: scale(1.08) rotate(-5deg); }
+/* tray cliccabile: hover = leggera inclinazione 3D dei cubi (si vedono i lati),
+   click = "pressione" sui dadi. I due dadi si inclinano in verso opposto. */
+.dice-tray:not(:disabled):hover .die { --die-tilt: perspective(4em) rotateX(-12deg) rotateY(14deg); }
+.dice-tray:not(:disabled):hover .die-rolling-alt { --die-tilt: perspective(4em) rotateX(-12deg) rotateY(-14deg); }
 .dice-tray:not(:disabled):active .die-scene { transform: scale(.9); }
 
 @media (prefers-reduced-motion: reduce) {

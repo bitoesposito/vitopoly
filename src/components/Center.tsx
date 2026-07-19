@@ -34,19 +34,14 @@ const DIE_FACE: Record<number, string> = {
   6: "rotateX(180deg)",
 };
 
-// Dado 3D: quando `spin` cambia parte il tumble, a fine animazione la transition
-// molleggiata accompagna il cubo sulla faccia uscita. `alt` varia durata e verso.
+// Dado 3D senza stato: key={spin} rimonta il cubo a ogni tiro e l'animazione CSS
+// one-shot riparte; quando finisce, la transition lo accompagna sulla faccia uscita.
+// `alt` varia durata e verso del tumble.
 function Die3D({ value, spin, alt }: { value: number | null; spin: number; alt?: boolean }) {
-  const [rolling, setRolling] = useState(false);
-  useEffect(() => {
-    if (!spin) return;
-    setRolling(true);
-    const id = setTimeout(() => setRolling(false), alt ? 1000 : 880);
-    return () => clearTimeout(id);
-  }, [spin, alt]);
   return (
-    <div className={`die-scene ${value == null ? "opacity-60" : ""}`}>
-      <div className={`die ${rolling ? (alt ? "die-rolling-alt" : "die-rolling") : ""}`} style={{ transform: DIE_FACE[value ?? 1] }}>
+    <div className="die-scene">
+      {/* la faccia va in --face (non in transform): così l'hover può comporre il tilt 3D */}
+      <div key={spin} className={`die ${alt ? "die-rolling-alt" : "die-rolling"}`} style={{ "--face": DIE_FACE[value ?? 1] } as React.CSSProperties}>
         {(["front", "back", "top", "bottom", "right", "left"] as const).map((f) => (
           <div key={f} className={`die-face die-${f}`} />
         ))}
@@ -110,9 +105,15 @@ export function Center({ game }: { game: PublicState }) {
   const t = useT();
   const tn = useTileName();
   const dice = lastRoll(events);
-  // nuovo evento rolled (per identità) -> nuovo spin; il guard regge anche StrictMode
-  const spinRef = useRef<{ ev: GameEvent | null; n: number }>({ ev: null, n: 0 });
-  if (dice && spinRef.current.ev !== dice) spinRef.current = { ev: dice, n: spinRef.current.n + 1 };
+  // nuovo evento rolled (per identità) -> nuovo tumble; ref toccata solo nell'effect
+  const [spin, setSpin] = useState(0);
+  const lastRollEv = useRef<GameEvent | null>(null);
+  useEffect(() => {
+    if (dice && lastRollEv.current !== dice) {
+      lastRollEv.current = dice;
+      setSpin((n) => n + 1);
+    }
+  }, [dice]);
   const legal = new Set(legalActions(game, myId));
   const isMyTurn = game.players[game.current]?.id === myId;
   const me = game.players.find((p) => p.id === myId);
@@ -123,7 +124,7 @@ export function Center({ game }: { game: PublicState }) {
 
   if (game.status === "ended") {
     return (
-      <div className="grid h-full place-items-center rounded-lg bg-card">
+      <div className="grid h-full place-items-center rounded-lg bg-card font-condensed">
         <div className="text-center">
           <Trophy className="mx-auto size-10 text-warning" />
           <h2 className="mt-2 text-2xl font-bold text-warning">{t("center.winner", { name: game.winner ? names[game.winner] : t("center.nobody") })}</h2>
@@ -142,7 +143,8 @@ export function Center({ game }: { game: PublicState }) {
   })();
 
   return (
-    <div className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg bg-card p-2 sm:p-3">
+    // font-condensed: il centro è parte del tabellone, stessa voce delle tiles
+    <div className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg bg-card p-2 font-condensed sm:p-3">
       {/* metà alta ANCORATA in alto (niente justify-center): riga turno e dadi hanno
           posizione fissa, prompt e bottoni crescono verso il basso senza spostare nulla */}
       <div className="flex flex-1 basis-0 flex-col items-center gap-2 pt-1 sm:gap-3 sm:pt-2">
@@ -165,17 +167,17 @@ export function Center({ game }: { game: PublicState }) {
         onClick={() => send({ type: "roll" })}
         aria-label={t("center.roll")}
         title={canRoll ? t("center.roll") : undefined}
-        className="dice-tray flex items-center justify-center gap-3 sm:gap-4 [--die:3rem] sm:[--die:3.5rem] lg:[--die:4rem]"
+        className={`dice-tray flex items-center justify-center gap-2 sm:gap-3 [--die:3rem] sm:[--die:3.5rem] lg:[--die:4rem] ${dice ? "" : "opacity-60"}`}
       >
-        <Die3D value={dice?.d1 ?? null} spin={spinRef.current.n} />
-        <Die3D value={dice?.d2 ?? null} spin={spinRef.current.n} alt />
+        <Die3D value={dice?.d1 ?? null} spin={spin} />
+        <Die3D value={dice?.d2 ?? null} spin={spin} alt />
       </button>
 
       {/* single action zone: every decision (roll/buy/debt/jail) shows here, under the dice */}
       <div className="flex flex-col items-center gap-2">
         {node.t === "buyPrompt" && isMyTurn && (
           <div className="text-center text-sm font-semibold lg:text-base">
-            {t("buy.q", { name: tn(node.tile) })} <span className="text-success">${BOARD[node.tile].price}</span>?
+            {t("buy.q", { name: tn(node.tile) })} <span className="text-success">€{BOARD[node.tile].price}</span>?
           </div>
         )}
         {node.t === "debt" && ((node as DebtFrame).debtor === myId ? (
@@ -196,18 +198,18 @@ export function Center({ game }: { game: PublicState }) {
 
         <div className="flex flex-wrap items-center justify-center gap-2">
           {primary && (
-            <Button size="lg" className="px-8 lg:h-11 lg:px-10 lg:text-base" onClick={primary.action}>
-              {primary.icon && <primary.icon className="size-4 lg:size-5" />}
+            <Button size="lg" className="text-xs md:text-md lg:text-lg" onClick={primary.action}>
+              {primary.icon && <primary.icon className="size-4" />}
               {primary.label}
             </Button>
           )}
           {me?.inJail && isMyTurn && node.t === "preRoll" && (
             <>
-              <Button variant="secondary" className="lg:h-10" onClick={() => send({ type: "payBail" })}>
+              <Button size="lg" className="text-xs md:text-md lg:text-lg" variant="secondary" onClick={() => send({ type: "payBail" })}>
                 {t("center.payBail")}
               </Button>
               {me.jailCards > 0 && (
-                <Button variant="secondary" className="lg:h-10" onClick={() => send({ type: "useJailCard" })}>
+                <Button size="lg" className="text-xs md:text-md lg:text-lg" variant="secondary" onClick={() => send({ type: "useJailCard" })}>
                   <Ticket className="size-4" />
                   {t("center.useJailCard")}
                 </Button>
@@ -216,20 +218,20 @@ export function Center({ game }: { game: PublicState }) {
           )}
           {node.t === "buyPrompt" && isMyTurn && (
             <>
-              <Button className="px-6 lg:h-10" disabled={(me?.cash ?? 0) < (BOARD[node.tile].price ?? 0)} onClick={() => send({ type: "buy" })}>
+              <Button size="lg" className="text-xs md:text-md lg:text-lg" disabled={(me?.cash ?? 0) < (BOARD[node.tile].price ?? 0)} onClick={() => send({ type: "buy" })}>
                 {t("buy.buy")}
               </Button>
-              <Button variant="secondary" className="lg:h-10" onClick={() => send({ type: "decline" })}>
+              <Button size="lg" className="text-xs md:text-md lg:text-lg" variant="secondary" onClick={() => send({ type: "decline" })}>
                 {game.settings.auction ? t("buy.declineAuction") : t("buy.decline")}
               </Button>
             </>
           )}
           {node.t === "debt" && (node as DebtFrame).debtor === myId && (
             <>
-              <Button className="px-6 lg:h-10" disabled={(me?.cash ?? 0) < (node as DebtFrame).claims[0].amount} onClick={() => send({ type: "payDebt" })}>
+              <Button size="lg" className="text-xs md:text-md lg:text-lg" disabled={(me?.cash ?? 0) < (node as DebtFrame).claims[0].amount} onClick={() => send({ type: "payDebt" })}>
                 {t("debt.pay")}
               </Button>
-              <Button variant="destructive" className="lg:h-10" onClick={() => send({ type: "bankrupt" })}>
+              <Button size="lg" className="text-xs md:text-md lg:text-lg" variant="destructive" onClick={() => send({ type: "bankrupt" })}>
                 {t("debt.bankrupt")}
               </Button>
             </>

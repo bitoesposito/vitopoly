@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Gem, Handshake, HelpCircle, KeyRound, Lock, Ticket, type LucideIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Gem, Handshake, HelpCircle, KeyRound, Lock, type LucideIcon } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
 import type { Bundle } from "@tangentopoly/game";
 import { GROUP_COLOR } from "@/lib/colors";
 import { useGame, type CardPopup } from "@/lib/store";
 import { useT, useTileName } from "@/lib/i18n";
+import { BundleChips } from "./Panels";
 
 // Animated event cards. Each popup pops in the moment it's pushed (ws.ts schedules
 // the timing), stacks on the previous ones, and dismisses itself after a hold long
@@ -24,40 +25,6 @@ const STYLE: Record<CardPopup["kind"], { icon: LucideIcon; accent: string; title
 const holdMs = (p: CardPopup, body: string) =>
   p.kind === "trade" ? 3200 : Math.min(1400 + body.length * 28, 3200);
 
-// one side of a trade as flying chips: cash, deeds (group-colored), jail cards
-function Chips({ b, dir }: { b: Bundle; dir: "r" | "l" }) {
-  const tn = useTileName();
-  const cls = dir === "r" ? "chip-fly-r" : "chip-fly-l";
-  const chips: React.ReactNode[] = [];
-  if (b.cash > 0) chips.push(<span key="$" className="font-semibold text-success">${b.cash}</span>);
-  for (const t of b.props)
-    chips.push(
-      <span key={t} className="flex items-center gap-1">
-        <span className="size-2 shrink-0 rounded-full" style={{ background: GROUP_COLOR[BOARD[t].group ?? ""] ?? "var(--color-muted-foreground)" }} />
-        {tn(t)}
-      </span>,
-    );
-  if (b.jailCards > 0)
-    chips.push(
-      <span key="j" className="flex items-center gap-1">
-        <Ticket className="size-3" />×{b.jailCards}
-      </span>,
-    );
-  return (
-    <>
-      {chips.map((c, i) => (
-        <span
-          key={i}
-          className={`${cls} flex items-center border border-border bg-muted px-1.5 py-0.5 text-xs`}
-          style={{ animationDelay: `${250 + i * 130}ms` }}
-        >
-          {c}
-        </span>
-      ))}
-    </>
-  );
-}
-
 function TradeBody({ p }: { p: Extract<CardPopup, { kind: "trade" }> }) {
   const empty = (b: Bundle) => b.cash === 0 && b.props.length === 0 && b.jailCards === 0;
   return (
@@ -69,14 +36,14 @@ function TradeBody({ p }: { p: Extract<CardPopup, { kind: "trade" }> }) {
       </div>
       {!empty(p.give) && (
         <div className="flex flex-wrap items-center gap-1">
-          <Chips b={p.give} dir="r" />
+          <BundleChips b={p.give} fly="r" />
           <ArrowRight className="size-3.5 shrink-0 text-success" />
         </div>
       )}
       {!empty(p.get) && (
         <div className="flex flex-wrap items-center justify-end gap-1">
           <ArrowLeft className="size-3.5 shrink-0 text-success" />
-          <Chips b={p.get} dir="l" />
+          <BundleChips b={p.get} fly="l" />
         </div>
       )}
     </div>

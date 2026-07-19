@@ -315,7 +315,8 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
     const e = fn(s, pid, a.tile);
     return e ? err(e) : ok(s, voidTradesTouching(s, a.tile));
   }
-  if (a.type === "bankrupt" && !(activeNode(state).t === "debt" && (activeNode(state) as DebtFrame).debtor === pid)) {
+  const top = activeNode(state);
+  if (a.type === "bankrupt" && !(top.t === "debt" && top.debtor === pid)) {
     // voluntary exit, anytime: estate to the bank, re-auctioned. In-debt bankruptcy
     // stays on the debt handler below (creditors get paid from the proceeds).
     const s = clone(state);
@@ -328,9 +329,8 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
     return ok(s, ev);
   }
 
-  const node = activeNode(state);
-  const h = HANDLERS[node.t][a.type];
-  if (!h) return err(`${a.type} non è consentito durante ${node.t}`); // <- structural rejection
+  const h = HANDLERS[top.t][a.type];
+  if (!h) return err(`${a.type} non è consentito durante ${top.t}`); // <- structural rejection
   return h(clone(state), pid, a);
 }
 

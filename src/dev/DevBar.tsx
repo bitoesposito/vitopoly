@@ -3,6 +3,7 @@ import { addPlayer, CHANCE, CHEST, createGame } from "@tangentopoly/game";
 import type { GameState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame, type PopupInput } from "@/lib/store";
+import { choreograph } from "@/lib/ws";
 
 // dev-only screen simulator. Reachable at /dev in `pnpm dev` builds only
 // (gated in main.tsx by import.meta.env.DEV — never bundled in prod).
@@ -115,19 +116,19 @@ function popup(ps: PopupInput[]) {
   useGame.getState().pushPopups(ps);
 }
 
-// full choreography rehearsal: walk to Chance, card pops, then off to jail —
-// same beats the ws.ts timeline plays with real events
+// prova generale: la VERA coreografia di ws.ts su eventi sintetici
+// (cammina fino agli Imprevisti, carta "vai in prigione", poi in cella)
 function jailTrip() {
   if (!useGame.getState().game) show(base());
-  const g = useGame.getState();
-  const me = g.game!.players[0].id;
-  g.setTokenPos(me, 15);
-  setTimeout(() => useGame.getState().setTokenPos(me, 22), 400); // 15 -> 22 (Chance)
-  setTimeout(() => useGame.getState().pushPopups([{ kind: "chance", name: "Tu", text: CHANCE[8].text }]), 1250);
-  setTimeout(() => {
-    useGame.getState().pushPopups([{ kind: "jailed", name: "Tu" }]);
-    setTimeout(() => useGame.getState().setTokenPos(me, 10), 350);
-  }, 2350);
+  const g = useGame.getState().game!;
+  const me = g.players[0].id;
+  useGame.getState().setTokenPos(me, 15); // punto di partenza della camminata
+  g.players[0].pos = 10; // posizione finale autoritativa: il sync di fine timeline vi allinea
+  choreograph(g, [
+    { e: "moved", pid: me, from: 15, to: 22 },
+    { e: "card", pid: me, deck: "chance", cardId: 8 },
+    { e: "jailed", pid: me },
+  ]);
 }
 
 export default function DevBar() {

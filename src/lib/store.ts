@@ -35,7 +35,6 @@ interface Store {
   tradeHidden: Record<string, boolean>; // proposte in arrivo nascoste (restano listate negli scambi)
   popups: CardPopup[];
   tokenPos: Partial<Record<string, TileId>>; // display positions, choreographed by ws.ts; fallback = game pos
-  set: (p: Partial<Store>) => void;
   pushEvents: (e: GameEvent[]) => void;
   pushChat: (m: ChatMsg) => void;
   pushPopups: (p: PopupInput[]) => void;
@@ -56,7 +55,6 @@ export const useGame = create<Store>((set) => ({
   tradeHidden: {},
   popups: [],
   tokenPos: {},
-  set: (p) => set(p),
   pushEvents: (e) => set((s) => ({ events: [...s.events, ...e].slice(-100) })),
   pushChat: (m) => set((s) => ({ chat: [...s.chat, m].slice(-100) })),
   // same-batch pushes get a built-in stagger so they enter one after the other, stacked

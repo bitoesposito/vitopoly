@@ -106,8 +106,6 @@ const IT: Record<string, string> = {
   "assets.sell": "Vendi +${amount}",
   "trade.title": "Scambi",
   "trade.create": "Crea",
-  "trade.offers": "offre",
-  "trade.inExchange": "in cambio di",
   "trade.accept": "Accetta",
   "trade.reject": "Rifiuta",
   "trade.waiting": "scambio con {name} in attesa…",
@@ -179,7 +177,6 @@ const WHY_IT: Record<string, string> = {
   trade: "scambio",
   liquidation: "liquidazione",
   expropriation: "esproprio",
-  "vacation cash": "vacation cash",
 };
 
 export function whyText(why: string): string {

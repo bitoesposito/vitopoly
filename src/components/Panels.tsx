@@ -13,7 +13,7 @@ import { send } from "@/lib/ws";
 import { useGame } from "@/lib/store";
 import { GROUP_COLOR } from "@/lib/colors";
 import { PlayerList } from "./PlayerList";
-import { AuctionPanel } from "./AuctionDialog";
+import { AuctionPanel } from "./AuctionPanel";
 
 // compact game panels
 function Panel({ ring, className, children }: { ring?: string; className?: string; children: React.ReactNode }) {
@@ -172,8 +172,9 @@ function TradeComposer({ game, myId }: { game: PublicState; myId: string }) {
   );
 }
 
-// una parte dell'offerta come chips: cash, atti (pallino colore gruppo), carte prigione
-function BundleChips({ b }: { b: Bundle }) {
+// una parte dell'offerta come chips: cash, atti (pallino colore gruppo), carte prigione.
+// `fly` = variante animata (EventCard): le chips volano nella direzione dello scambio.
+export function BundleChips({ b, fly }: { b: Bundle; fly?: "r" | "l" }) {
   const tr = useT();
   const tn = useTileName();
   const chips: React.ReactNode[] = [];
@@ -195,7 +196,11 @@ function BundleChips({ b }: { b: Bundle }) {
   return (
     <span className="flex flex-wrap gap-1">
       {chips.map((c, i) => (
-        <span key={i} className="flex items-center border border-border bg-muted px-1.5 py-0.5 text-xs">
+        <span
+          key={i}
+          className={`flex items-center border border-border bg-muted px-1.5 py-0.5 text-xs ${fly ? `chip-fly-${fly}` : ""}`}
+          style={fly ? { animationDelay: `${250 + i * 130}ms` } : undefined}
+        >
           {c}
         </span>
       ))}

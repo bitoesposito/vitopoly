@@ -61,7 +61,8 @@ export function connect(code: string, name: string): void {
 // The state lands with FINAL positions; the events carry the story. Replay it on a
 // timeline instead of all at once: the token walks to the tile, the card pops, THEN
 // the jail move — with pauses long enough to read the board, short enough not to block.
-function choreograph(state: PublicState, events: GameEvent[]): void {
+// Exported: /dev la usa per provare la sequenza con eventi sintetici.
+export function choreograph(state: PublicState, events: GameEvent[]): void {
   const name = (pid: string) => state.players.find((p) => p.id === pid)?.name ?? "?";
   const at = (ms: number, fn: () => void) => (ms <= 0 ? fn() : void setTimeout(fn, ms));
   const pop = (ms: number, p: PopupInput) => at(ms, () => useGame.getState().pushPopups([p]));

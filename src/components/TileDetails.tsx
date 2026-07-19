@@ -1,10 +1,7 @@
 import { Fragment } from "react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileDef } from "@tangentopoly/game";
-import { Button } from "@/components/ui/button";
-import { useGame } from "@/lib/store";
 import { useT, useTileName } from "@/lib/i18n";
-import { send } from "@/lib/ws";
 
 type T = ReturnType<typeof useT>;
 
@@ -34,20 +31,12 @@ function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
   }
 }
 
-// popover content: title, rent table or info, asset actions if mine
+// popover content, solo informativo: titolo, tabella affitti o descrizione.
+// La gestione (case/ipoteche/vendita) vive in un posto solo: AssetsPanel.
 export function TileDetails({ index, game }: { index: number; game: PublicState }) {
   const tile = BOARD[index];
-  const myId = useGame((s) => s.myId);
   const t = useT();
   const name = useTileName()(index);
-  const own = game.props[index];
-
-  // same rules as AssetsPanel: sell/mortgage always, build/unmortgage on my postRoll
-  const node = game.stack.at(-1) ?? game.phase;
-  const myTurn = game.players[game.current]?.id === myId;
-  const canBuild = node.t === "postRoll" && myTurn;
-  const canManage = game.status === "playing";
-  const mine = own?.owner === myId;
 
   return (
     <div className="space-y-3 text-sm">
@@ -77,31 +66,6 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
             <p>
               {t("info.price")}: <b className="text-foreground">${tile.price}</b>
             </p>
-          )}
-        </div>
-      )}
-
-      {mine && canManage && (
-        <div className="flex flex-wrap gap-1.5 border-t border-border pt-2">
-          {canBuild && tile.kind === "street" && !own!.mortgaged && (
-            <Button size="xs" variant="secondary" onClick={() => send({ type: "build", tile: index })}>
-              +🏠${tile.houseCost}
-            </Button>
-          )}
-          {own!.houses > 0 && (
-            <Button size="xs" variant="secondary" onClick={() => send({ type: "sellHouse", tile: index })}>
-              −🏠
-            </Button>
-          )}
-          {game.settings.mortgageAllowed && own!.houses === 0 && !own!.mortgaged && (
-            <Button size="xs" variant="secondary" onClick={() => send({ type: "mortgage", tile: index })}>
-              {t("assets.mortgage", { amount: tile.price! / 2 })}
-            </Button>
-          )}
-          {canBuild && own!.mortgaged && (
-            <Button size="xs" variant="secondary" onClick={() => send({ type: "unmortgage", tile: index })}>
-              {t("assets.unmortgage", { amount: Math.ceil((tile.price! / 2) * 1.1) })}
-            </Button>
           )}
         </div>
       )}

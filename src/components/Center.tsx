@@ -4,7 +4,7 @@ import { activeNode, BOARD, CHANCE, CHEST, legalActions } from "@tangentopoly/ga
 import type { DebtFrame, GameEvent, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/lib/store";
-import { useT, useTileName, whyText } from "@/lib/i18n";
+import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 
 type T = ReturnType<typeof useT>;
@@ -40,18 +40,33 @@ function lastRoll(events: GameEvent[]): [number, number] | null {
   return null;
 }
 
-function eventText(e: GameEvent, names: Record<string, string>, t: T, tn: (i: number) => string): string {
+// dado, spostamenti e pagamenti d'asta non finiscono nel log: li raccontano già
+// dadi/pedine/pannello asta. Il resto diventa una riga di prosa.
+function logLine(e: GameEvent, names: Record<string, string>, t: T, tn: (i: number) => string): string | null {
   switch (e.e) {
     case "rolled":
-      return t("ev.rolled", { name: names[e.pid], d1: e.d1, d2: e.d2 });
     case "moved":
-      return t("ev.moved", { name: names[e.pid], to: tn(e.to) });
+      return null;
     case "paid": {
       const who = (x: string) => (x === "bank" ? t("ev.bank") : names[x]);
-      return t("ev.paid", { from: who(e.from), to: who(e.to), amount: e.amount, why: whyText(e.why) });
+      const w = e.why;
+      if (w === "auction") return null; // già coperto da auctionWon
+      if (w === "GO salary") return t("ev.goSalary", { name: who(e.to), amount: e.amount });
+      if (w === "bail") return t("ev.bail", { name: who(e.from), amount: e.amount });
+      if (w === "tax") return t("ev.tax", { name: who(e.from), amount: e.amount });
+      if (w === "vacation cash") return t("ev.vacation", { name: who(e.to), amount: e.amount });
+      if (w.startsWith("buy ")) return t("ev.bought", { name: who(e.from), tile: w.slice(4) }); // why porta già il nome italiano
+      return t("ev.paid", { from: who(e.from), to: who(e.to), amount: e.amount });
+    }
+    case "asset": {
+      const key =
+        e.what === "build" ? (e.hotel ? "ev.buildHotel" : "ev.build")
+        : e.what === "sellHouse" ? (e.hotel ? "ev.sellHotel" : "ev.sellHouse")
+        : `ev.${e.what}`; // mortgage | unmortgage | sellProperty
+      return t(key, { name: names[e.pid], tile: tn(e.tile), amount: e.amount });
     }
     case "auctionWon":
-      return t("ev.auctionWon", { name: names[e.pid], price: e.price });
+      return t("ev.auctionWon", { name: names[e.pid], tile: tn(e.tile), price: e.price });
     case "jailed":
       return t("ev.jailed", { name: names[e.pid] });
     case "bankrupt":
@@ -182,11 +197,18 @@ export function Center({ game }: { game: PublicState }) {
       {/* game log: newest on top, no scrollbar — older lines fade out below */}
       <div className="min-h-16 w-full flex-1 overflow-hidden rounded-md p-2 text-[11px] leading-relaxed text-muted-foreground [mask-image:linear-gradient(to_bottom,black_40%,transparent_95%)]">
         <div className="flex flex-col text-center">
-          {[...game.log].slice(-30).reverse().map((e, i) => (
-            <div key={game.log.length - i} className={i === 0 ? "font-semibold text-foreground" : ""}>
-              {eventText(e, names, t, tn)}
-            </div>
-          ))}
+          {game.log
+            .flatMap((e, i) => {
+              const line = logLine(e, names, t, tn);
+              return line ? [{ line, i }] : [];
+            })
+            .slice(-30)
+            .reverse()
+            .map(({ line, i }, j) => (
+              <div key={i} className={j === 0 ? "font-semibold text-foreground" : ""}>
+                {line}
+              </div>
+            ))}
         </div>
       </div>
     </div>

@@ -20,8 +20,8 @@ function base(mut?: (g: GameState) => void): GameState {
   addPlayer(g, "p3", "Bruno");
   g.status = "playing";
   g.log = [
-    { e: "rolled", pid: "p2", d1: 3, d2: 4 },
-    { e: "paid", from: "p2", to: "bank", amount: 200, why: "Tasse" },
+    { e: "paid", from: "p2", to: "bank", amount: 200, why: "tax" },
+    { e: "asset", pid: "p2", tile: 1, what: "build", amount: 50, hotel: false },
     { e: "info", text: "— stato simulato /dev —" },
   ];
   mut?.(g);

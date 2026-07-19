@@ -1,39 +1,77 @@
 import { useState } from "react";
 import { ArrowLeft, Handshake, Hotel, House, Minus, Plus, Ticket } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
-import type { Bundle, PublicState } from "@tangentopoly/game";
+import type { Bundle, Player, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 import { useGame } from "@/lib/store";
-import { GROUP_COLOR } from "@/lib/colors";
+import { GROUP_COLOR, TOKEN_COLOR } from "@/lib/colors";
 import { PlayerList } from "./PlayerList";
 import { AuctionPanel } from "./AuctionPanel";
 
 // compact game panels
-function Panel({ ring, className, children }: { ring?: string; className?: string; children: React.ReactNode }) {
+function Panel({ ring, children }: { ring?: string; children: React.ReactNode }) {
   return (
     <Card size="sm" className={ring}>
-      <CardContent className={`space-y-2 ${className ?? ""}`}>{children}</CardContent>
+      <CardContent className="space-y-2">{children}</CardContent>
     </Card>
   );
 }
 
-// my properties: sell/mortgage on my turn or my debt (cash raisers); build/unmortgage on my preRoll/postRoll
+const propsOf = (game: PublicState, pid: string) =>
+  Object.entries(game.props).filter(([, o]) => o!.owner === pid).map(([k]) => Number(k));
+
+// Cella-atto condivisa (composer scambi + proprietà): bordo sinistro col colore del
+// set, nome, riga di stato — prezzo, case ×n, hotel o M se ipotecata.
+function PropCell({ game, tile, sel, onClick }: { game: PublicState; tile: number; sel: boolean; onClick: () => void }) {
+  const tn = useTileName();
+  const o = game.props[tile];
+  const def = BOARD[tile];
+  return (
+    <button
+      type="button"
+      title={tn(tile)}
+      onClick={onClick}
+      className={`border border-l-4 p-1.5 text-left text-[10px] leading-tight transition-colors ${sel ? "border-success bg-success/15 ring-1 ring-success" : "border-border bg-muted/40 hover:bg-muted"}`}
+      style={{ borderLeftColor: GROUP_COLOR[def.group ?? ""] ?? "var(--color-muted-foreground)" }}
+    >
+      <div className="truncate font-medium">{tn(tile)}</div>
+      <div className="flex h-3.5 items-center gap-0.5 text-muted-foreground">
+        {o?.mortgaged ? (
+          <span className="font-semibold text-destructive">M</span>
+        ) : o && o.houses === 5 ? (
+          <Hotel className="size-3" />
+        ) : o && o.houses > 0 ? (
+          <>
+            <House className="size-3" />
+            <span>×{o.houses}</span>
+          </>
+        ) : (
+          <span className="tabular-nums">${def.price}</span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+// Le mie proprietà: griglia di celle, tocchi una cella e sotto compaiono le azioni
+// per QUELLA proprietà a tutta larghezza (niente più bottoni che schiacciano i nomi).
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
-  const tn = useTileName();
+  const [sel, setSel] = useState<number | null>(null);
   const node = game.stack.at(-1) ?? game.phase;
-  const mine = Object.entries(game.props).filter(([, o]) => o!.owner === myId);
+  const mine = propsOf(game, myId);
   const myTurn = game.players[game.current]?.id === myId;
   const inMyDebt = game.stack.some((f) => f.t === "debt" && f.debtor === myId);
   const canRaise = game.status === "playing" && (myTurn || inMyDebt);
   const canBuild = (node.t === "preRoll" || node.t === "postRoll") && myTurn;
+
+  const selTile = sel !== null && mine.includes(sel) ? sel : null; // venduta/scambiata -> selezione decade
+  const own = selTile !== null ? game.props[selTile]! : null;
+  const def = selTile !== null ? BOARD[selTile] : null;
 
   return (
     <Panel>
@@ -41,133 +79,165 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
         <House className="size-3.5" />
         {t("assets.title", { n: mine.length })}
       </div>
-      <div className="space-y-1.5">
-          {mine.map(([k, o]) => {
-            const tileId = Number(k);
-            const def = BOARD[tileId];
-            return (
-              <div key={k} className="flex items-center gap-1.5">
-                <span className="flex min-w-0 flex-1 items-center gap-0.5 truncate">
-                  {tn(tileId)}{" "}
-                  {o!.mortgaged ? (
-                    <span className="text-destructive">(M)</span>
-                  ) : o!.houses === 5 ? (
-                    <Hotel className="size-3.5" />
-                  ) : (
-                    Array.from({ length: o!.houses }, (_, h) => <House key={h} className="size-3.5" />)
-                  )}
-                </span>
-                {(canRaise || canBuild) && (
-                  <span className="flex shrink-0 gap-1">
-                    {canBuild && def.kind === "street" && !o!.mortgaged && (
-                      <Button size="xs" variant="secondary" onClick={() => send({ type: "build", tile: tileId })}>
-                        <Plus className="size-3.5" />
-                        <House className="size-3.5" />${def.houseCost}
-                      </Button>
-                    )}
-                    {canRaise && o!.houses > 0 && (
-                      <Button size="xs" variant="secondary" onClick={() => send({ type: "sellHouse", tile: tileId })}>
-                        <Minus className="size-3.5" />
-                        <House className="size-3.5" />
-                      </Button>
-                    )}
-                    {canRaise && game.settings.mortgageAllowed && o!.houses === 0 && !o!.mortgaged && (
-                      <Button size="xs" variant="secondary" onClick={() => send({ type: "mortgage", tile: tileId })}>
-                        {t("assets.mortgage", { amount: def.price! / 2 })}
-                      </Button>
-                    )}
-                    {canRaise && o!.houses === 0 && !o!.mortgaged && (
-                      <Button size="xs" variant="secondary" onClick={() => send({ type: "sellProperty", tile: tileId })}>
-                        {t("assets.sell", { amount: def.price! / 2 })}
-                      </Button>
-                    )}
-                    {canBuild && o!.mortgaged && (
-                      <Button size="xs" variant="secondary" onClick={() => send({ type: "unmortgage", tile: tileId })}>
-                        {t("assets.unmortgage", { amount: Math.ceil((def.price! / 2) * 1.1) })}
-                      </Button>
-                    )}
-                  </span>
-                )}
-              </div>
-            );
-          })}
-      </div>
+      {mine.length === 0 ? (
+        <div className="text-xs text-muted-foreground">{t("trade.noProps")}</div>
+      ) : (
+        <div className="grid grid-cols-3 gap-1">
+          {mine.map((tl) => (
+            <PropCell key={tl} game={game} tile={tl} sel={selTile === tl} onClick={() => setSel(selTile === tl ? null : tl)} />
+          ))}
+        </div>
+      )}
+      {selTile !== null && own && def && (canRaise || canBuild) && (
+        <div key={selTile} className="flex flex-wrap gap-1 duration-200 animate-in fade-in">
+          {canBuild && def.kind === "street" && !own.mortgaged && own.houses < 5 && (
+            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "build", tile: selTile })}>
+              <Plus className="size-3.5" />
+              <House className="size-3.5" />${def.houseCost}
+            </Button>
+          )}
+          {canRaise && own.houses > 0 && (
+            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "sellHouse", tile: selTile })}>
+              <Minus className="size-3.5" />
+              <House className="size-3.5" />+${def.houseCost! / 2}
+            </Button>
+          )}
+          {canRaise && game.settings.mortgageAllowed && own.houses === 0 && !own.mortgaged && (
+            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "mortgage", tile: selTile })}>
+              {t("assets.mortgage", { amount: def.price! / 2 })}
+            </Button>
+          )}
+          {canBuild && own.mortgaged && (
+            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "unmortgage", tile: selTile })}>
+              {t("assets.unmortgage", { amount: Math.ceil((def.price! / 2) * 1.1) })}
+            </Button>
+          )}
+          {canRaise && own.houses === 0 && !own.mortgaged && (
+            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "sellProperty", tile: selTile })}>
+              {t("assets.sell", { amount: def.price! / 2 })}
+            </Button>
+          )}
+        </div>
+      )}
     </Panel>
   );
 }
 
-// Vista "nuovo scambio" del pannello Scambi (header e freccia indietro nel pannello)
+const emptyBundle = (b: Bundle) => b.cash === 0 && b.props.length === 0 && b.jailCards === 0;
+
+// Un lato dell'offerta nel composer: cash, griglia delle proprietà a celle con la
+// striscia del colore del set (l'ordine di tabellone tiene i set adiacenti), carte
+// prigione. Stesso linguaggio visivo del pannello asta.
+function BundleEditor({ game, player, title, accent, cash, setCash, picked, setPicked, jail, setJail }: {
+  game: PublicState; player: Player; title: string; accent: string;
+  cash: string; setCash: (v: string) => void;
+  picked: number[]; setPicked: (v: number[]) => void;
+  jail: number; setJail: (v: number) => void;
+}) {
+  const tr = useT();
+  const tiles = propsOf(game, player.id);
+
+  return (
+    <div className="space-y-1.5 border border-border/60 bg-muted/20 p-2">
+      <div className={`text-[10px] font-semibold tracking-wide uppercase ${accent}`}>{title}</div>
+      <div className="flex items-center gap-1.5 text-sm">
+        <span className="text-muted-foreground">$</span>
+        <Input className="h-7 flex-1 tabular-nums" type="number" min={0} max={player.cash} value={cash} onChange={(e) => setCash(e.target.value)} />
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">/ ${player.cash}</span>
+      </div>
+      {tiles.length === 0 ? (
+        <div className="text-xs text-muted-foreground">{tr("trade.noProps")}</div>
+      ) : (
+        <div className="grid grid-cols-3 gap-1">
+          {tiles.map((t) => {
+            const sel = picked.includes(t);
+            return (
+              <PropCell key={t} game={game} tile={t} sel={sel} onClick={() => setPicked(sel ? picked.filter((x) => x !== t) : [...picked, t])} />
+            );
+          })}
+        </div>
+      )}
+      {player.jailCards > 0 && (
+        <div className="flex gap-1">
+          {Array.from({ length: player.jailCards }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`carta prigione ${i + 1}`}
+              onClick={() => setJail(jail === i + 1 ? i : i + 1)}
+              className={`border p-1 transition-colors ${i < jail ? "border-success bg-success/15 ring-1 ring-success" : "border-border bg-muted/40 hover:bg-muted"}`}
+            >
+              <Ticket className="size-3.5" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Vista "nuovo scambio": partner a chips, poi i due lati specchiati (dai/ricevi)
 function TradeComposer({ game, myId }: { game: PublicState; myId: string }) {
   const tr = useT();
-  const tn = useTileName();
   const close = () => useGame.setState({ tradeOpen: false });
   const [to, setTo] = useState("");
   const [giveCash, setGiveCash] = useState("0");
   const [getCash, setGetCash] = useState("0");
   const [giveProps, setGiveProps] = useState<number[]>([]);
   const [getProps, setGetProps] = useState<number[]>([]);
+  const [giveJail, setGiveJail] = useState(0);
+  const [getJail, setGetJail] = useState(0);
 
+  const me = game.players.find((p) => p.id === myId)!; // il composer si apre solo da giocatori vivi
+  const other = game.players.find((p) => p.id === to);
   const others = game.players.filter((p) => p.id !== myId && !p.bankrupt);
-  const propsOf = (pid: string) => Object.entries(game.props).filter(([, o]) => o!.owner === pid).map(([k]) => Number(k));
-  const toggle = (list: number[], setList: (v: number[]) => void, t: number) =>
-    setList(list.includes(t) ? list.filter((x) => x !== t) : [...list, t]);
+  const pick = (id: string) => {
+    setTo(id);
+    setGetProps([]); // gli asset selezionati appartenevano al partner precedente
+    setGetCash("0");
+    setGetJail(0);
+  };
+
+  const give: Bundle = { cash: Number(giveCash) || 0, props: giveProps, jailCards: giveJail };
+  const get: Bundle = { cash: Number(getCash) || 0, props: getProps, jailCards: getJail };
 
   return (
-    <div className="space-y-2 text-sm">
-      <Select value={to} onValueChange={setTo}>
-        <SelectTrigger size="sm" className="w-full">
-          <SelectValue placeholder={tr("trade.pickPlayer")} />
-        </SelectTrigger>
-        <SelectContent>
-          {others.map((p) => (
-            <SelectItem key={p.id} value={p.id}>
-              {p.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <div className="space-y-1">
-        <div className="text-muted-foreground">{tr("trade.youGive")}</div>
-        <Input className="inline-flex h-7 w-24" type="number" value={giveCash} onChange={(e) => setGiveCash(e.target.value)} /> $
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {propsOf(myId).map((t) => (
-            <Label key={t} className="flex items-center gap-1.5 font-normal">
-              <Checkbox checked={giveProps.includes(t)} onCheckedChange={() => toggle(giveProps, setGiveProps, t)} />
-              {tn(t)}
-            </Label>
-          ))}
-        </div>
+    <div className="space-y-2.5 text-sm">
+      <div className="flex flex-wrap gap-1">
+        {others.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => pick(p.id)}
+            className={`flex items-center gap-1.5 border px-2 py-1 text-xs transition-colors ${to === p.id ? "border-success bg-success/15 ring-1 ring-success" : "border-border hover:bg-muted"}`}
+          >
+            <span className="size-2.5 shrink-0 rounded-full ring-1 ring-black/40" style={{ background: TOKEN_COLOR[p.token % 8] }} />
+            {p.name}
+          </button>
+        ))}
       </div>
-      <div className="space-y-1">
-        <div className="text-muted-foreground">{tr("trade.youGet")}</div>
-        <Input className="inline-flex h-7 w-24" type="number" value={getCash} onChange={(e) => setGetCash(e.target.value)} /> $
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {to &&
-            propsOf(to).map((t) => (
-              <Label key={t} className="flex items-center gap-1.5 font-normal">
-                <Checkbox checked={getProps.includes(t)} onCheckedChange={() => toggle(getProps, setGetProps, t)} />
-                {tn(t)}
-              </Label>
-            ))}
-        </div>
-      </div>
-      <div className="flex justify-end">
-        <Button
-          size="sm"
-          disabled={!to}
-          onClick={() => {
-            send({
-              type: "proposeTrade",
-              to,
-              give: { cash: Number(giveCash) || 0, props: giveProps, jailCards: 0 },
-              get: { cash: Number(getCash) || 0, props: getProps, jailCards: 0 },
-            });
-            close();
-          }}
-        >
-          {tr("trade.send")}
-        </Button>
-      </div>
+
+      <BundleEditor game={game} player={me} title={tr("trade.youGive")} accent="text-destructive"
+        cash={giveCash} setCash={setGiveCash} picked={giveProps} setPicked={setGiveProps} jail={giveJail} setJail={setGiveJail} />
+
+      {other ? (
+        <BundleEditor game={game} player={other} title={tr("trade.youGet")} accent="text-success"
+          cash={getCash} setCash={setGetCash} picked={getProps} setPicked={setGetProps} jail={getJail} setJail={setGetJail} />
+      ) : (
+        <div className="text-xs text-muted-foreground">{tr("trade.pickPlayer")}</div>
+      )}
+
+      <Button
+        className="w-full"
+        size="sm"
+        disabled={!to || (emptyBundle(give) && emptyBundle(get))}
+        onClick={() => {
+          send({ type: "proposeTrade", to, give, get });
+          close();
+        }}
+      >
+        {tr("trade.send")}
+      </Button>
     </div>
   );
 }
@@ -253,13 +323,13 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
         ) : detail ? (
           <>
             <div className="h-1.5 rounded-full bg-success/50" />
-            <div className="space-y-1.5 text-sm">
+            <div className="space-y-2 text-sm">
               <div className="space-y-1">
-                <div className="text-xs text-muted-foreground">{tr("trade.youGet")}</div>
+                <div className="text-[10px] font-semibold tracking-wide uppercase text-success">{tr("trade.youGet")}</div>
                 <BundleChips b={detail.give} />
               </div>
               <div className="space-y-1">
-                <div className="text-xs text-muted-foreground">{tr("trade.youGive")}</div>
+                <div className="text-[10px] font-semibold tracking-wide uppercase text-destructive">{tr("trade.youGive")}</div>
                 <BundleChips b={detail.get} />
               </div>
             </div>

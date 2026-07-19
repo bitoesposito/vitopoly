@@ -36,7 +36,7 @@ export function landing(s: GameState, p: Player, diceTotal: number): Outcome {
       return rent > 0 ? { t: "charge", amount: rent, to: own.owner, why: `rent ${tile.name}` } : { t: "none" };
     }
     case "tax":
-      return { t: "charge", amount: tile.taxAmount!, to: "bank", why: tile.name };
+      return { t: "charge", amount: tile.taxAmount!, to: "bank", why: "tax" };
     case "chance":
       return { t: "card", deck: "chance" };
     case "chest":

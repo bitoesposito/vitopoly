@@ -67,15 +67,25 @@ const IT: Record<string, string> = {
   "center.useJailCard": "Usa carta",
   "center.winner": "{name} vince!",
   "center.nobody": "Nessuno",
-  "ev.rolled": "{name} tira {d1} + {d2}",
-  "ev.moved": "{name} si sposta su {to}",
-  "ev.paid": "{from} → {to}: ${amount} ({why})",
+  "ev.paid": "{from} paga ${amount} a {to}",
+  "ev.goSalary": "{name} passa dal VIA e ritira ${amount}",
+  "ev.bail": "{name} paga ${amount} di cauzione",
+  "ev.tax": "{name} paga una tassa di ${amount}",
+  "ev.bought": "{name} compra {tile}",
+  "ev.vacation": "{name} incassa ${amount} di vacation cash",
   "ev.bank": "banca",
-  "ev.auctionWon": "{name} vince l'asta per ${price}",
+  "ev.auctionWon": "{name} compra {tile} all'asta per ${price}",
   "ev.jailed": "{name} va in prigione",
   "ev.bankrupt": "{name} è in bancarotta",
   "ev.card": "{name} pesca: {text}",
   "ev.traded": "{a} e {b} completano uno scambio",
+  "ev.build": "{name} compra una casa a {tile}",
+  "ev.buildHotel": "{name} compra un hotel a {tile}",
+  "ev.sellHouse": "{name} vende una casa a {tile}",
+  "ev.sellHotel": "{name} vende un hotel a {tile}",
+  "ev.mortgage": "{name} ipoteca {tile} per ${amount}",
+  "ev.unmortgage": "{name} riscatta {tile} per ${amount}",
+  "ev.sellProperty": "{name} vende {tile} alla banca per ${amount}",
   "kick.vote": "Vota per espellere {name}",
 
   "buy.q": "Comprare {name} per",
@@ -116,9 +126,10 @@ const IT: Record<string, string> = {
   "trade.back": "Torna agli scambi",
   "ui.details": "Dettagli",
   "trade.propose": "Proponi scambio",
-  "trade.pickPlayer": "— scegli giocatore —",
-  "trade.youGive": "Tu dai:",
-  "trade.youGet": "Tu ricevi:",
+  "trade.pickPlayer": "Scegli un giocatore per vedere cosa può offrire",
+  "trade.youGive": "Tu dai",
+  "trade.youGet": "Tu ricevi",
+  "trade.noProps": "Nessuna proprietà",
   "trade.send": "Invia",
   "bundle.nothing": "niente",
 
@@ -132,7 +143,6 @@ const IT: Record<string, string> = {
   "info.rent5": "Hotel",
   "info.price": "Prezzo",
   "info.house": "Casa",
-  "info.hotel": "Hotel",
   "info.go": "Passa dal VIA e ritira ${amount}.",
   "info.jail": "Sei solo di passaggio, a meno che tu non sia in prigione.",
   "info.parking": "Sosta gratuita: non paghi nulla.",
@@ -164,23 +174,3 @@ export function useTileName() {
   return tileName;
 }
 
-// I `why` dei pagamenti restano identificatori interni (NO_POT, parser "buy X"):
-// qui la traduzione solo per il log. "buy X"/"rent X" portano già il nome italiano.
-const WHY_IT: Record<string, string> = {
-  bail: "cauzione",
-  debt: "debito",
-  card: "carta",
-  repairs: "riparazioni",
-  "GO salary": "stipendio VIA",
-  auction: "asta",
-  bankruptcy: "bancarotta",
-  trade: "scambio",
-  liquidation: "liquidazione",
-  expropriation: "esproprio",
-};
-
-export function whyText(why: string): string {
-  if (why.startsWith("buy ")) return `acquisto ${why.slice(4)}`;
-  if (why.startsWith("rent ")) return `affitto ${why.slice(5)}`;
-  return WHY_IT[why] ?? why;
-}

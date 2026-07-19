@@ -43,10 +43,7 @@ export function charge(s: GameState, debtor: PlayerId, claims: Claim[], why: str
     if (rest.length === 0 && cash(s, debtor) >= c.amount) transfer(s, debtor, c.creditor, c.amount, why, ev);
     else rest.push(c);
   }
-  if (rest.length > 0) {
-    s.stack.push({ t: "debt", debtor, claims: rest });
-    ev.push({ e: "info", text: `${byId(s, debtor).name} deve $${rest.reduce((a, c) => a + c.amount, 0)}` });
-  }
+  if (rest.length > 0) s.stack.push({ t: "debt", debtor, claims: rest }); // lo stato di debito è già visibile in board
 }
 
 export function sendToJail(s: GameState, p: Player, ev: GameEvent[]): void {

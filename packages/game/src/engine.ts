@@ -62,8 +62,7 @@ const roll: Handler = (s, pid) => {
   }
 
   if (doubles && ++p.doublesCount === 3) {
-    ev.push(info(`${p.name} fa 3 doppi di fila`));
-    sendToJail(s, p, ev);
+    sendToJail(s, p, ev); // 3 doppi di fila: il jailed event racconta tutto
     return ok(s, ev);
   }
   moveAndResolve(s, p, d1 + d2, doubles, ev);
@@ -114,9 +113,8 @@ const decline: Handler = (s, pid) => {
   if (ph.t !== "buyPrompt") return err("nessun acquisto in corso");
   if (cur(s).id !== pid) return err("non è il tuo turno");
   s.phase = { t: "postRoll", again: ph.again }; // resume point FIRST, then interrupt on top
-  if (!s.settings.auction) return ok(s, [info(`${cur(s).name} rifiuta ${BOARD[ph.tile].name}`)]);
-  pushAuction(s, ph.tile, []);
-  return ok(s, [info(`${cur(s).name} rifiuta — asta per ${BOARD[ph.tile].name}`)]);
+  if (s.settings.auction) pushAuction(s, ph.tile, []); // il pannello asta che compare È la notifica
+  return ok(s);
 };
 
 // Doubles UX: roll again straight from postRoll, no endTurn click in between.
@@ -141,8 +139,8 @@ const bid: Handler = (s, pid, a) => {
   if (total > cash(s, pid)) return err("non puoi offrire più dei tuoi contanti"); // no debt born inside auctions, ever
   f.bid = total;
   f.leader = pid;
-  f.bids.push({ pid, amount: total });
-  return ok(s, [info(`${byId(s, pid).name} offre $${total}`)]);
+  f.bids.push({ pid, amount: total }); // lo storico del pannello asta basta: niente riga di log
+  return ok(s);
 };
 
 const fold: Handler = (s, pid) => {
@@ -219,6 +217,26 @@ function votekick(s: GameState, pid: PlayerId, target: PlayerId): Result {
 
 // ---- asset actions ----------------------------------------------------
 
+// Esegue un'operazione su una proprietà ed emette l'evento `asset` per il log
+// (importo = variazione di cassa; hotel = coinvolto un hotel), poi invalida gli
+// scambi pendenti che toccano quella casella.
+function assetOp(
+  s: GameState,
+  pid: PlayerId,
+  tile: number,
+  what: "build" | "sellHouse" | "mortgage" | "unmortgage" | "sellProperty",
+  fn: (s: GameState, pid: PlayerId, tile: number) => string | null,
+): Result {
+  const cashBefore = byId(s, pid).cash;
+  const housesBefore = s.props[tile]?.houses ?? 0;
+  const e = fn(s, pid, tile);
+  if (e) return err(e);
+  const hotel = housesBefore === 5 || (s.props[tile]?.houses ?? 0) === 5;
+  const ev: GameEvent[] = [{ e: "asset", pid, tile, what, amount: Math.abs(byId(s, pid).cash - cashBefore), hotel }];
+  ev.push(...voidTradesTouching(s, tile));
+  return ok(s, ev);
+}
+
 // build/unmortgage SPEND cash -> gated to your own preRoll/postRoll (a bid leader
 // spending below their bid would go negative at settle). The cash raisers
 // mortgage/sellHouse/sellProperty are routed orthogonally in apply().
@@ -226,8 +244,7 @@ function asset(fn: (s: GameState, pid: PlayerId, tile: number) => string | null)
   return (s, pid, a) => {
     if (!("tile" in a)) return err("azione non valida");
     if (cur(s).id !== pid) return err("non è il tuo turno");
-    const e = fn(s, pid, a.tile);
-    return e ? err(e) : ok(s, voidTradesTouching(s, a.tile));
+    return assetOp(s, pid, a.tile, a.type, fn);
   };
 }
 
@@ -238,7 +255,7 @@ const endTurn: Handler = (s, pid) => {
   if (p.id !== pid) return err("non è il tuo turno");
   if (ph.again && !p.inJail) {
     s.phase = { t: "preRoll" };
-    return ok(s, [info(`${p.name} ha fatto doppio — tira ancora`)]);
+    return ok(s);
   }
   p.doublesCount = 0;
   return ok(advanceTurn(s));
@@ -312,8 +329,7 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
     const s = clone(state);
     if (cur(s).id !== pid && !s.stack.some((f) => f.t === "debt" && f.debtor === pid)) return err("non è il tuo turno");
     const fn = { mortgage: props.mortgage, sellHouse: props.sellHouse, sellProperty: props.sellProperty }[a.type];
-    const e = fn(s, pid, a.tile);
-    return e ? err(e) : ok(s, voidTradesTouching(s, a.tile));
+    return assetOp(s, pid, a.tile, a.type, fn);
   }
   const top = activeNode(state);
   if (a.type === "bankrupt" && !(top.t === "debt" && top.debtor === pid)) {

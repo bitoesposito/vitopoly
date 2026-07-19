@@ -60,6 +60,7 @@ const IT: Record<string, string> = {
   "spec.banner": "Partita già iniziata — stai guardando come spettatore",
 
   "center.turnOf": "turno di",
+  "center.yourTurn": "È il tuo turno",
   "center.roll": "Tira i dadi",
   "center.rollAgain": "Doppio! Tira ancora",
   "center.endTurn": "Fine turno →",
@@ -76,6 +77,7 @@ const IT: Record<string, string> = {
   "ev.bank": "banca",
   "ev.auctionWon": "{name} compra {tile} all'asta per ${price}",
   "ev.jailed": "{name} va in prigione",
+  "ev.jailedYou": "Vai in prigione!",
   "ev.bankrupt": "{name} è in bancarotta",
   "ev.card": "{name} pesca: {text}",
   "ev.traded": "{a} e {b} completano uno scambio",
@@ -143,6 +145,7 @@ const IT: Record<string, string> = {
   "info.rent5": "Hotel",
   "info.price": "Prezzo",
   "info.house": "Casa",
+  "tile.mortgaged": "Ipoteca",
   "info.go": "Passa dal VIA e ritira ${amount}.",
   "info.jail": "Sei solo di passaggio, a meno che tu non sia in prigione.",
   "info.parking": "Sosta gratuita: non paghi nulla.",

@@ -97,7 +97,7 @@ const SCENARIOS: [string, () => GameState | null][] = [
 const POPUPS: [string, PopupInput[]][] = [
   ["Imprevisti", [{ kind: "chance", name: "Anna", text: CHANCE[9].text }]],
   ["Probabilità", [{ kind: "chest", name: "Anna", text: CHEST[1].text }]],
-  ["Prigione", [{ kind: "jailed", name: "Anna" }]],
+  ["Prigione", [{ kind: "jailed", name: "Anna", you: false }]],
   ["Acquisto", [{ kind: "buy", name: "Tu", tile: 39, price: 400 }]],
   ["Scambio", [{
     kind: "trade", from: "Anna", to: "Bruno",
@@ -106,7 +106,7 @@ const POPUPS: [string, PopupInput[]][] = [
   }]],
   ["Sequenza", [
     { kind: "chance", name: "Bruno", text: CHANCE[8].text },
-    { kind: "jailed", name: "Bruno" },
+    { kind: "jailed", name: "Bruno", you: false },
     { kind: "buy", name: "Anna", tile: 21, price: 220 },
   ]],
 ];

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Clock, Dices, Ticket, Trophy, type LucideIcon } from "lucide-react";
 import { activeNode, BOARD, CHANCE, CHEST, legalActions } from "@tangentopoly/game";
 import type { DebtFrame, GameEvent, PublicState } from "@tangentopoly/game";
@@ -24,25 +24,48 @@ function Countdown({ deadline }: { deadline?: number }) {
   );
 }
 
-function Die({ value }: { value: number | null }) {
+// rotazione del cubo che porta davanti la faccia col valore (vedi .die-* in index.css)
+const DIE_FACE: Record<number, string> = {
+  1: "rotateX(0deg) rotateY(0deg)",
+  2: "rotateX(-90deg)",
+  3: "rotateY(90deg)",
+  4: "rotateY(-90deg)",
+  5: "rotateX(90deg)",
+  6: "rotateX(180deg)",
+};
+
+// Dado 3D: quando `spin` cambia parte il tumble, a fine animazione la transition
+// molleggiata accompagna il cubo sulla faccia uscita. `alt` varia durata e verso.
+function Die3D({ value, spin, alt }: { value: number | null; spin: number; alt?: boolean }) {
+  const [rolling, setRolling] = useState(false);
+  useEffect(() => {
+    if (!spin) return;
+    setRolling(true);
+    const id = setTimeout(() => setRolling(false), alt ? 1000 : 880);
+    return () => clearTimeout(id);
+  }, [spin, alt]);
   return (
-    <div className="grid size-12 place-items-center rounded-lg bg-foreground text-2xl font-black text-background shadow-lg sm:size-14 sm:text-3xl lg:size-16 lg:text-4xl">
-      {value ?? "–"}
+    <div className={`die-scene ${value == null ? "opacity-60" : ""}`}>
+      <div className={`die ${rolling ? (alt ? "die-rolling-alt" : "die-rolling") : ""}`} style={{ transform: DIE_FACE[value ?? 1] }}>
+        {(["front", "back", "top", "bottom", "right", "left"] as const).map((f) => (
+          <div key={f} className={`die-face die-${f}`} />
+        ))}
+      </div>
     </div>
   );
 }
 
-function lastRoll(events: GameEvent[]): [number, number] | null {
+function lastRoll(events: GameEvent[]): Extract<GameEvent, { e: "rolled" }> | null {
   for (let i = events.length - 1; i >= 0; i--) {
     const e = events[i];
-    if (e.e === "rolled") return [e.d1, e.d2];
+    if (e.e === "rolled") return e;
   }
   return null;
 }
 
 // dado, spostamenti e pagamenti d'asta non finiscono nel log: li raccontano già
-// dadi/pedine/pannello asta. Il resto diventa una riga di prosa.
-function logLine(e: GameEvent, names: Record<string, string>, t: T, tn: (i: number) => string): string | null {
+// dadi/pedine/pannello asta. Il resto diventa una riga di prosa (in seconda persona se sei tu).
+function logLine(e: GameEvent, names: Record<string, string>, t: T, tn: (i: number) => string, myId: string): string | null {
   switch (e.e) {
     case "rolled":
     case "moved":
@@ -68,7 +91,7 @@ function logLine(e: GameEvent, names: Record<string, string>, t: T, tn: (i: numb
     case "auctionWon":
       return t("ev.auctionWon", { name: names[e.pid], tile: tn(e.tile), price: e.price });
     case "jailed":
-      return t("ev.jailed", { name: names[e.pid] });
+      return e.pid === myId ? t("ev.jailedYou") : t("ev.jailed", { name: names[e.pid] });
     case "bankrupt":
       return t("ev.bankrupt", { name: names[e.pid] });
     case "card":
@@ -87,12 +110,16 @@ export function Center({ game }: { game: PublicState }) {
   const t = useT();
   const tn = useTileName();
   const dice = lastRoll(events);
+  // nuovo evento rolled (per identità) -> nuovo spin; il guard regge anche StrictMode
+  const spinRef = useRef<{ ev: GameEvent | null; n: number }>({ ev: null, n: 0 });
+  if (dice && spinRef.current.ev !== dice) spinRef.current = { ev: dice, n: spinRef.current.n + 1 };
   const legal = new Set(legalActions(game, myId));
   const isMyTurn = game.players[game.current]?.id === myId;
   const me = game.players.find((p) => p.id === myId);
   const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
   const node = activeNode(game);
   const again = game.phase.t === "postRoll" && game.phase.again && game.stack.length === 0;
+  const canRoll = isMyTurn && ((node.t === "preRoll" && legal.has("roll")) || again);
 
   if (game.status === "ended") {
     return (
@@ -116,19 +143,33 @@ export function Center({ game }: { game: PublicState }) {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg bg-card p-2 sm:p-3">
-      {/* metà alta: cluster azione centrato — dadi, prompt e bottoni restano sempre
-          nello stesso punto tra una fase e l'altra, minimo movimento del puntatore */}
-      <div className="flex flex-1 basis-0 flex-col items-center justify-center gap-2 sm:gap-3">
+      {/* metà alta ANCORATA in alto (niente justify-center): riga turno e dadi hanno
+          posizione fissa, prompt e bottoni crescono verso il basso senza spostare nulla */}
+      <div className="flex flex-1 basis-0 flex-col items-center gap-2 pt-1 sm:gap-3 sm:pt-2">
       {/* il centro scala con la board, come le tiles */}
       <div className="text-center text-2xs text-muted-foreground sm:text-xs lg:text-sm">
-        {t("center.turnOf")} <b className="text-foreground">{names[game.players[game.current]?.id]}</b>
+        {isMyTurn ? (
+          <b className="text-foreground">{t("center.yourTurn")}</b>
+        ) : (
+          <>
+            {t("center.turnOf")} <b className="text-foreground">{names[game.players[game.current]?.id]}</b>
+          </>
+        )}
         <Countdown deadline={game.deadline} />
       </div>
 
-      <div className="flex items-center justify-center gap-3 sm:gap-4">
-        <Die value={dice?.[0] ?? null} />
-        <Die value={dice?.[1] ?? null} />
-      </div>
+      {/* i dadi SONO il bottone di lancio quando tocca a te */}
+      <button
+        type="button"
+        disabled={!canRoll}
+        onClick={() => send({ type: "roll" })}
+        aria-label={t("center.roll")}
+        title={canRoll ? t("center.roll") : undefined}
+        className="dice-tray flex items-center justify-center gap-3 sm:gap-4 [--die:3rem] sm:[--die:3.5rem] lg:[--die:4rem]"
+      >
+        <Die3D value={dice?.d1 ?? null} spin={spinRef.current.n} />
+        <Die3D value={dice?.d2 ?? null} spin={spinRef.current.n} alt />
+      </button>
 
       {/* single action zone: every decision (roll/buy/debt/jail) shows here, under the dice */}
       <div className="flex flex-col items-center gap-2">
@@ -207,7 +248,7 @@ export function Center({ game }: { game: PublicState }) {
         <div className="flex flex-col text-center">
           {game.log
             .flatMap((e, i) => {
-              const line = logLine(e, names, t, tn);
+              const line = logLine(e, names, t, tn, myId);
               return line ? [{ line, i }] : [];
             })
             .slice(-30)

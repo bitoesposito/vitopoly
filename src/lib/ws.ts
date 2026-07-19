@@ -81,7 +81,7 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
         break;
       case "jailed": {
         const pid = e.pid;
-        pop(t, { kind: "jailed", name: name(pid) });
+        pop(t, { kind: "jailed", name: name(pid), you: pid === useGame.getState().myId });
         at(t + 350, () => useGame.getState().setTokenPos(pid, JAIL));
         t += 800;
         break;

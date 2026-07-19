@@ -59,7 +59,7 @@ function PopCard({ popup, depth }: { popup: CardPopup; depth: number }) {
   const { icon: Icon, accent, titleKey } = STYLE[popup.kind];
 
   const body =
-    popup.kind === "jailed" ? t("ev.jailed", { name: popup.name })
+    popup.kind === "jailed" ? (popup.you ? t("ev.jailedYou") : t("ev.jailed", { name: popup.name }))
     : popup.kind === "buy" ? tn(popup.tile)
     : popup.kind === "trade" ? ""
     : popup.text;

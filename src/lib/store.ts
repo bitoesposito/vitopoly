@@ -6,7 +6,7 @@ import type { Bundle, ChatMsg, GameEvent, PublicState, TileId } from "@tangentop
 // (used to stagger same-batch bursts pushed together).
 export type CardPopup = { id: number; wait: number } & (
   | { kind: "chance" | "chest"; name: string; text: string }
-  | { kind: "jailed"; name: string }
+  | { kind: "jailed"; name: string; you: boolean }
   | { kind: "buy"; name: string; tile: TileId; price: number }
   | { kind: "trade"; from: string; to: string; give: Bundle; get: Bundle }
 );

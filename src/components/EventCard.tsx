@@ -95,7 +95,7 @@ function PopCard({ popup, depth }: { popup: CardPopup; depth: number }) {
       >
         <div className="h-1" style={{ background: stripe }} />
         <div className="flex flex-col items-center gap-1 p-3 text-center">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase" style={{ color: accent }}>
+          <div className="flex items-center gap-1.5 text-2xs font-semibold tracking-[0.18em] uppercase" style={{ color: accent }}>
             <Icon className="size-3.5" />
             {t(titleKey)}
           </div>

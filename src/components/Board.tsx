@@ -11,8 +11,9 @@ export function Board({ game }: { game: PublicState }) {
   const auctionLive = game.status === "playing" && activeNode(game).t === "auction";
   // square board; gap-px + bg-border = uniform grid lines
   return (
+    // sempre quadrata: larghezza = min(spazio orizzontale, altezza viewport - gutter), aspect-square fa il resto
     <div
-      className="relative m-auto grid aspect-square w-full h-full gap-px border border-border bg-border max-h-screen flex-1"
+      className="relative m-auto grid aspect-square w-full gap-px border border-border bg-border md:w-[min(100%,100dvh_-_1rem)]"
       style={{
         gridTemplateColumns: "1.55fr repeat(9, 1fr) 1.55fr",
         gridTemplateRows: "1.55fr repeat(9, 1fr) 1.55fr",

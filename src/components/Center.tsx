@@ -26,7 +26,7 @@ function Countdown({ deadline }: { deadline?: number }) {
 
 function Die({ value }: { value: number | null }) {
   return (
-    <div className="grid size-10 place-items-center rounded-lg bg-foreground text-xl font-black text-background shadow-lg sm:size-12 sm:text-2xl">
+    <div className="grid size-12 place-items-center rounded-lg bg-foreground text-2xl font-black text-background shadow-lg sm:size-14 sm:text-3xl lg:size-16 lg:text-4xl">
       {value ?? "–"}
     </div>
   );
@@ -116,12 +116,16 @@ export function Center({ game }: { game: PublicState }) {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg bg-card p-2 sm:p-3">
-      <div className="text-center text-[11px] text-muted-foreground">
+      {/* metà alta: cluster azione centrato — dadi, prompt e bottoni restano sempre
+          nello stesso punto tra una fase e l'altra, minimo movimento del puntatore */}
+      <div className="flex flex-1 basis-0 flex-col items-center justify-center gap-2 sm:gap-3">
+      {/* il centro scala con la board, come le tiles */}
+      <div className="text-center text-2xs text-muted-foreground sm:text-xs lg:text-sm">
         {t("center.turnOf")} <b className="text-foreground">{names[game.players[game.current]?.id]}</b>
         <Countdown deadline={game.deadline} />
       </div>
 
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-3 sm:gap-4">
         <Die value={dice?.[0] ?? null} />
         <Die value={dice?.[1] ?? null} />
       </div>
@@ -129,19 +133,19 @@ export function Center({ game }: { game: PublicState }) {
       {/* single action zone: every decision (roll/buy/debt/jail) shows here, under the dice */}
       <div className="flex flex-col items-center gap-2">
         {node.t === "buyPrompt" && isMyTurn && (
-          <div className="text-center text-sm font-semibold">
+          <div className="text-center text-sm font-semibold lg:text-base">
             {t("buy.q", { name: tn(node.tile) })} <span className="text-success">${BOARD[node.tile].price}</span>?
           </div>
         )}
         {node.t === "debt" && ((node as DebtFrame).debtor === myId ? (
           <div className="space-y-1 text-center">
-            <div className="text-sm font-semibold text-destructive">
+            <div className="text-sm font-semibold text-destructive lg:text-base">
               {t("debt.youOwe", { total: (node as DebtFrame).claims.reduce((s, c) => s + c.amount, 0) })}
             </div>
-            <div className="text-xs text-muted-foreground">{t("debt.help")}</div>
+            <div className="text-xs text-muted-foreground lg:text-sm">{t("debt.help")}</div>
           </div>
         ) : (
-          <div className="text-center text-xs text-muted-foreground">
+          <div className="text-center text-xs text-muted-foreground lg:text-sm">
             {t("debt.someone", {
               name: names[(node as DebtFrame).debtor] ?? "",
               total: (node as DebtFrame).claims.reduce((s, c) => s + c.amount, 0),
@@ -151,18 +155,18 @@ export function Center({ game }: { game: PublicState }) {
 
         <div className="flex flex-wrap items-center justify-center gap-2">
           {primary && (
-            <Button className="px-6" onClick={primary.action}>
-              {primary.icon && <primary.icon className="size-4" />}
+            <Button size="lg" className="px-8 lg:h-11 lg:px-10 lg:text-base" onClick={primary.action}>
+              {primary.icon && <primary.icon className="size-4 lg:size-5" />}
               {primary.label}
             </Button>
           )}
           {me?.inJail && isMyTurn && node.t === "preRoll" && (
             <>
-              <Button variant="secondary" size="sm" onClick={() => send({ type: "payBail" })}>
+              <Button variant="secondary" className="lg:h-10" onClick={() => send({ type: "payBail" })}>
                 {t("center.payBail")}
               </Button>
               {me.jailCards > 0 && (
-                <Button variant="secondary" size="sm" onClick={() => send({ type: "useJailCard" })}>
+                <Button variant="secondary" className="lg:h-10" onClick={() => send({ type: "useJailCard" })}>
                   <Ticket className="size-4" />
                   {t("center.useJailCard")}
                 </Button>
@@ -171,20 +175,20 @@ export function Center({ game }: { game: PublicState }) {
           )}
           {node.t === "buyPrompt" && isMyTurn && (
             <>
-              <Button size="sm" disabled={(me?.cash ?? 0) < (BOARD[node.tile].price ?? 0)} onClick={() => send({ type: "buy" })}>
+              <Button className="px-6 lg:h-10" disabled={(me?.cash ?? 0) < (BOARD[node.tile].price ?? 0)} onClick={() => send({ type: "buy" })}>
                 {t("buy.buy")}
               </Button>
-              <Button size="sm" variant="secondary" onClick={() => send({ type: "decline" })}>
+              <Button variant="secondary" className="lg:h-10" onClick={() => send({ type: "decline" })}>
                 {game.settings.auction ? t("buy.declineAuction") : t("buy.decline")}
               </Button>
             </>
           )}
           {node.t === "debt" && (node as DebtFrame).debtor === myId && (
             <>
-              <Button size="sm" disabled={(me?.cash ?? 0) < (node as DebtFrame).claims[0].amount} onClick={() => send({ type: "payDebt" })}>
+              <Button className="px-6 lg:h-10" disabled={(me?.cash ?? 0) < (node as DebtFrame).claims[0].amount} onClick={() => send({ type: "payDebt" })}>
                 {t("debt.pay")}
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => send({ type: "bankrupt" })}>
+              <Button variant="destructive" className="lg:h-10" onClick={() => send({ type: "bankrupt" })}>
                 {t("debt.bankrupt")}
               </Button>
             </>
@@ -192,10 +196,14 @@ export function Center({ game }: { game: PublicState }) {
         </div>
       </div>
 
-      {error && <div className="text-center text-xs text-destructive">{error}</div>}
+      {error && <div className="text-center text-xs text-destructive lg:text-sm">{error}</div>}
+      </div>
 
-      {/* game log: newest on top, no scrollbar — older lines fade out below */}
-      <div className="min-h-16 w-full flex-1 overflow-hidden rounded-md p-2 text-[11px] leading-relaxed text-muted-foreground [mask-image:linear-gradient(to_bottom,black_40%,transparent_95%)]">
+      {/* metà bassa: log */}
+
+      {/* game log: newest on top, no scrollbar — older lines fade out below.
+          basis-0 + flex-1 su entrambe le metà = 50/50; il cluster azione non scende sotto il suo min-content */}
+      <div className="min-h-16 w-full flex-1 basis-0 overflow-hidden rounded-md p-2 text-2xs leading-relaxed text-muted-foreground sm:text-xs lg:text-sm [mask-image:linear-gradient(to_bottom,black_40%,transparent_95%)]">
         <div className="flex flex-col text-center">
           {game.log
             .flatMap((e, i) => {

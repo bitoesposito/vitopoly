@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Gavel } from "lucide-react";
 import { AUCTION_MS, BOARD } from "@tangentopoly/game";
 import type { AuctionFrame, PublicState } from "@tangentopoly/game";
@@ -35,8 +35,15 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   const t = useT();
   const tn = useTileName();
   const [raise, setRaise] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
   const f = game.stack.at(-1);
-  if (f?.t !== "auction") return null;
+  const live = f?.t === "auction";
+  // mobile: l'asta si porta in vista da sola quando parte (la board è bloccata,
+  // si interagisce da qui). L'istanza nascosta dell'altro breakpoint non ha box: no-op.
+  useEffect(() => {
+    if (live && !matchMedia("(min-width: 768px)").matches) ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [live]);
+  if (!live) return null;
   const a = f as AuctionFrame;
   const tile = BOARD[a.tile];
   const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
@@ -52,7 +59,8 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   };
 
   return (
-    <Card size="sm" className="ring-2 ring-warning/60 duration-300 animate-in fade-in slide-in-from-top-2">
+    // max-md:order-first: su mobile l'asta è la prima cosa sotto la board
+    <Card ref={ref} size="sm" className="ring-2 ring-warning/60 duration-300 animate-in fade-in slide-in-from-top-2 max-md:order-first">
       <CardContent className="space-y-2">
         <div className="flex items-center gap-1.5 text-sm font-semibold">
           <Gavel className="size-3.5" />
@@ -62,10 +70,10 @@ export function AuctionPanel({ game }: { game: PublicState }) {
 
         <div className="flex items-end justify-between">
           <div>
-            <div className="text-xs uppercase text-muted-foreground">{t("auction.current")}</div>
+            <div className="text-2xs font-semibold tracking-wide uppercase text-muted-foreground">{t("auction.current")}</div>
             <div className="text-2xl font-bold tabular-nums text-warning">${a.bid}</div>
           </div>
-          <div className="text-sm text-muted-foreground">{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
+          <div className="text-xs text-muted-foreground">{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
         </div>
 
         <TimeBar deadline={game.deadline} total={a.bids.length ? AUCTION_MS.bid : AUCTION_MS.start} />

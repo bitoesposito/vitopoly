@@ -4,7 +4,7 @@ import { Lobby } from "@/components/Lobby";
 import { GameSettingsView } from "@/components/GameSettings";
 import { Board } from "@/components/Board";
 import { GamePanels } from "@/components/Panels";
-import { Sidebar } from "@/components/Sidebar";
+import { Chat, Sidebar } from "@/components/Sidebar";
 
 export default function App() {
   const game = useGame((s) => s.game);
@@ -30,15 +30,20 @@ export default function App() {
         </div>
       )}
       {/* panels render twice with responsive visibility: mobile below the board, desktop in the Sidebar */}
+      {/* quando c'è spazio a sinistra della board quadrata (2xl+), la chat ha una colonna sua */}
+      <aside className="hidden w-80 shrink-0 flex-col p-2 2xl:flex">
+        <Chat open />
+      </aside>
       <main className="min-h-0 max-h-[100vh] flex-1 overflow-auto">
-        <div className="flex flex-col items-center justify-center gap-3 sm:h-full">
+        {/* md:p-2 = stesso gutter dal bordo pagina delle sidebar */}
+        <div className="flex flex-col items-center justify-center gap-3 sm:h-full md:p-2">
           {game.status === "lobby" ? (
             <GameSettingsView game={game} />
           ) : (
             <>
               <Board game={game} />
               <div className="w-full md:hidden">
-                <GamePanels game={game} />
+                <GamePanels game={game}/>
               </div>
             </>
           )}

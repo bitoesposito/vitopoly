@@ -12,54 +12,66 @@ const dot = (token: number) => (
 
 const isTurn = (game: PublicState, pid: string) => game.status === "playing" && game.players[game.current]?.id === pid;
 
+// Riga: dot | nome | stato (host/prigione/carte/offline) | voti+kick | cash.
+// Cash sempre ultima colonna -> allineata su tutte le righe; il kick compare
+// in hover (sempre visibile su touch) per non sporcare la lista.
 export function PlayerList({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();
   const canVote = game.players.some((p) => p.id === myId && !p.bankrupt); // spectators/bankrupt can't kick
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       {game.players.map((p, i) => (
         <div
           key={p.id}
-          className={`flex items-center gap-2 text-xs ${isTurn(game, p.id) ? "bg-accent text-accent-foreground ring-1 ring-ring" : ""} ${p.bankrupt ? "opacity-40" : ""}`}
+          className={`group flex items-center gap-1.5 px-2 py-1 text-xs transition-colors ${
+            isTurn(game, p.id) ? "bg-accent text-accent-foreground ring-1 ring-ring" : ""
+          } ${p.bankrupt ? "opacity-40" : ""}`}
         >
           {dot(p.token)}
-          <span className="truncate font-medium">
+          <span className={`min-w-0 truncate font-medium ${p.bankrupt ? "line-through" : ""}`}>
             {p.name}
-            {p.id === myId && <span className="text-muted-foreground"> {t("players.you")}</span>}
+            {p.id === myId && <span className="font-normal text-muted-foreground"> {t("players.you")}</span>}
           </span>
-          {i === 0 && <Crown className="size-3.5 text-warning" aria-label={t("aria.host")} />}
-          {p.inJail && <Lock className="size-3.5 text-muted-foreground" aria-label={t("aria.jail")} />}
-          {p.jailCards > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-              <Ticket className="size-3.5" />×{p.jailCards}
-            </span>
-          )}
-          {!p.connected && <WifiOff className="size-3.5 text-muted-foreground" aria-label={t("aria.disconnected")} />}
-          {game.status !== "lobby" && <span className="ml-auto tabular-nums text-success">${p.cash}</span>}
-          {/* votekick: unanimity of the other alive players (engine) */}
-          {game.status === "playing" && canVote && !p.bankrupt && p.id !== myId && (
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              className="size-5 text-muted-foreground hover:text-destructive"
-              title={t("kick.vote", { name: p.name })}
-              disabled={(game.kickVotes[p.id] ?? []).includes(myId)}
-              onClick={() => send({ type: "votekick", target: p.id })}
-            >
-              <UserX className="size-3.5" />
-            </Button>
-          )}
-          {(game.kickVotes[p.id]?.length ?? 0) > 0 && (
-            <span className="text-[10px] tabular-nums text-destructive">
-              {game.kickVotes[p.id]!.length}/{game.players.filter((x) => !x.bankrupt && x.id !== p.id).length}
-            </span>
-          )}
+          <span className="flex shrink-0 items-center gap-1 text-muted-foreground">
+            {i === 0 && <Crown className="size-3.5 text-warning" aria-label={t("aria.host")} />}
+            {p.inJail && <Lock className="size-3.5" aria-label={t("aria.jail")} />}
+            {p.jailCards > 0 && (
+              <span className="flex items-center gap-0.5 text-2xs">
+                <Ticket className="size-3.5" />×{p.jailCards}
+              </span>
+            )}
+            {!p.connected && <WifiOff className="size-3.5" aria-label={t("aria.disconnected")} />}
+          </span>
+          <span className="ml-auto flex shrink-0 items-center gap-1">
+            {(game.kickVotes[p.id]?.length ?? 0) > 0 && (
+              <span className="text-2xs tabular-nums text-destructive">
+                {game.kickVotes[p.id]!.length}/{game.players.filter((x) => !x.bankrupt && x.id !== p.id).length}
+              </span>
+            )}
+            {game.status === "playing" && canVote && (
+              !p.bankrupt && p.id !== myId ? (
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  className="size-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100 pointer-coarse:opacity-100"
+                  title={t("kick.vote", { name: p.name })}
+                  disabled={(game.kickVotes[p.id] ?? []).includes(myId)}
+                  onClick={() => send({ type: "votekick", target: p.id })}
+                >
+                  <UserX className="size-3.5" />
+                </Button>
+              ) : (
+                <span className="size-5 shrink-0" /> // slot riservato: cash allineata su tutte le righe
+              )
+            )}
+            {game.status !== "lobby" && <span className="tabular-nums text-success">${p.cash}</span>}
+          </span>
         </div>
       ))}
       {game.status === "playing" && game.settings.vacationCash && (
-        <div className="flex items-center gap-1.5 px-2 pt-1 text-xs text-muted-foreground">
-          <Palmtree className="size-3.5" /> {t("players.vacationPot")}{" "}
+        <div className="flex items-center gap-1.5 border-t border-border px-2 pt-1.5 text-xs text-muted-foreground">
+          <Palmtree className="size-3.5" /> {t("players.vacationPot")}
           <span className="ml-auto tabular-nums text-warning">${game.vacationPot}</span>
         </div>
       )}

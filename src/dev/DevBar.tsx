@@ -145,7 +145,7 @@ export default function DevBar() {
               {label}
             </Button>
           ))}
-          <div className="w-full pt-1 text-[10px] font-bold text-muted-foreground uppercase">event card</div>
+          <div className="w-full pt-1 text-2xs font-bold text-muted-foreground uppercase">event card</div>
           {POPUPS.map(([label, ps]) => (
             <Button key={label} size="xs" variant="outline" onClick={() => popup(ps)}>
               🎴 {label}

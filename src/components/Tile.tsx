@@ -52,7 +52,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
         >
           {tile.group && <div className={`absolute ${BAR[side]}`} style={{ background: GROUP_COLOR[tile.group] }} />}
 
-          <div className={`flex h-full w-full flex-col items-center justify-center gap-px text-center font-condensed leading-none lg:font-sans xl:text-base lg:text-sm md:text-xs sm:text-[10px] text-[9px] ${isCorner ? "p-1" : "p-0.5"}`}>
+          <div className={`flex h-full w-full flex-col items-center justify-center gap-px text-center font-condensed leading-none lg:font-sans xl:text-base lg:text-sm md:text-xs sm:text-[0.625rem] text-[0.5625rem] ${isCorner ? "p-1" : "p-0.5"}`}>
             {tile.kind === "railroad" ? (
               <span className="flex flex-col items-center justify-center gap-0.5 px-px font-medium text-foreground sm:flex-row">
                 <TrainFront className="size-3.5 shrink-0 sm:size-4" aria-label={name} />
@@ -66,7 +66,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
             {tile.price != null && !own && <span className="hidden text-muted-foreground sm:inline">${tile.price}</span>}
             {own?.mortgaged && <span className="font-bold text-destructive">(M)</span>}
             {(own?.houses ?? 0) > 0 && (
-              <span className="text-[8px] leading-none">{own!.houses === 5 ? "🏨" : "🏠".repeat(own!.houses)}</span>
+              <span className="text-[0.5rem] leading-none">{own!.houses === 5 ? "🏨" : "🏠".repeat(own!.houses)}</span>
             )}
           </div>
 

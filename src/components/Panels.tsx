@@ -35,7 +35,7 @@ function PropCell({ game, tile, sel, onClick }: { game: PublicState; tile: numbe
       type="button"
       title={tn(tile)}
       onClick={onClick}
-      className={`border border-l-4 p-1.5 text-left text-[10px] leading-tight transition-colors ${sel ? "border-success bg-success/15 ring-1 ring-success" : "border-border bg-muted/40 hover:bg-muted"}`}
+      className={`border border-l-4 p-1.5 text-left text-2xs leading-tight transition-colors ${sel ? "border-success bg-success/15 ring-1 ring-success" : "border-border bg-muted/40 hover:bg-muted"}`}
       style={{ borderLeftColor: GROUP_COLOR[def.group ?? ""] ?? "var(--color-muted-foreground)" }}
     >
       <div className="truncate font-medium">{tn(tile)}</div>
@@ -139,7 +139,7 @@ function BundleEditor({ game, player, title, accent, cash, setCash, picked, setP
 
   return (
     <div className="space-y-1.5 border border-border/60 bg-muted/20 p-2">
-      <div className={`text-[10px] font-semibold tracking-wide uppercase ${accent}`}>{title}</div>
+      <div className={`text-2xs font-semibold tracking-wide uppercase ${accent}`}>{title}</div>
       <div className="flex items-center gap-1.5 text-sm">
         <span className="text-muted-foreground">$</span>
         <Input className="h-7 flex-1 tabular-nums" type="number" min={0} max={player.cash} value={cash} onChange={(e) => setCash(e.target.value)} />
@@ -325,11 +325,11 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
             <div className="h-1.5 rounded-full bg-success/50" />
             <div className="space-y-2 text-sm">
               <div className="space-y-1">
-                <div className="text-[10px] font-semibold tracking-wide uppercase text-success">{tr("trade.youGet")}</div>
+                <div className="text-2xs font-semibold tracking-wide uppercase text-success">{tr("trade.youGet")}</div>
                 <BundleChips b={detail.give} />
               </div>
               <div className="space-y-1">
-                <div className="text-[10px] font-semibold tracking-wide uppercase text-destructive">{tr("trade.youGive")}</div>
+                <div className="text-2xs font-semibold tracking-wide uppercase text-destructive">{tr("trade.youGive")}</div>
                 <BundleChips b={detail.get} />
               </div>
             </div>
@@ -345,7 +345,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
         ) : (
           <>
             {incoming.map((t) => (
-              <div key={t.id} className="flex items-center gap-2 text-muted-foreground">
+              <div key={t.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                 {tr("trade.incomingRow", { name: names[t.from] })}
                 <Button size="xs" variant="ghost" disabled={inAuction} onClick={() => setHidden(t.id, false)}>
                   {tr("trade.show")}
@@ -353,7 +353,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
               </div>
             ))}
             {outgoing.map((t) => (
-              <div key={t.id} className="flex items-center gap-2 text-muted-foreground">
+              <div key={t.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                 {tr("trade.waiting", { name: names[t.to] })}
                 <Button size="xs" variant="ghost" onClick={() => send({ type: "cancelTrade", id: t.id })}>
                   {tr("trade.cancel")}
@@ -390,7 +390,7 @@ export function GamePanels({ game }: { game: PublicState }) {
           </Button>
         </div>
       </Panel>
-      {/* asta tra giocatori e scambi */}
+      {/* asta: desktop tra giocatori e scambi; mobile in cima, subito sotto la board (order-first) */}
       <AuctionPanel game={game} />
       <TradePanel game={game} myId={myId} />
       <AssetsPanel game={game} myId={myId} />

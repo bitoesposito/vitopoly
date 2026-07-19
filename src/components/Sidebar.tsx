@@ -10,9 +10,10 @@ import { useT } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
 import { GamePanels } from "@/components/Panels";
 
-// Chat collassabile: su desktop una sezione in fondo alla sidebar (chiusa di default,
-// tutto lo spazio ai pannelli); su mobile un bottom-sheet aperto dal FAB.
-function Chat({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+// Chat riusata su tre superfici: bottom-sheet mobile (FAB), sezione collassabile in
+// fondo alla sidebar destra (con onToggle), colonna sinistra dedicata da 2xl in su
+// (senza onToggle: sempre aperta, riempie l'altezza).
+export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: () => void; className?: string }) {
   const chat = useGame((s) => s.chat);
   const game = useGame((s) => s.game);
   const t = useT();
@@ -23,11 +24,12 @@ function Chat({ open, onToggle }: { open: boolean; onToggle: () => void }) {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.length]);
 
-  // chat chiusa: nuovo messaggio -> toast
+  // chat chiusa: nuovo messaggio -> toast. Da 2xl la colonna sinistra è sempre
+  // visibile, quindi l'istanza collassabile (nascosta) non deve toastare.
   const prevLen = useRef(chat.length);
   useEffect(() => {
     const m = chat.at(-1);
-    if (chat.length > prevLen.current && m && !open) toast(`${m.name}: ${m.text}`);
+    if (chat.length > prevLen.current && m && !open && !matchMedia("(min-width: 96rem)").matches) toast(`${m.name}: ${m.text}`);
     prevLen.current = chat.length;
   }, [chat, open]);
 
@@ -60,13 +62,19 @@ function Chat({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   }, []);
 
   return (
-    <div className={`flex min-h-0 flex-1 flex-col overflow-hidden md:flex-none md:bg-card md:ring-1 md:ring-foreground/10 ${open ? "md:h-72" : ""}`}>
-      {/* header desktop: titolo + toggle collasso */}
+    <div
+      className={`flex min-h-0 flex-1 flex-col overflow-hidden md:bg-card md:ring-1 md:ring-foreground/10 ${
+        onToggle ? `md:flex-none ${open ? "md:h-72" : ""}` : ""
+      } ${className ?? ""}`}
+    >
+      {/* header desktop: titolo + toggle collasso (solo dove la chat è collassabile) */}
       <div className="hidden items-center justify-between border-b border-border p-2 md:flex">
         <span className="text-sm font-semibold">Chat</span>
-        <Button size="icon-sm" variant="outline" aria-label={open ? t("aria.closeChat") : t("aria.openChat")} onClick={onToggle}>
-          {open ? <ChevronDown /> : <MessageSquare />}
-        </Button>
+        {onToggle && (
+          <Button size="icon-sm" variant="outline" aria-label={open ? t("aria.closeChat") : t("aria.openChat")} onClick={onToggle}>
+            {open ? <ChevronDown /> : <MessageSquare />}
+          </Button>
+        )}
       </div>
       <div className={`min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm ${open ? "" : "md:hidden"}`}>
         {chat.length === 0 && <div className="text-xs text-muted-foreground">{t("chat.empty")}</div>}
@@ -126,7 +134,7 @@ export function Sidebar({ game }: { game: PublicState }) {
       </Button>
       <aside
         style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
-        className={`relative shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none`}
+        className={`relative shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${game.status === "lobby" ? "2xl:hidden" : ""}`}
       >
         {/* mobile-only sheet resize handle; double click chiude la chat */}
         <div
@@ -146,7 +154,8 @@ export function Sidebar({ game }: { game: PublicState }) {
             <GamePanels game={game} />
           </div>
         )}
-        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
+        {/* da 2xl la chat vive nella colonna sinistra (App.tsx): qui sparisce */}
+        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} className="2xl:hidden" />
       </aside>
     </>
   );

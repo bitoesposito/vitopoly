@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { BOARD, CHANCE, CHEST, JAIL } from "@tangentopoly/game";
 import type { ClientAction, GameEvent, PublicState, ServerMsg } from "@tangentopoly/game";
 import { walkMs } from "./utils";
@@ -29,12 +30,15 @@ export function connect(code: string, name: string): void {
   socket = new WebSocket(url);
   socket.onopen = () => {
     retries = 0;
-    useGame.setState({ connected: true, code, name });
+    useGame.setState({ connected: true, code, name, retries: 0 });
+    // senza questo l'host che ricarica perde la stanza (Lobby legge ?room=)
+    history.replaceState(null, "", `?room=${code}`);
   };
   socket.onclose = (e) => {
     useGame.setState({ connected: false });
     if (e.code === 4000) return; // rejected (room full / game started)
     // DO reset, deploy, flaky network: state is persisted, reconnect with backoff
+    useGame.setState({ retries: retries + 1 });
     retryTimer = setTimeout(() => connect(code, name), Math.min(1000 * 2 ** retries++, 10_000));
   };
   socket.onmessage = (ev) => {
@@ -52,10 +56,27 @@ export function connect(code: string, name: string): void {
         useGame.setState({ chat: msg.msgs });
         break;
       case "error":
+        // toast per gli errori d'azione; `error` resta per gli stati bloccanti (lobby)
+        toast.error(msg.error);
         useGame.setState({ error: msg.error });
         break;
     }
   };
+}
+
+// Una tab in background accumula i setTimeout e li spara tutti al ritorno: al
+// rientro li buttiamo e saltiamo alla fine (la correttezza è già di `at(t)`).
+let pending: ReturnType<typeof setTimeout>[] = [];
+
+function flush(): void {
+  for (const id of pending) clearTimeout(id);
+  pending = [];
+  const g = useGame.getState();
+  for (const p of g.game?.players ?? []) g.setTokenPos(p.id, p.pos);
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => document.hidden && flush());
 }
 
 // The state lands with FINAL positions; the events carry the story. Replay it on a
@@ -64,7 +85,10 @@ export function connect(code: string, name: string): void {
 // Exported: /dev la usa per provare la sequenza con eventi sintetici.
 export function choreograph(state: PublicState, events: GameEvent[]): void {
   const name = (pid: string) => state.players.find((p) => p.id === pid)?.name ?? "?";
-  const at = (ms: number, fn: () => void) => (ms <= 0 ? fn() : void setTimeout(fn, ms));
+  // già in background: niente timeline
+  const skip = typeof document !== "undefined" && document.hidden;
+  const at = (ms: number, fn: () => void) =>
+    ms <= 0 || skip ? fn() : void pending.push(setTimeout(fn, ms));
   const pop = (ms: number, p: PopupInput) => at(ms, () => useGame.getState().pushPopups([p]));
   let t = 0;
   for (const e of events) {
@@ -111,6 +135,7 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
 }
 
 export function send(action: ClientAction): void {
+  useGame.setState({ error: null }); // l'errore muore all'azione dell'utente, non al prossimo stato
   socket?.send(JSON.stringify({ type: "action", action }));
 }
 

@@ -1,7 +1,7 @@
 import type { GameSettings, GameState, Player, PlayerId } from "./types";
 
+// Regolamento della casa: fisso, nessuna UI e nessuna azione di rete lo cambia.
 export const DEFAULT_SETTINGS: GameSettings = {
-  maxPlayers: 4,
   startingCash: 1500,
   doubleRentFullSet: true,
   vacationCash: true,
@@ -35,7 +35,7 @@ export function createGame(seed: number): GameState {
 export function addPlayer(s: GameState, id: PlayerId, name: string): Player | null {
   if (s.players.some((p) => p.id === id)) return s.players.find((p) => p.id === id)!; // reconnect
   if (s.status !== "lobby") return null;
-  if (s.players.length >= s.settings.maxPlayers) return null;
+  // nessun tetto ai posti: chi arriva dopo l'inizio è spettatore
   const p: Player = {
     id,
     name,

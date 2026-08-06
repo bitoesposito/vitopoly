@@ -14,6 +14,14 @@ export const activeNode = (s: Pick<GameState, "phase" | "stack">): Node => s.sta
 const clone = (s: GameState): GameState => structuredClone(s);
 const ok = (state: GameState, events: GameEvent[] = []): Result => ({ ok: true, state, events });
 const err = (error: string): Result => ({ ok: false, error });
+// Cosa deve fare il giocatore adesso. Il testo non nomina mai i nodi.
+const WHY_NOT: Record<Node["t"], string> = {
+  preRoll: "prima tira i dadi",
+  buyPrompt: "prima decidi se comprare",
+  postRoll: "chiudi il turno per continuare",
+  auction: "c'è un'asta in corso",
+  debt: "prima salda il debito",
+};
 const info = (text: string): GameEvent => ({ e: "info", text });
 
 type Handler = (s: GameState, pid: PlayerId, a: ClientAction) => Result;
@@ -287,19 +295,9 @@ function shuffled(s: GameState, n: number): number[] {
   return a;
 }
 
+// Regole fisse: updateSettings è stata tolta dal protocollo, non solo dalla UI.
 function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   const isHost = s.players[0]?.id === pid;
-
-  if (a.type === "updateSettings") {
-    if (!isHost) return err("solo l'host può cambiare le impostazioni");
-    const base = s.settings;
-    const n = { ...base, ...a.settings };
-    n.maxPlayers = Math.max(2, Math.min(8, Math.floor(n.maxPlayers) || base.maxPlayers));
-    if (n.maxPlayers < s.players.length) n.maxPlayers = s.players.length;
-    n.startingCash = Math.max(1, Math.min(1_000_000, Math.floor(n.startingCash) || base.startingCash));
-    s.settings = n;
-    return ok(s);
-  }
 
   if (a.type !== "start") return err("partita non iniziata");
   if (!isHost) return err("solo l'host può iniziare");
@@ -346,14 +344,15 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
   }
 
   const h = HANDLERS[top.t][a.type];
-  if (!h) return err(`${a.type} non è consentito durante ${top.t}`); // <- structural rejection
+  // structural rejection
+  if (!h) return err(`Non puoi farlo adesso: ${WHY_NOT[top.t]}`);
   return h(clone(state), pid, a);
 }
 
 // Derived from the SAME table (+ the cash raisers on your turn / your debt). Feeds
 // client button enablement AND the soak test.
 export function legalActions(s: Pick<GameState, "status" | "phase" | "stack" | "players" | "current">, pid: PlayerId): ClientAction["type"][] {
-  if (s.status === "lobby") return ["start", "updateSettings"];
+  if (s.status === "lobby") return ["start"];
   if (s.status === "ended") return [];
   const base = Object.keys(HANDLERS[activeNode(s).t]) as ClientAction["type"][];
   const raiser = s.players[s.current]?.id === pid || s.stack.some((f) => f.t === "debt" && f.debtor === pid);

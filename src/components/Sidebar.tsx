@@ -33,13 +33,15 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
     prevLen.current = chat.length;
   }, [chat, open]);
 
-  // desktop: digitando ovunque il focus va all'input della chat (se aperta)
+  // desktop: "/" porta il focus in chat. Un tasto dedicato, non un carattere
+  // qualsiasi: quello rubava il focus a chi naviga da tastiera (WCAG 3.2.1).
   useEffect(() => {
     if (!open || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const h = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target as HTMLElement;
       if (t.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
+      e.preventDefault();
       inputRef.current?.focus();
     };
     window.addEventListener("keydown", h);
@@ -64,7 +66,7 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
   return (
     <div
       className={`flex min-h-0 flex-1 flex-col overflow-hidden md:bg-card md:ring-1 md:ring-foreground/10 ${
-        onToggle ? `md:flex-none ${open ? "md:h-72" : ""}` : ""
+        onToggle ? `${open ? "md:min-h-0 md:flex-1" : "md:flex-none"}` : ""
       } ${className ?? ""}`}
     >
       {/* header desktop: titolo + toggle collasso (solo dove la chat è collassabile) */}
@@ -80,7 +82,9 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
         {chat.length === 0 && <div className="text-xs text-muted-foreground">{t("chat.empty")}</div>}
         {groups.map((g, i) => (
           <div key={i} className="border border-border px-2 py-1">
-            <div className="text-xs font-semibold" style={{ color: colorOf(g[0].pid) }}>
+            {/* il colore marca, non colora il nome: da inchiostro stava a 2,6:1 */}
+            <div className="flex items-center gap-1.5 text-xs font-semibold">
+              <span className="h-3 w-1 shrink-0" style={{ background: colorOf(g[0].pid) }} />
               {g[0].name}
             </div>
             {g.map((m, j) => (
@@ -114,7 +118,8 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
 // colonna destra. Desktop: pannelli a tutta altezza + chat collassabile in fondo.
 // Mobile: FAB flottante -> bottom-sheet con la sola chat (i pannelli stanno sotto la board).
 export function Sidebar({ game }: { game: PublicState }) {
-  const [chatOpen, setChatOpen] = useState(false);
+  // aperta di default da md: la colonna destra restava mezza vuota con la chat chiusa
+  const [chatOpen, setChatOpen] = useState(() => matchMedia("(min-width: 48rem)").matches);
   const t = useT();
   // mobile-only sheet resize, 2 snap heights; desktop is fixed width
   const [chatH, setChatH] = useState<number>();
@@ -125,7 +130,7 @@ export function Sidebar({ game }: { game: PublicState }) {
       {/* FAB mobile: toggla lo sheet; quando è aperto si sposta sopra di esso */}
       <Button
         size="icon"
-        className="fixed right-3 bottom-3 z-50 size-12 rounded-full shadow-lg md:hidden"
+        className={`fixed right-3 z-50 size-12 shadow-lg md:hidden ${game.status === "playing" ? "bottom-20" : "bottom-3"}`}
         style={chatOpen ? { bottom: `calc(${chatH ? `${chatH}px` : "45%"} + 12px)` } : undefined}
         aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
         onClick={() => setChatOpen((o) => !o)}
@@ -150,7 +155,7 @@ export function Sidebar({ game }: { game: PublicState }) {
         </div>
         {/* desktop-only: tutto lo spazio ai pannelli (su mobile stanno sotto la board, App.tsx) */}
         {game.status !== "lobby" && (
-          <div className="hidden min-h-0 md:block md:flex-1 md:overflow-y-auto">
+          <div className="hidden min-h-0 md:block md:shrink-0 md:overflow-y-auto">
             <GamePanels game={game} />
           </div>
         )}

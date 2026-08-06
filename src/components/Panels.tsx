@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Handshake, Hotel, House, Minus, Plus, Ticket } from "lucide-react";
+import { toast } from "sonner";
 import { BOARD } from "@tangentopoly/game";
 import type { Bundle, Player, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 import { useGame } from "@/lib/store";
-import { GROUP_COLOR, TOKEN_COLOR } from "@/lib/colors";
+import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR, serie } from "@/lib/colors";
+import { euro } from "@/lib/utils";
 import { PlayerList } from "./PlayerList";
 import { AuctionPanel } from "./AuctionPanel";
 
@@ -24,33 +26,35 @@ function Panel({ ring, children }: { ring?: string; children: React.ReactNode })
 const propsOf = (game: PublicState, pid: string) =>
   Object.entries(game.props).filter(([, o]) => o!.owner === pid).map(([k]) => Number(k));
 
-// Cella-atto condivisa (composer scambi + proprietà): bordo sinistro col colore del
-// set, nome, riga di stato — prezzo, case ×n, hotel o M se ipotecata.
+// Talloncino d'atto: serie (filetto + nome), nome, stato — prezzo, case, ipoteca.
 function PropCell({ game, tile, sel, onClick }: { game: PublicState; tile: number; sel: boolean; onClick: () => void }) {
   const tn = useTileName();
+  const t = useT();
   const o = game.props[tile];
   const def = BOARD[tile];
+  const g = def.group ?? "";
   return (
     <button
       type="button"
       title={tn(tile)}
       onClick={onClick}
-      className={`border border-l-4 p-1.5 text-left text-2xs leading-tight transition-colors ${sel ? "border-success bg-success/15 ring-1 ring-success" : "border-border bg-muted/40 hover:bg-muted"}`}
-      style={{ borderLeftColor: GROUP_COLOR[def.group ?? ""] ?? "var(--color-muted-foreground)" }}
+      className={`nota border p-1.5 text-left text-2xs leading-tight transition-colors ${sel ? "border-verde-carta ring-1 ring-verde-carta" : "border-paper-line/60 hover:border-paper-line"}`}
     >
+      <span className="mb-1 block h-px w-full" style={{ background: GROUP_COLOR[g] ?? "var(--color-muted-foreground)" }} />
+      {GROUP_LABEL[g] && <div className="truncate text-micro tracking-widest text-paper-ink/70 uppercase">{GROUP_LABEL[g]}</div>}
       <div className="truncate font-medium">{tn(tile)}</div>
-      <div className="flex h-3.5 items-center gap-0.5 text-muted-foreground">
+      <div className="flex h-3.5 items-center gap-0.5 text-paper-ink/70">
         {o?.mortgaged ? (
-          <span className="font-semibold text-destructive">M</span>
+          <span className="font-condensed text-micro tracking-widest text-sanguigna-carta uppercase">{t("tile.mortgaged")}</span>
         ) : o && o.houses === 5 ? (
-          <Hotel className="size-3" />
+          <Hotel className="size-3 text-paper-ink" />
         ) : o && o.houses > 0 ? (
           <>
-            <House className="size-3" />
+            <House className="size-3 text-paper-ink" />
             <span>×{o.houses}</span>
           </>
         ) : (
-          <span className="tabular-nums">€{def.price}</span>
+          <span className="font-mono tabular-nums">{euro(def.price ?? 0)}</span>
         )}
       </div>
     </button>
@@ -91,30 +95,31 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
       {selTile !== null && own && def && (canRaise || canBuild) && (
         <div key={selTile} className="flex flex-wrap gap-1 duration-200 animate-in fade-in">
           {canBuild && def.kind === "street" && !own.mortgaged && own.houses < 5 && (
-            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "build", tile: selTile })}>
+            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "build", tile: selTile })}>
               <Plus className="size-3.5" />
-              <House className="size-3.5" />€{def.houseCost}
+              <House className="size-3.5" />
+              {euro(def.houseCost ?? 0)}
             </Button>
           )}
           {canRaise && own.houses > 0 && (
-            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "sellHouse", tile: selTile })}>
+            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "sellHouse", tile: selTile })}>
               <Minus className="size-3.5" />
-              <House className="size-3.5" />+€{def.houseCost! / 2}
+              <House className="size-3.5" />+{euro(def.houseCost! / 2)}
             </Button>
           )}
           {canRaise && game.settings.mortgageAllowed && own.houses === 0 && !own.mortgaged && (
-            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "mortgage", tile: selTile })}>
-              {t("assets.mortgage", { amount: def.price! / 2 })}
+            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "mortgage", tile: selTile })}>
+              {t("assets.mortgage", { amount: euro(def.price! / 2) })}
             </Button>
           )}
           {canBuild && own.mortgaged && (
-            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "unmortgage", tile: selTile })}>
-              {t("assets.unmortgage", { amount: Math.ceil((def.price! / 2) * 1.1) })}
+            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "unmortgage", tile: selTile })}>
+              {t("assets.unmortgage", { amount: euro(Math.ceil((def.price! / 2) * 1.1)) })}
             </Button>
           )}
           {canRaise && own.houses === 0 && !own.mortgaged && (
-            <Button size="xs" variant="secondary" className="flex-1" onClick={() => send({ type: "sellProperty", tile: selTile })}>
-              {t("assets.sell", { amount: def.price! / 2 })}
+            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "sellProperty", tile: selTile })}>
+              {t("assets.sell", { amount: euro(def.price! / 2) })}
             </Button>
           )}
         </div>
@@ -211,7 +216,12 @@ function TradeComposer({ game, myId }: { game: PublicState; myId: string }) {
             onClick={() => pick(p.id)}
             className={`flex items-center gap-1.5 border px-2 py-1 text-xs transition-colors ${to === p.id ? "border-success bg-success/15 ring-1 ring-success" : "border-border hover:bg-muted"}`}
           >
-            <span className="size-2.5 shrink-0 rounded-full ring-1 ring-black/40" style={{ background: TOKEN_COLOR[p.token % 8] }} />
+            <span
+              className="flex size-4 shrink-0 items-center justify-center font-mono text-micro leading-none ring-1 ring-paper-ink/50"
+              style={{ background: TOKEN_COLOR[p.token % 8], color: "var(--color-paper-ink)" }}
+            >
+              {serie(p.token)}
+            </span>
             {p.name}
           </button>
         ))}
@@ -244,11 +254,11 @@ function TradeComposer({ game, myId }: { game: PublicState; myId: string }) {
 
 // una parte dell'offerta come chips: cash, atti (pallino colore gruppo), carte prigione.
 // `fly` = variante animata (EventCard): le chips volano nella direzione dello scambio.
-export function BundleChips({ b, fly }: { b: Bundle; fly?: "r" | "l" }) {
+export function BundleChips({ b, fly, paper }: { b: Bundle; fly?: "r" | "l"; paper?: boolean }) {
   const tr = useT();
   const tn = useTileName();
   const chips: React.ReactNode[] = [];
-  if (b.cash > 0) chips.push(<span key="€" className="font-semibold text-success">€{b.cash}</span>);
+  if (b.cash > 0) chips.push(<span key="€" className={`font-mono font-semibold ${paper ? "text-verde-carta" : "text-success"}`}>{euro(b.cash)}</span>);
   for (const t of b.props)
     chips.push(
       <span key={t} className="flex items-center gap-1">
@@ -262,13 +272,13 @@ export function BundleChips({ b, fly }: { b: Bundle; fly?: "r" | "l" }) {
         <Ticket className="size-3" />×{b.jailCards}
       </span>,
     );
-  if (chips.length === 0) return <span className="text-xs text-muted-foreground">{tr("bundle.nothing")}</span>;
+  if (chips.length === 0) return <span className={`text-xs ${paper ? "text-paper-ink/60" : "text-muted-foreground"}`}>{tr("bundle.nothing")}</span>;
   return (
     <span className="flex flex-wrap gap-1">
       {chips.map((c, i) => (
         <span
           key={i}
-          className={`flex items-center border border-border bg-muted px-1.5 py-0.5 text-xs ${fly ? `chip-fly-${fly}` : ""}`}
+          className={`flex items-center border px-1.5 py-0.5 text-xs ${paper ? "border-paper-line/60 text-paper-ink" : "border-border bg-muted"} ${fly ? `chip-fly-${fly}` : ""}`}
           style={fly ? { animationDelay: `${250 + i * 130}ms` } : undefined}
         >
           {c}
@@ -285,6 +295,17 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
   const tr = useT();
   const tradeOpen = useGame((s) => s.tradeOpen);
   const hidden = useGame((s) => s.tradeHidden);
+  // su mobile la proposta arriva sotto la piega, dentro un timer da 60s
+  const seen = useRef<string[]>([]);
+  useEffect(() => {
+    const mine = game.trades.filter((t) => t.to === myId);
+    const fresh = mine.filter((t) => !seen.current.includes(t.id));
+    seen.current = mine.map((t) => t.id);
+    for (const t of fresh) {
+      const from = game.players.find((p) => p.id === t.from)?.name ?? "";
+      toast(tr("trade.incoming", { name: from }));
+    }
+  }, [game.trades, game.players, myId, tr]);
   const inAuction = game.stack.some((f) => f.t === "auction"); // il motore vieta gli scambi in asta
   const me = game.players.find((p) => p.id === myId); // spectators/bankrupt can't trade
   const incoming = game.trades.filter((t) => t.to === myId);
@@ -379,21 +400,25 @@ export function GamePanels({ game }: { game: PublicState }) {
     <div className="flex w-full flex-col gap-2">
       <Panel>
         <PlayerList game={game} />
-        <div className="flex justify-end border-t border-border pt-2">
-          <Button
-            size="xs"
-            variant="destructive"
-            disabled={!canBankrupt}
-            onClick={() => confirm(t("debt.confirmBankrupt")) && send({ type: "bankrupt" })}
-          >
-            {t("debt.bankrupt")}
-          </Button>
-        </div>
       </Panel>
       {/* asta: desktop tra giocatori e scambi; mobile in cima, subito sotto la board (order-first) */}
       <AuctionPanel game={game} />
       <TradePanel game={game} myId={myId} />
       <AssetsPanel game={game} myId={myId} />
+      {/* staccata da tutto: è l'azione più distruttiva del gioco */}
+      {canBankrupt && (
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-2">
+          <span className="text-2xs text-muted-foreground">{t("debt.bankruptHint")}</span>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="shrink-0 pointer-coarse:min-h-11"
+            onClick={() => confirm(t("debt.confirmBankrupt")) && send({ type: "bankrupt" })}
+          >
+            {t("debt.bankrupt")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

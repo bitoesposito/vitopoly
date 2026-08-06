@@ -1,18 +1,48 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/bollo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tangentopoly</title>
-    <meta name="description" content="Tangentopoly — play Monopoly online with friends, free and in real time." />
-    <meta property="og:title" content="Tangentopoly" />
-    <meta property="og:description" content="Play Monopoly online with friends, free and in real time." />
+    <title>Tangentopoly — il gioco della Prima Repubblica</title>
+    <meta
+      name="description"
+      content="Da Foggia alla Milano di Mani Pulite: compra, incassa, corrompi e finisci in galera. Gioco da tavolo online in tempo reale, gratis, per 2-8 amici. Nessun account: serve solo un link."
+    />
+    <meta property="og:title" content="Tangentopoly — il gioco della Prima Repubblica" />
+    <meta
+      property="og:description"
+      content="Da Foggia alla Milano di Mani Pulite: compra, incassa, corrompi e finisci in galera. Per 2-8 amici, in tempo reale. Serve solo un link."
+    />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="it_IT" />
     <meta name="twitter:card" content="summary" />
+    <!-- og:image resta scoperta di proposito: nessun raster autoriale esiste ancora e un SVG
+         non viene renderizzato da buona parte dei crawler. Sta nella lista sostituzioni. -->
   </head>
   <body>
+    <!--
+      THESIS: la plancia è un foglio di carta valori dello Stato, non un Monopoly ri-skinnato;
+      rifiuta sia il panno verde Hasbro sia il dark-dashboard-con-un-accento.
+      OWN-WORLD: inchiostri d'intaglio (verde-nero, sanguigna, indaco) su fondo carta-vuoto;
+      filetti d'incisione al posto dei gap; guilloche solo dove c'è scala; mono da numero di
+      serie su ogni cifra; nomi di regione in caps a scala microtesto; lo stato è sovrastampa
+      (IPOTECATO, ANNULLATO).
+      STORY: il giocatore vede denaro che non dovrebbe stare dove sta, capisce che la partita è
+      satira della corruzione italiana, e gioca il suo turno.
+      FIRST VIEWPORT: campo-nota 11x11 centrato, talloncini delle proprietà sui bordi, vassoio
+      dadi sul pannello guilloche al centro con l'azione primaria subito sotto, roster a destra
+      come matrici emesse.
+      FORM: carta valori — 3a di 7 direzioni fondate; seed fd32e0d9.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review,
+      the verdict, and DESIGN.md
+    -->
     <div id="root"></div>
+    <!-- Zona pollice: la plancia è quadra, quindi su un telefono è alta quanto lo
+         schermo è largo e l'azione primaria finirebbe nel terzo ALTO. Center sposta
+         qui il grappolo di bottoni sotto md (non lo duplica). Sta fuori da React
+         perché esista già al primo render: niente setState dentro un effect. -->
+    <div id="barra-azione" class="fixed inset-x-0 bottom-0 z-30 empty:hidden md:hidden"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -31,6 +31,7 @@ interface Store {
   events: GameEvent[];
   chat: ChatMsg[];
   connected: boolean;
+  retries: number; // riconnessioni consecutive: oltre la soglia il banner offre di ricaricare
   error: string | null;
   tradeOpen: boolean; // composer scambi aperto (sezione sotto gli scambi, non blocca nulla)
   tradeHidden: Record<string, boolean>; // proposte in arrivo nascoste (restano listate negli scambi)
@@ -51,6 +52,7 @@ export const useGame = create<Store>((set) => ({
   events: [],
   chat: [],
   connected: false,
+  retries: 0,
   error: null,
   tradeOpen: false,
   tradeHidden: {},

@@ -2,6 +2,8 @@ import { Fragment } from "react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileDef } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
+import { GROUP_COLOR, GROUP_LABEL } from "@/lib/colors";
+import { euro } from "@/lib/utils";
 
 type T = ReturnType<typeof useT>;
 
@@ -40,7 +42,16 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
 
   return (
     <div className="space-y-3 text-sm">
-      <div className="font-semibold">{name}</div>
+      <div>
+        <div className="font-semibold">{name}</div>
+        {/* la serie del titolo, scritta: sul tabellone è una banda d'inchiostro e basta */}
+        {tile.group && GROUP_LABEL[tile.group] && (
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span className="h-3 w-1 shrink-0" style={{ background: GROUP_COLOR[tile.group] }} />
+            <span className="text-micro tracking-widest text-muted-foreground uppercase">{GROUP_LABEL[tile.group]}</span>
+          </div>
+        )}
+      </div>
 
       {tile.kind === "street" && tile.rent ? (
         <>
@@ -50,13 +61,13 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
             {tile.rent.map((r, i) => (
               <Fragment key={i}>
                 <span>{t(`info.rent${i}`)}</span>
-                <span className="text-right tabular-nums text-success">€{r}</span>
+                <span className="text-right font-mono tabular-nums text-success">{euro(r)}</span>
               </Fragment>
             ))}
           </div>
           <div className="flex justify-between gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
-            <span>{t("info.price")}: <b className="text-foreground">€{tile.price}</b></span>
-            <span>{t("info.house")}: <b className="text-foreground">€{tile.houseCost}</b></span>
+            <span>{t("info.price")}: <b className="font-mono text-foreground">{euro(tile.price ?? 0)}</b></span>
+            <span>{t("info.house")}: <b className="font-mono text-foreground">{euro(tile.houseCost ?? 0)}</b></span>
           </div>
         </>
       ) : (
@@ -64,7 +75,7 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
           <p>{tileDesc(t, tile, game)}</p>
           {tile.price != null && (
             <p>
-              {t("info.price")}: <b className="text-foreground">€{tile.price}</b>
+              {t("info.price")}: <b className="font-mono text-foreground">{euro(tile.price)}</b>
             </p>
           )}
         </div>

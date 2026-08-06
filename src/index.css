@@ -6,13 +6,18 @@
 @import "@fontsource/ibm-plex-sans-condensed/500.css";
 @import "@fontsource/ibm-plex-sans-condensed/600.css";
 @import "@fontsource/ibm-plex-sans-condensed/700.css";
+/* mono = ogni cifra: denaro, codici, microtesto */
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
+    --font-heading: var(--font-condensed);
     --font-sans: 'IBM Plex Sans Variable', sans-serif;
     --font-condensed: 'IBM Plex Sans Condensed', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
     /* Scala tipografica dell'app:
        - text-2xs  etichette uppercase, badge, metadati delle celle
        - text-xs   righe di lista, descrizioni, chat
@@ -22,6 +27,11 @@
        xl:text-base; la sidebar è a larghezza fissa e non ne ha bisogno. */
     --text-2xs: 0.6875rem;
     --text-2xs--line-height: 0.875rem;
+    /* microtesto: regioni, lettere di serie, diciture. Sempre caps. */
+    --text-micro: 0.5625rem;
+    --text-micro--line-height: 0.75rem;
+    --text-micro--letter-spacing: 0.08em;
+    --text-micro--font-weight: 600;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -53,8 +63,18 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    --color-success: oklch(0.72 0.15 162); /* soldi / esito positivo */
-    --color-warning: oklch(0.83 0.16 85); /* aste / avvisi */
+    /* un inchiostro, un mestiere */
+    --color-success: var(--verde-valore); /* denaro */
+    --color-warning: var(--bollo); /* aste, scadenze */
+    --color-sanguigna: var(--sanguigna); /* annullo: ipoteca, bancarotta, debito */
+    --color-indaco: var(--indaco); /* scambi */
+    --color-paper: var(--paper);
+    --color-paper-ink: var(--paper-ink);
+    --color-paper-line: var(--paper-line);
+    --color-sanguigna-carta: var(--sanguigna-carta);
+    --color-indaco-carta: var(--indaco-carta);
+    --color-verde-carta: var(--verde-carta);
+    --color-bollo-carta: var(--bollo-carta);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -70,38 +90,92 @@
     --radius: 0;
 }
 
+/* La carta NON è `--card`: è un materiale applicato dove la carta esiste (celle,
+   talloncini, carte evento). Ribaltare `--card` renderebbe illeggibile ogni
+   `text-muted-foreground` del codebase, che serve sia chrome scura sia carta. */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: oklch(0.168 0.018 168);
+    --foreground: oklch(0.93 0.012 92);
+    --card: oklch(0.225 0.019 168);
+    --card-foreground: oklch(0.93 0.012 92);
+    --popover: oklch(0.205 0.019 168);
+    --popover-foreground: oklch(0.93 0.012 92);
+    --primary: oklch(0.9 0.014 90);
+    --primary-foreground: oklch(0.19 0.02 168);
+    --secondary: oklch(0.288 0.019 168);
+    --secondary-foreground: oklch(0.93 0.012 92);
+    --muted: oklch(0.268 0.016 168);
+    --muted-foreground: oklch(0.745 0.016 95); /* 6.9:1 su --card */
+    --accent: oklch(0.3 0.021 168);
+    --accent-foreground: oklch(0.94 0.012 92);
+    --destructive: oklch(0.605 0.163 30); /* sanguigna */
+    --border: oklch(0.86 0.02 90 / 16%);
+    --input: oklch(0.86 0.02 90 / 22%);
+    --ring: oklch(0.74 0.132 76); /* il focus è un timbro */
+    --chart-1: oklch(0.62 0.1 158);
+    --chart-2: oklch(0.74 0.132 76);
+    --chart-3: oklch(0.56 0.11 262);
+    --chart-4: oklch(0.605 0.163 30);
+    --chart-5: oklch(0.5 0.02 168);
+    --sidebar: oklch(0.196 0.019 168);
+    --sidebar-foreground: oklch(0.93 0.012 92);
+    --sidebar-primary: oklch(0.56 0.11 262);
+    --sidebar-primary-foreground: oklch(0.96 0.01 90);
+    --sidebar-accent: oklch(0.288 0.019 168);
+    --sidebar-accent-foreground: oklch(0.93 0.012 92);
+    --sidebar-border: oklch(0.86 0.02 90 / 14%);
+    --sidebar-ring: oklch(0.74 0.132 76);
+
+    --paper: oklch(0.923 0.016 88);
+    --paper-ink: oklch(0.245 0.022 166); /* 13.2:1 su --paper */
+    --paper-line: oklch(0.6 0.022 160);
+    --verde-valore: oklch(0.63 0.104 158);
+    --bollo: oklch(0.745 0.132 76);
+    --sanguigna: oklch(0.605 0.163 30);
+    --indaco: oklch(0.565 0.112 262);
+    /* gli stessi inchiostri su carta: quelli sopra stanno sotto 4,5:1 sul chiaro */
+    --sanguigna-carta: oklch(0.47 0.16 30);
+    --indaco-carta: oklch(0.43 0.13 262);
+    --verde-carta: oklch(0.4 0.1 158);
+    --bollo-carta: oklch(0.42 0.1 76);
+}
+
+/* Materiali: substrato, filetto, sovrastampa. Lo stato si timbra, non si colora. */
+.nota {
+    background: var(--paper);
+    color: var(--paper-ink);
+}
+/* non in @layer: deve battere il `border-border` della base */
+.filetto {
+    border-color: var(--paper-line);
+}
+/* filigrana, non disegno: deve leggersi solo quando la cerchi. A piena opacità
+   il rosone diventa l'elemento dominante dello schermo. */
+.campo-guilloche {
+    background-image: url("/guilloche.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: min(62%, 22rem) auto;
+}
+/* IPOTECA / FUORI: timbro obliquo, non intercetta il puntatore */
+.sovrastampa {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    font-family: var(--font-condensed);
+    font-size: var(--text-micro);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sanguigna-carta);
+}
+.sovrastampa > span {
+    padding: 0.1em 0.45em;
+    border-block: 1.5px solid currentColor;
+    transform: rotate(-11deg);
+    background: color-mix(in oklab, var(--paper) 62%, transparent);
 }
 
 /* EventCard.tsx: springy pop-in from the bottom with rotation + focus pull, quick toss-out */
@@ -130,16 +204,25 @@
 .chip-fly-l { animation: chip-l 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 /* Dadi 3D (Center.tsx): cubo a 6 facce con pip reali, geometria in em (1em = lato,
-   dimensione via --die). Al lancio: tumble multi-asse ~0.9s, poi settle molleggiato
-   dalla transition verso la faccia uscita. Palette avorio classica, indipendente dal tema. */
+   dimensione via --die). Il lancio è diviso in due: la SCENA porta l'arco (il dado
+   sale e ricade), il CUBO porta la rotazione. Entrambi i dadi durano uguale — la
+   varietà sta nei giri, non nel tempo — e si posano con una decelerazione
+   esponenziale, non con un rimbalzo. Palette avorio, indipendente dal tema. */
 .die-scene {
     width: var(--die, 3rem);
     height: var(--die, 3rem);
     /* NIENTE perspective (come il riferimento): proiezione ortografica -> a riposo
        si vede solo la faccia frontale arrotondata, zero artefatti agli angoli */
     transition: transform .25s ease;
-    filter: drop-shadow(0 .08em .16em rgb(0 0 0 / .5));
+    /* niente filter: su un antenato appiattisce il 3D dei figli (facce schiacciate) */
 }
+/* l'arco del lancio: su e giù, con la salita più rapida della discesa */
+@keyframes die-toss {
+    0% { transform: translateY(0) }
+    32% { transform: translateY(-42%) }
+    100% { transform: translateY(0) }
+}
+.die-tossing { animation: die-toss var(--roll, .92s) cubic-bezier(.3, 0, .3, 1) both; }
 .die {
     position: relative;
     width: 100%;
@@ -149,15 +232,19 @@
     /* tilt (hover) composto con la faccia corrente: l'inclinazione mostra i lati
        del cubo senza perdere il valore uscito */
     transform: var(--die-tilt, rotateZ(0)) var(--face, rotateZ(0));
-    transition: transform .5s cubic-bezier(.2, .9, .3, 1.15);
+    /* decelerazione esponenziale: un dado che si ferma rallenta, non rimbalza */
+    transition: transform .62s cubic-bezier(.16, 1, .3, 1);
 }
 .die-face {
     position: absolute;
     inset: 0;
-    border-radius: .15em;
-    border: .04em solid #f6f3f0;
-    background: linear-gradient(145deg, #dddbd8, #fff);
+    border-radius: .13em;
+    border: .035em solid #fffdf8;
+    background: linear-gradient(150deg, #fbf8f2 0%, #e7e2d8 62%, #d7d1c5 100%);
     transform-style: preserve-3d;
+    color: #16241e; /* i pip secondari sono box-shadow: senza questo prendono currentColor */
+    box-shadow: 0 .05em .1em rgb(0 0 0 / .38);
+    backface-visibility: hidden;
 }
 .die-face::before {
     content: "";
@@ -172,10 +259,10 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: .18em;
-    height: .18em;
-    border-radius: 25%;
-    background: #131210;
+    width: .17em;
+    height: .17em;
+    border-radius: 50%; /* i pip sono tondi */
+    background: currentColor;
 }
 .die-front { transform: translateZ(.5em); }
 .die-back { transform: rotateX(180deg) translateZ(.5em); }
@@ -183,7 +270,7 @@
 .die-bottom { transform: rotateX(-90deg) translateZ(.5em); }
 .die-right { transform: rotateY(90deg) translateZ(.5em); }
 .die-left { transform: rotateY(-90deg) translateZ(.5em); }
-.die-front::after { width: .3em; height: .3em; margin: -.15em 0 0 -.15em; background: #f63330; }
+.die-front::after { width: .28em; height: .28em; margin: -.14em 0 0 -.14em; background: #9c3a26; } /* sanguigna */
 .die-back::after { margin: -.35em 0 0 -.3em; box-shadow: .4em 0, 0 .25em, .4em .25em, 0 .5em, .4em .5em; }
 .die-top::after { margin: -.3em 0 0 -.3em; box-shadow: .4em .4em; }
 .die-bottom::after { margin: -.36em 0 0 -.36em; box-shadow: .26em .26em, .52em .52em, .52em 0, 0 .52em; }
@@ -193,37 +280,49 @@
 /* perspective() DENTRO i keyframe: scorcio prospettico al cubo in movimento (senza,
    l'ortografica lo appiattisce in rettangoli); a riposo il cubo è axis-aligned e la
    prospettiva è ininfluente -> faccia frontale pulita, zero artefatti agli angoli */
+/* 9em e non 4: più vicino lo scorcio stira le facce */
 @keyframes die-roll {
-    50% { transform: perspective(4em) rotateX(1turn) rotateY(1.25turn) rotateZ(.25turn) scale(.7); }
-    to { transform: perspective(4em) rotateX(2turn) rotateY(2.5turn) rotateZ(.5turn); }
+    50% { transform: perspective(9em) rotateX(1turn) rotateY(1.25turn) rotateZ(.25turn) scale(.86); }
+    to { transform: perspective(9em) rotateX(2turn) rotateY(2.5turn) rotateZ(.5turn); }
 }
 @keyframes die-roll-alt {
-    50% { transform: perspective(4em) rotateX(-1.25turn) rotateY(1turn) rotateZ(-.25turn) scale(.7); }
-    to { transform: perspective(4em) rotateX(-2.5turn) rotateY(2turn) rotateZ(-.5turn); }
+    50% { transform: perspective(9em) rotateX(-1.25turn) rotateY(1turn) rotateZ(-.25turn) scale(.86); }
+    to { transform: perspective(9em) rotateX(-2.5turn) rotateY(2turn) rotateZ(-.5turn); }
 }
-.die-rolling { animation: die-roll .88s cubic-bezier(.35, .1, .3, .9); }
-.die-rolling-alt { animation: die-roll-alt 1s cubic-bezier(.35, .1, .3, .9); }
+.die-rolling { animation: die-roll var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }
+.die-rolling-alt { animation: die-roll-alt var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }
 
 /* tray cliccabile: hover = leggera inclinazione 3D dei cubi (si vedono i lati),
    click = "pressione" sui dadi. I due dadi si inclinano in verso opposto. */
-.dice-tray:not(:disabled):hover .die { --die-tilt: perspective(4em) rotateX(-12deg) rotateY(14deg); }
-.dice-tray:not(:disabled):hover .die-rolling-alt { --die-tilt: perspective(4em) rotateX(-12deg) rotateY(-14deg); }
+.dice-tray:not(:disabled):hover .die { --die-tilt: perspective(9em) rotateX(-12deg) rotateY(14deg); }
+.dice-tray:not(:disabled):hover .die-rolling-alt { --die-tilt: perspective(9em) rotateX(-12deg) rotateY(-14deg); }
 .dice-tray:not(:disabled):active .die-scene { transform: scale(.9); }
 
 @media (prefers-reduced-motion: reduce) {
     .card-pop-in, .card-pop-out, .trade-pop-in, .chip-fly-r, .chip-fly-l { animation-duration: 0.15s; }
-    .die-rolling, .die-rolling-alt { animation-duration: 0.2s; }
+    .die-rolling, .die-rolling-alt, .die-tossing { animation-duration: 0.2s; }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* niente /50: su fondo scuro sta sotto 3:1 */
+    @apply border-border outline-ring;
     }
   body {
     @apply bg-background text-foreground;
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
+    }
+  /* selezione, caret e scrollbar non restano ai default del browser */
+  ::selection {
+    background: var(--bollo);
+    color: oklch(0.19 0.02 168);
+    }
+  :root {
+    caret-color: var(--bollo);
+    scrollbar-color: oklch(0.86 0.02 90 / 28%) transparent;
+    scrollbar-width: thin;
     }
   html {
     @apply font-sans;

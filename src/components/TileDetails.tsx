@@ -4,6 +4,8 @@ import type { PublicState, TileDef } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
 import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/colors";
 import { euro } from "@/lib/utils";
+import { useGame } from "@/lib/store";
+import { AzioniProprieta } from "./AzioniProprieta";
 
 type T = ReturnType<typeof useT>;
 
@@ -33,9 +35,11 @@ function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
   }
 }
 
-// popover content, solo informativo: titolo, tabella affitti o descrizione.
-// La gestione (case/ipoteche/vendita) vive in un posto solo: AssetsPanel.
+// Popover della casella: cosa è, quanto rende, di chi è — e, se è tua, cosa puoi
+// farci adesso. Le azioni sono le stesse del pannello Proprietà (stesso componente):
+// chi apre una casella per informarsi si aspetta di poterci anche agire.
 export function TileDetails({ index, game }: { index: number; game: PublicState }) {
+  const myId = useGame((s) => s.myId);
   const tile = BOARD[index];
   const t = useT();
   const name = useTileName()(index);
@@ -58,12 +62,21 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
         {proprietario && (
           <div className="mt-1.5 flex items-center gap-1.5 text-xs">
             <span className="size-3 shrink-0" style={{ background: TOKEN_COLOR[proprietario.token % 8] }} />
-            <span className="text-muted-foreground">{t("info.owner")}</span>
-            <b className="min-w-0 truncate">{proprietario.name}</b>
+            {proprietario.id === myId ? (
+              <b>{t("info.ownerYou")}</b>
+            ) : (
+              <>
+                <span className="text-muted-foreground">{t("info.owner")}</span>
+                <b className="min-w-0 truncate">{proprietario.name}</b>
+              </>
+            )}
             {own?.mortgaged && <span className="text-destructive">· {t("tile.mortgaged")}</span>}
           </div>
         )}
       </div>
+
+      {/* azioni: compaiono solo su una proprietà tua e solo quando sono legali */}
+      <AzioniProprieta game={game} myId={myId} tile={index} />
 
       {tile.kind === "street" && tile.rent ? (
         <>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Handshake, Hotel, House, Minus, Plus, Ticket } from "lucide-react";
+import { ArrowLeft, Handshake, Hotel, House, Plus, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { BOARD } from "@tangentopoly/game";
 import type { Bundle, Player, PublicState } from "@tangentopoly/game";
@@ -11,6 +11,7 @@ import { send } from "@/lib/ws";
 import { useGame } from "@/lib/store";
 import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR, serie } from "@/lib/colors";
 import { euro } from "@/lib/utils";
+import { AzioniProprieta } from "./AzioniProprieta";
 import { PlayerList } from "./PlayerList";
 import { AuctionPanel } from "./AuctionPanel";
 
@@ -66,16 +67,9 @@ function PropCell({ game, tile, sel, onClick }: { game: PublicState; tile: numbe
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
   const [sel, setSel] = useState<number | null>(null);
-  const node = game.stack.at(-1) ?? game.phase;
   const mine = propsOf(game, myId);
-  const myTurn = game.players[game.current]?.id === myId;
-  const inMyDebt = game.stack.some((f) => f.t === "debt" && f.debtor === myId);
-  const canRaise = game.status === "playing" && (myTurn || inMyDebt);
-  const canBuild = (node.t === "preRoll" || node.t === "postRoll") && myTurn;
-
+  // quando cosa si può fare lo decide AzioniProprieta: qui basta sapere cosa è scelto
   const selTile = sel !== null && mine.includes(sel) ? sel : null; // venduta/scambiata -> selezione decade
-  const own = selTile !== null ? game.props[selTile]! : null;
-  const def = selTile !== null ? BOARD[selTile] : null;
 
   return (
     <Panel>
@@ -92,36 +86,9 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
           ))}
         </div>
       )}
-      {selTile !== null && own && def && (canRaise || canBuild) && (
-        <div key={selTile} className="flex flex-wrap gap-1 duration-200 animate-in fade-in">
-          {canBuild && def.kind === "street" && !own.mortgaged && own.houses < 5 && (
-            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "build", tile: selTile })}>
-              <Plus className="size-3.5" />
-              <House className="size-3.5" />
-              {euro(def.houseCost ?? 0)}
-            </Button>
-          )}
-          {canRaise && own.houses > 0 && (
-            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "sellHouse", tile: selTile })}>
-              <Minus className="size-3.5" />
-              <House className="size-3.5" />+{euro(def.houseCost! / 2)}
-            </Button>
-          )}
-          {canRaise && game.settings.mortgageAllowed && own.houses === 0 && !own.mortgaged && (
-            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "mortgage", tile: selTile })}>
-              {t("assets.mortgage", { amount: euro(def.price! / 2) })}
-            </Button>
-          )}
-          {canBuild && own.mortgaged && (
-            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "unmortgage", tile: selTile })}>
-              {t("assets.unmortgage", { amount: euro(Math.ceil((def.price! / 2) * 1.1)) })}
-            </Button>
-          )}
-          {canRaise && own.houses === 0 && !own.mortgaged && (
-            <Button size="sm" variant="secondary" className="flex-1 pointer-coarse:min-h-11" onClick={() => send({ type: "sellProperty", tile: selTile })}>
-              {t("assets.sell", { amount: euro(def.price! / 2) })}
-            </Button>
-          )}
+      {selTile !== null && (
+        <div key={selTile} className="duration-200 animate-in fade-in">
+          <AzioniProprieta game={game} myId={myId} tile={selTile} />
         </div>
       )}
     </Panel>

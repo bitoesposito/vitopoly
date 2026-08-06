@@ -181,6 +181,7 @@ const IT: Record<string, string> = {
   "info.rent4": "4 case",
   "info.rent5": "Hotel",
   "info.owner": "di",
+  "info.ownerYou": "tua",
   "info.price": "Prezzo",
   "info.house": "Casa",
   "tile.mortgaged": "Ipoteca",

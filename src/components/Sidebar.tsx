@@ -11,9 +11,8 @@ import { useT } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
 import { GamePanels } from "@/components/Panels";
 
-// Chat riusata su tre superfici: bottom-sheet mobile (FAB), sezione collassabile in
-// fondo alla sidebar destra (con onToggle), colonna sinistra dedicata da 2xl in su
-// (senza onToggle: sempre aperta, riempie l'altezza).
+// La chat ha UNA casa sola a ogni misura: la colonna destra da md in su, il
+// bottom-sheet sotto md. Prima ne aveva tre e si spostava fra i viewport.
 export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: () => void; className?: string }) {
   const chat = useGame((s) => s.chat);
   const game = useGame((s) => s.game);
@@ -25,12 +24,11 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.length]);
 
-  // chat chiusa: nuovo messaggio -> toast. Da 2xl la colonna sinistra è sempre
-  // visibile, quindi l'istanza collassabile (nascosta) non deve toastare.
+  // chat chiusa: nuovo messaggio -> toast
   const prevLen = useRef(chat.length);
   useEffect(() => {
     const m = chat.at(-1);
-    if (chat.length > prevLen.current && m && !open && !matchMedia("(min-width: 96rem)").matches) toast(`${m.name}: ${m.text}`);
+    if (chat.length > prevLen.current && m && !open) toast(`${m.name}: ${m.text}`);
     prevLen.current = chat.length;
   }, [chat, open]);
 
@@ -142,14 +140,14 @@ export function Sidebar({ game }: { game: PublicState }) {
       {/* In partita la chat sta nella barra in basso, ancorata a destra: era una FAB
           che galleggiava sopra i contenuti. Fuori partita la barra non c'è, quindi
           resta flottante. */}
-      {game.status === "playing" && barra ? (
+      {chatOpen ? null : game.status === "playing" && barra ? (
         createPortal(<div className="absolute right-2 md:hidden">{toggle}</div>, barra)
       ) : (
         <div className="fixed right-3 bottom-3 z-50 md:hidden">{toggle}</div>
       )}
       <aside
         style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
-        className={`relative z-40 shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${game.status === "lobby" ? "2xl:hidden" : ""}`}
+        className={`relative z-40 shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none`}
       >
         {/* mobile-only sheet resize handle; double click chiude la chat */}
         <div
@@ -178,8 +176,7 @@ export function Sidebar({ game }: { game: PublicState }) {
             <GamePanels game={game} />
           </div>
         )}
-        {/* da 2xl la chat vive nella colonna sinistra (App.tsx): qui sparisce */}
-        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} className="2xl:hidden" />
+        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
       </aside>
     </>
   );

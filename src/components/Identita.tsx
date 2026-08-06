@@ -71,7 +71,9 @@ export function Identita({ game }: { game: PublicState }) {
 
       <fieldset className="space-y-2">
         <legend className="font-condensed text-micro tracking-widest text-muted-foreground uppercase">{t("id.ink")}</legend>
-        <div className="grid w-fit grid-cols-4 gap-2">
+        {/* riempie la riga: 4 chip larghe sul telefono, 8 in linea da sm. Altezza
+            fissa a 44px invece di aspect-square, che su mobile faceva blocchi da 100px. */}
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
           {Array.from({ length: TOKENS }, (_, i) => {
             const altro = game.players.find((p) => p.id !== myId && p.token === i);
             const mio = me.token === i;
@@ -81,7 +83,7 @@ export function Identita({ game }: { game: PublicState }) {
                 type="button"
                 disabled={!!altro}
                 // 44px pieni: è un bersaglio tattile, non un pallino
-                className={`relative flex size-11 items-center justify-center ring-1 ring-paper-ink/40 transition-transform disabled:cursor-not-allowed disabled:opacity-35 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${mio ? "ring-2 ring-ring" : "hover:scale-105"}`}
+                className={`relative flex h-11 w-full items-center justify-center ring-1 ring-paper-ink/40 transition-transform disabled:cursor-not-allowed disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${mio ? "ring-2 ring-ring" : "enabled:hover:scale-105"}`}
                 style={{ background: TOKEN_COLOR[i] }}
                 aria-pressed={mio}
                 // mai il colore da solo: il nome dell'inchiostro sta nell'etichetta
@@ -89,12 +91,9 @@ export function Identita({ game }: { game: PublicState }) {
                 title={altro ? t("id.inkTaken", { ink: TOKEN_NAME[i], name: altro.name }) : TOKEN_NAME[i]}
                 onClick={() => send({ type: "profile", token: i })}
               >
+                {/* preso = spento e basta. Le iniziali sopra al colore si leggevano
+                    come il NOME del colore, non come "è di qualcun altro". */}
                 {mio && <Check className="size-5" style={{ color: "var(--color-paper-ink)" }} />}
-                {altro && (
-                  <span className="font-mono text-micro" style={{ color: "var(--color-paper-ink)" }}>
-                    {altro.name.slice(0, 2).toUpperCase()}
-                  </span>
-                )}
               </button>
             );
           })}

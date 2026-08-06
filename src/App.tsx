@@ -4,7 +4,7 @@ import { Lobby } from "@/components/Lobby";
 import { PreMatch } from "@/components/PreMatch";
 import { Board } from "@/components/Board";
 import { GamePanels } from "@/components/Panels";
-import { Chat, Sidebar } from "@/components/Sidebar";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function App() {
   const game = useGame((s) => s.game);
@@ -55,10 +55,6 @@ export default function App() {
         </div>
       )}
       {/* panels render twice with responsive visibility: mobile below the board, desktop in the Sidebar */}
-      {/* quando c'è spazio a sinistra della board quadrata (2xl+), la chat ha una colonna sua */}
-      <aside className="hidden w-80 shrink-0 flex-col p-2 2xl:flex">
-        <Chat open />
-      </aside>
       <main className="min-h-0 max-h-[100vh] flex-1 overflow-auto">
         {/* md:p-2 = stesso gutter dal bordo pagina delle sidebar; center-safe: se il
             contenuto supera l'altezza non taglia la parte alta, la lascia scrollabile */}

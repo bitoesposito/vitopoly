@@ -80,7 +80,7 @@ export default function App() {
               </header>
               <Board game={game} />
               <div className="w-full pb-20 md:hidden md:pb-0">
-                <GamePanels game={game}/>
+                <GamePanels game={game} />
               </div>
             </>
           )}

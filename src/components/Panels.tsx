@@ -406,18 +406,21 @@ export function GamePanels({ game }: { game: PublicState }) {
       <TradePanel game={game} myId={myId} />
       <AssetsPanel game={game} myId={myId} />
       {/* staccata da tutto: è l'azione più distruttiva del gioco */}
+      {/* stessa dignità di roster, scambi e proprietà: è un pannello, non un chip */}
       {canBankrupt && (
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-2 max-md:pr-16">
-          <span className="text-2xs text-muted-foreground">{t("debt.bankruptHint")}</span>
-          <Button
-            size="sm"
-            variant="destructive"
-            className="shrink-0 pointer-coarse:min-h-11"
-            onClick={() => confirm(t("debt.confirmBankrupt")) && send({ type: "bankrupt" })}
-          >
-            {t("debt.bankrupt")}
-          </Button>
-        </div>
+        <Panel>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">{t("debt.bankruptHint")}</span>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="shrink-0 pointer-coarse:min-h-11"
+              onClick={() => confirm(t("debt.confirmBankrupt")) && send({ type: "bankrupt" })}
+            >
+              {t("debt.bankrupt")}
+            </Button>
+          </div>
+        </Panel>
       )}
     </div>
   );

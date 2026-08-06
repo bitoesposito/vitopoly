@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, MessageSquare } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
@@ -122,23 +123,33 @@ export function Sidebar({ game }: { game: PublicState }) {
   const t = useT();
   // mobile-only sheet resize, 2 snap heights; desktop is fixed width
   const [chatH, setChatH] = useState<number>();
+  const [barra] = useState(() => document.getElementById("barra-azione"));
   const snap = (v: number, steps: number[]) => steps.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a));
+
+  const toggle = (
+    <Button
+      size="icon"
+      className="size-11"
+      aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
+      onClick={() => setChatOpen((o) => !o)}
+    >
+      {chatOpen ? <ChevronDown /> : <MessageSquare />}
+    </Button>
+  );
 
   return (
     <>
-      {/* FAB mobile: toggla lo sheet; quando è aperto si sposta sopra di esso */}
-      <Button
-        size="icon"
-        className={`fixed right-3 z-50 size-12 shadow-lg md:hidden ${game.status === "playing" ? "bottom-20" : "bottom-3"}`}
-        style={chatOpen ? { bottom: `calc(${chatH ? `${chatH}px` : "45%"} + 12px)` } : undefined}
-        aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
-        onClick={() => setChatOpen((o) => !o)}
-      >
-        {chatOpen ? <ChevronDown /> : <MessageSquare />}
-      </Button>
+      {/* In partita la chat sta nella barra in basso, ancorata a destra: era una FAB
+          che galleggiava sopra i contenuti. Fuori partita la barra non c'è, quindi
+          resta flottante. */}
+      {game.status === "playing" && barra ? (
+        createPortal(<div className="absolute right-2 md:hidden">{toggle}</div>, barra)
+      ) : (
+        <div className="fixed right-3 bottom-3 z-50 md:hidden">{toggle}</div>
+      )}
       <aside
         style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
-        className={`relative shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${game.status === "lobby" ? "2xl:hidden" : ""}`}
+        className={`relative z-40 shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${game.status === "lobby" ? "2xl:hidden" : ""}`}
       >
         {/* mobile-only sheet resize handle; double click chiude la chat */}
         <div
@@ -152,6 +163,15 @@ export function Sidebar({ game }: { game: PublicState }) {
         >
           <span className="h-1 w-10 rounded-full bg-muted-foreground/40" />
         </div>
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          className="absolute top-2 right-2 z-20 md:hidden"
+          aria-label={t("aria.closeChat")}
+          onClick={() => setChatOpen(false)}
+        >
+          <ChevronDown />
+        </Button>
         {/* desktop-only: tutto lo spazio ai pannelli (su mobile stanno sotto la board, App.tsx) */}
         {game.status !== "lobby" && (
           <div className="hidden min-h-0 md:block md:shrink-0 md:overflow-y-auto">

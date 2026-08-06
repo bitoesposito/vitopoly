@@ -114,49 +114,52 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           {Icon && (
             <Icon
               aria-hidden
-              className="pointer-events-none absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 text-paper-line/45 sm:size-4 lg:size-6"
+              className="pointer-events-none absolute top-1/2 left-1/2 size-[4.6cqi] -translate-x-1/2 -translate-y-1/2 text-paper-line/45"
             />
-          )}
-
-          {/* proprietario: identità che non passa dal colore */}
-          {owner && !isCorner && (
-            <span
-              className="absolute top-0.5 left-0.5 z-10 font-mono text-micro leading-none"
-              style={{ color: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} 55%, var(--color-paper-ink))` }}
-            >
-              {serie(owner.token)}
-            </span>
           )}
 
           {/* tre slot ad altezza fissa: nome sopra (uguale per tutte le celle), stato al
               centro, prezzo sotto — le celle adiacenti restano allineate */}
           <div
-            className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none text-micro sm:text-2xs lg:text-xs ${isCorner ? "p-1" : `p-0.5 ${PAD[side]}`}`}
+            className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none text-[2.1cqi] ${isCorner ? "p-[0.5cqi]" : `p-[0.3cqi] ${PAD[side]}`}`}
           >
-            {/* min-h + items-start: nomi alla stessa quota, i lunghi crescono in basso */}
             <span className="flex w-full flex-col items-center">
-              {/* da lg c'è spazio per stamparla; sotto resta sr-only + popover */}
-              {regione && <span className="hidden text-micro tracking-widest text-paper-ink/75 uppercase lg:block">{regione}</span>}
-              {regione && <span className="sr-only">{regione}</span>}
-              <span className="flex w-full items-start justify-center px-px text-micro leading-none font-medium hyphens-auto break-words text-paper-ink sm:min-h-[2.5em] sm:leading-tight sm:text-xs lg:text-sm">
+              {/* intestazione: lettera del proprietario e serie, in linea. La lettera
+                  era assoluta in alto a sinistra e finiva sopra al nome. */}
+              {(regione || (owner && !isCorner)) && (
+                <span className="flex w-full items-center justify-center gap-[0.5cqi] leading-none">
+                  {owner && !isCorner && (
+                    <span
+                      className="shrink-0 font-mono text-[1.7cqi]"
+                      style={{ color: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} 55%, var(--color-paper-ink))` }}
+                    >
+                      {serie(owner.token)}
+                    </span>
+                  )}
+                  {regione && <span className="min-w-0 truncate text-[1.5cqi] tracking-[0.06em] text-paper-ink/75 uppercase">{regione}</span>}
+                </span>
+              )}
+              {/* -0.02em di tracking: recupera i 2-3px che facevano sforare
+                  "Tangente", "Autostrade" ed "Equitalia" senza rimpicciolire tutto */}
+              <span className="flex w-full items-start justify-center text-[2.25cqi] leading-[1.06] font-medium tracking-[-0.02em] break-words text-paper-ink">
                 {name}
               </span>
             </span>
             {buyable && (
               <>
-                <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-0.5">
+                <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-[0.3cqi] overflow-hidden">
                   {own && own.houses === 5 ? (
-                    <Hotel className="size-3 text-paper-ink lg:size-4" />
+                    <Hotel className="size-[3cqi] text-paper-ink" />
                   ) : (
-                    Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-2.5 text-paper-ink lg:size-3.5" />)
+                    Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-[2.1cqi] text-paper-ink" />)
                   )}
                 </span>
-                <span className="flex h-[1.2em] items-center justify-center font-mono tabular-nums text-paper-ink/75">{euro(tile.price ?? 0)}</span>
+                <span className="flex items-center justify-center font-mono leading-none tabular-nums text-paper-ink/75">{euro(tile.price ?? 0)}</span>
               </>
             )}
             {/* tasse: importo da pagare in basso, come i prezzi delle proprietà */}
             {tile.kind === "tax" && (
-              <span className="flex h-[1.2em] items-center justify-center font-mono tabular-nums text-paper-ink/75">{euro(tile.taxAmount ?? 0)}</span>
+              <span className="flex items-center justify-center font-mono leading-none tabular-nums text-paper-ink/75">{euro(tile.taxAmount ?? 0)}</span>
             )}
           </div>
         </button>

@@ -42,7 +42,10 @@
          schermo è largo e l'azione primaria finirebbe nel terzo ALTO. Center sposta
          qui il grappolo di bottoni sotto md (non lo duplica). Sta fuori da React
          perché esista già al primo render: niente setState dentro un effect. -->
-    <div id="barra-azione" class="fixed inset-x-0 bottom-0 z-30 empty:hidden md:hidden"></div>
+    <div
+      id="barra-azione"
+      class="fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center justify-center gap-2 border-t border-border bg-card/95 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-sm empty:hidden md:hidden"
+    ></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -159,6 +159,10 @@
 .filetto {
     border-color: var(--paper-line);
 }
+/* il bulino della scrivania, riusabile su qualunque superficie scura */
+.tratteggio {
+    background-image: var(--tratteggio);
+}
 /* IPOTECA / FUORI: timbro obliquo, non intercetta il puntatore */
 .sovrastampa {
     position: absolute;
@@ -167,15 +171,16 @@
     place-items: center;
     pointer-events: none;
     font-family: var(--font-condensed);
-    font-size: var(--text-micro);
+    font-size: max(1.65cqi, 5px);
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--sanguigna-carta);
 }
 .sovrastampa > span {
-    padding: 0.1em 0.45em;
-    border-block: 1.5px solid currentColor;
+    padding: 0.1em 0.3em;
+    border-block: 0.12em solid currentColor;
+    white-space: nowrap;
     transform: rotate(-11deg);
     background: color-mix(in oklab, var(--paper) 62%, transparent);
 }

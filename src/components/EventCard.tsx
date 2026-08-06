@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Gem, Handshake, HelpCircle, KeyRound, Lock, type LucideIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Handshake, KeyRound, Lock, Mail, Siren, type LucideIcon } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
 import type { Bundle } from "@tangentopoly/game";
 import { GROUP_COLOR } from "@/lib/colors";
 import { useGame, type CardPopup } from "@/lib/store";
+import { euro } from "@/lib/utils";
 import { useT, useTileName } from "@/lib/i18n";
 import { BundleChips } from "./Panels";
 
@@ -13,12 +14,15 @@ import { BundleChips } from "./Panels";
 // card dismisses it. Trades get their own animation: the exchanged assets fly
 // between the two players.
 
+// Blitz = perquisizione (sanguigna), Favori = busta (indaco).
+// Inchiostri "da carta": la carta evento è carta, quindi gli accenti sono quelli
+// stampabili sul chiaro, non quelli tarati sul fondo scuro.
 const STYLE: Record<CardPopup["kind"], { icon: LucideIcon; accent: string; titleKey: string }> = {
-  chance: { icon: HelpCircle, accent: "var(--color-warning)", titleKey: "popup.chance" },
-  chest: { icon: Gem, accent: "#4ba3f5", titleKey: "popup.chest" },
-  jailed: { icon: Lock, accent: "var(--color-destructive)", titleKey: "popup.jail" },
-  buy: { icon: KeyRound, accent: "var(--color-success)", titleKey: "popup.buy" },
-  trade: { icon: Handshake, accent: "#a78bfa", titleKey: "popup.trade" },
+  chance: { icon: Siren, accent: "var(--color-sanguigna-carta)", titleKey: "popup.chance" },
+  chest: { icon: Mail, accent: "var(--color-indaco-carta)", titleKey: "popup.chest" },
+  jailed: { icon: Lock, accent: "var(--color-sanguigna-carta)", titleKey: "popup.jail" },
+  buy: { icon: KeyRound, accent: "var(--color-verde-carta)", titleKey: "popup.buy" },
+  trade: { icon: Handshake, accent: "var(--color-bollo-carta)", titleKey: "popup.trade" },
 };
 
 // reading time, not a cinematic pause
@@ -31,19 +35,19 @@ function TradeBody({ p }: { p: Extract<CardPopup, { kind: "trade" }> }) {
     <div className="w-full space-y-2 text-left">
       <div className="flex items-center justify-between gap-2 text-sm font-semibold">
         <span className="truncate">{p.from}</span>
-        <Handshake className="size-4 shrink-0 text-muted-foreground" />
+        <Handshake className="size-4 shrink-0 text-paper-ink/60" />
         <span className="truncate">{p.to}</span>
       </div>
       {!empty(p.give) && (
         <div className="flex flex-wrap items-center gap-1">
-          <BundleChips b={p.give} fly="r" />
-          <ArrowRight className="size-3.5 shrink-0 text-success" />
+          <BundleChips b={p.give} fly="r" paper />
+          <ArrowRight className="size-3.5 shrink-0 text-verde-carta" />
         </div>
       )}
       {!empty(p.get) && (
         <div className="flex flex-wrap items-center justify-end gap-1">
-          <ArrowLeft className="size-3.5 shrink-0 text-success" />
-          <BundleChips b={p.get} fly="l" />
+          <ArrowLeft className="size-3.5 shrink-0 text-verde-carta" />
+          <BundleChips b={p.get} fly="l" paper />
         </div>
       )}
     </div>
@@ -90,7 +94,7 @@ function PopCard({ popup, depth }: { popup: CardPopup; depth: number }) {
     >
       <div
         onClick={() => setOut(true)}
-        className={`${entered ? "pointer-events-auto" : ""} cursor-pointer border bg-card text-card-foreground shadow-xl ${trade ? "w-64 sm:w-72" : "w-48 sm:w-56"} ${out ? "card-pop-out" : trade ? "trade-pop-in" : "card-pop-in"}`}
+        className={`nota ${entered ? "pointer-events-auto" : ""} cursor-pointer border shadow-lg shadow-black/50 ${trade ? "w-64 sm:w-72" : "w-48 sm:w-56"} ${out ? "card-pop-out" : trade ? "trade-pop-in" : "card-pop-in"}`}
         style={{ borderColor: accent, animationDelay: out ? undefined : `${popup.wait}ms` }}
       >
         <div className="h-1" style={{ background: stripe }} />
@@ -105,10 +109,10 @@ function PopCard({ popup, depth }: { popup: CardPopup; depth: number }) {
             <>
               <div className="text-sm leading-snug font-medium">{body}</div>
               {popup.kind !== "jailed" && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-paper-ink/70">
                   {popup.kind === "buy" ? (
                     <>
-                      {popup.name} · <span className="text-success">€{popup.price}</span>
+                      {popup.name} · <span className="font-mono text-verde-carta">{euro(popup.price)}</span>
                     </>
                   ) : (
                     popup.name

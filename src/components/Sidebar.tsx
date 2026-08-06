@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, MessageSquare } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
@@ -10,9 +11,8 @@ import { useT } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
 import { GamePanels } from "@/components/Panels";
 
-// Chat riusata su tre superfici: bottom-sheet mobile (FAB), sezione collassabile in
-// fondo alla sidebar destra (con onToggle), colonna sinistra dedicata da 2xl in su
-// (senza onToggle: sempre aperta, riempie l'altezza).
+// La chat ha UNA casa sola a ogni misura: la colonna destra da md in su, il
+// bottom-sheet sotto md. Prima ne aveva tre e si spostava fra i viewport.
 export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: () => void; className?: string }) {
   const chat = useGame((s) => s.chat);
   const game = useGame((s) => s.game);
@@ -24,22 +24,22 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.length]);
 
-  // chat chiusa: nuovo messaggio -> toast. Da 2xl la colonna sinistra è sempre
-  // visibile, quindi l'istanza collassabile (nascosta) non deve toastare.
+  // chat chiusa: nuovo messaggio -> toast
   const prevLen = useRef(chat.length);
   useEffect(() => {
     const m = chat.at(-1);
-    if (chat.length > prevLen.current && m && !open && !matchMedia("(min-width: 96rem)").matches) toast(`${m.name}: ${m.text}`);
+    if (chat.length > prevLen.current && m && !open) toast(`${m.name}: ${m.text}`);
     prevLen.current = chat.length;
   }, [chat, open]);
 
-  // desktop: digitando ovunque il focus va all'input della chat (se aperta)
+  // desktop: si scrive in chat digitando, senza cliccare il campo. Il focus viene
+  // spostato SOLO se non stai già navigando un controllo (target === body): così chi
+  // gira la plancia col Tab non se lo vede portare via a metà strada.
   useEffect(() => {
     if (!open || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const h = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
-      const t = e.target as HTMLElement;
-      if (t.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
+      if (e.target !== document.body) return;
       inputRef.current?.focus();
     };
     window.addEventListener("keydown", h);
@@ -64,7 +64,7 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
   return (
     <div
       className={`flex min-h-0 flex-1 flex-col overflow-hidden md:bg-card md:ring-1 md:ring-foreground/10 ${
-        onToggle ? `md:flex-none ${open ? "md:h-72" : ""}` : ""
+        onToggle ? `${open ? "md:min-h-0 md:flex-1" : "md:flex-none"}` : ""
       } ${className ?? ""}`}
     >
       {/* header desktop: titolo + toggle collasso (solo dove la chat è collassabile) */}
@@ -80,7 +80,9 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
         {chat.length === 0 && <div className="text-xs text-muted-foreground">{t("chat.empty")}</div>}
         {groups.map((g, i) => (
           <div key={i} className="border border-border px-2 py-1">
-            <div className="text-xs font-semibold" style={{ color: colorOf(g[0].pid) }}>
+            {/* il colore marca, non colora il nome: da inchiostro stava a 2,6:1 */}
+            <div className="flex items-center gap-1.5 text-xs font-semibold">
+              <span className="h-3 w-1 shrink-0" style={{ background: colorOf(g[0].pid) }} />
               {g[0].name}
             </div>
             {g.map((m, j) => (
@@ -114,27 +116,38 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
 // colonna destra. Desktop: pannelli a tutta altezza + chat collassabile in fondo.
 // Mobile: FAB flottante -> bottom-sheet con la sola chat (i pannelli stanno sotto la board).
 export function Sidebar({ game }: { game: PublicState }) {
-  const [chatOpen, setChatOpen] = useState(false);
+  // aperta di default da md: la colonna destra restava mezza vuota con la chat chiusa
+  const [chatOpen, setChatOpen] = useState(() => matchMedia("(min-width: 48rem)").matches);
   const t = useT();
   // mobile-only sheet resize, 2 snap heights; desktop is fixed width
   const [chatH, setChatH] = useState<number>();
+  const [barra] = useState(() => document.getElementById("barra-azione"));
   const snap = (v: number, steps: number[]) => steps.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a));
+
+  const toggle = (
+    <Button
+      size="icon"
+      className="size-11"
+      aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
+      onClick={() => setChatOpen((o) => !o)}
+    >
+      {chatOpen ? <ChevronDown /> : <MessageSquare />}
+    </Button>
+  );
 
   return (
     <>
-      {/* FAB mobile: toggla lo sheet; quando è aperto si sposta sopra di esso */}
-      <Button
-        size="icon"
-        className="fixed right-3 bottom-3 z-50 size-12 rounded-full shadow-lg md:hidden"
-        style={chatOpen ? { bottom: `calc(${chatH ? `${chatH}px` : "45%"} + 12px)` } : undefined}
-        aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
-        onClick={() => setChatOpen((o) => !o)}
-      >
-        {chatOpen ? <ChevronDown /> : <MessageSquare />}
-      </Button>
+      {/* In partita la chat sta nella barra in basso, ancorata a destra: era una FAB
+          che galleggiava sopra i contenuti. Fuori partita la barra non c'è, quindi
+          resta flottante. */}
+      {chatOpen ? null : game.status === "playing" && barra ? (
+        createPortal(<div className="absolute right-2 md:hidden">{toggle}</div>, barra)
+      ) : (
+        <div className="fixed right-3 bottom-3 z-50 md:hidden">{toggle}</div>
+      )}
       <aside
         style={{ "--chat-h": chatH && `${chatH}px` } as React.CSSProperties}
-        className={`relative shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none ${game.status === "lobby" ? "2xl:hidden" : ""}`}
+        className={`relative z-40 shrink-0 flex-col border-t border-border bg-sidebar shadow-[0_-8px_20px_-6px] shadow-black/45 ${chatOpen ? "flex h-[var(--chat-h,45%)]" : "hidden"} md:flex md:h-auto md:w-80 md:gap-2 md:border-0 md:bg-transparent md:p-2 md:shadow-none`}
       >
         {/* mobile-only sheet resize handle; double click chiude la chat */}
         <div
@@ -148,14 +161,22 @@ export function Sidebar({ game }: { game: PublicState }) {
         >
           <span className="h-1 w-10 rounded-full bg-muted-foreground/40" />
         </div>
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          className="absolute top-2 right-2 z-20 md:hidden"
+          aria-label={t("aria.closeChat")}
+          onClick={() => setChatOpen(false)}
+        >
+          <ChevronDown />
+        </Button>
         {/* desktop-only: tutto lo spazio ai pannelli (su mobile stanno sotto la board, App.tsx) */}
         {game.status !== "lobby" && (
-          <div className="hidden min-h-0 md:block md:flex-1 md:overflow-y-auto">
+          <div className="hidden min-h-0 md:block md:shrink-0 md:overflow-y-auto">
             <GamePanels game={game} />
           </div>
         )}
-        {/* da 2xl la chat vive nella colonna sinistra (App.tsx): qui sparisce */}
-        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} className="2xl:hidden" />
+        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
       </aside>
     </>
   );

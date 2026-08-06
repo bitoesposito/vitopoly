@@ -2,31 +2,28 @@ import { describe, expect, it } from "vitest";
 import { apply } from "../src/engine";
 import { rentFor } from "../src/rent";
 import { build } from "../src/properties";
-import { addPlayer, createGame } from "../src/setup";
+import { addPlayer, createGame, DEFAULT_SETTINGS } from "../src/setup";
 import { started } from "./helpers";
 
 describe("game settings", () => {
-  it("only the host edits settings; clamped; applied at start", () => {
+  it("le regole della casa sono fisse e si applicano allo start", () => {
     const s = createGame(7);
-    s.settings.randomOrder = false;
     addPlayer(s, "a", "A");
     addPlayer(s, "b", "B");
-    expect(apply(s, "b", { type: "updateSettings", settings: { startingCash: 2000 } }).ok).toBe(false);
-    const r = apply(s, "a", { type: "updateSettings", settings: { startingCash: 2000, maxPlayers: 99 } });
-    expect(r.ok).toBe(true);
-    if (!r.ok) return;
-    expect(r.state.settings.maxPlayers).toBe(8); // clamped
-    const g = apply(r.state, "a", { type: "start" });
+    const g = apply(s, "a", { type: "start" });
     if (!g.ok) throw new Error(g.error);
-    expect(g.state.players.every((p) => p.cash === 2000)).toBe(true);
+    expect(g.state.settings).toEqual(DEFAULT_SETTINGS);
+    expect(g.state.players.every((p) => p.cash === DEFAULT_SETTINGS.startingCash)).toBe(true);
   });
 
-  it("maxPlayers caps joins", () => {
+  it("i posti in lobby non hanno tetto", () => {
     const s = createGame(7);
-    s.settings.maxPlayers = 2;
-    addPlayer(s, "a", "A");
-    addPlayer(s, "b", "B");
-    expect(addPlayer(s, "c", "C")).toBeNull();
+    for (let i = 0; i < 20; i++) expect(addPlayer(s, `p${i}`, `P${i}`)).not.toBeNull();
+    expect(s.players).toHaveLength(20);
+    // a partita iniziata si entra solo da spettatori (addPlayer -> null)
+    const g = apply(s, "p0", { type: "start" });
+    if (!g.ok) throw new Error(g.error);
+    expect(addPlayer(g.state, "tardivo", "Tardivo")).toBeNull();
   });
 
   it("evenBuild off allows lopsided building", () => {

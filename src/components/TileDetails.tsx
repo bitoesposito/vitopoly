@@ -2,6 +2,10 @@ import { Fragment } from "react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileDef } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
+import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/colors";
+import { euro } from "@/lib/utils";
+import { useGame } from "@/lib/store";
+import { AzioniProprieta } from "./AzioniProprieta";
 
 type T = ReturnType<typeof useT>;
 
@@ -31,16 +35,48 @@ function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
   }
 }
 
-// popover content, solo informativo: titolo, tabella affitti o descrizione.
-// La gestione (case/ipoteche/vendita) vive in un posto solo: AssetsPanel.
+// Popover della casella: cosa è, quanto rende, di chi è — e, se è tua, cosa puoi
+// farci adesso. Le azioni sono le stesse del pannello Proprietà (stesso componente):
+// chi apre una casella per informarsi si aspetta di poterci anche agire.
 export function TileDetails({ index, game }: { index: number; game: PublicState }) {
+  const myId = useGame((s) => s.myId);
   const tile = BOARD[index];
   const t = useT();
   const name = useTileName()(index);
+  const own = game.props[index];
+  const proprietario = own ? game.players.find((p) => p.id === own.owner) : undefined;
 
   return (
     <div className="space-y-3 text-sm">
-      <div className="font-semibold">{name}</div>
+      <div>
+        <div className="font-semibold">{name}</div>
+        {/* la serie del titolo, scritta: sul tabellone è una banda d'inchiostro e basta */}
+        {tile.group && GROUP_LABEL[tile.group] && (
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span className="h-3 w-1 shrink-0" style={{ background: GROUP_COLOR[tile.group] }} />
+            <span className="text-micro tracking-widest text-muted-foreground uppercase">{GROUP_LABEL[tile.group]}</span>
+          </div>
+        )}
+        {/* sulla plancia il possesso è solo colore: qui il nome, per chi il colore
+            non lo distingue e per chi semplicemente non lo ricorda */}
+        {proprietario && (
+          <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+            <span className="size-3 shrink-0" style={{ background: TOKEN_COLOR[proprietario.token % 8] }} />
+            {proprietario.id === myId ? (
+              <b>{t("info.ownerYou")}</b>
+            ) : (
+              <>
+                <span className="text-muted-foreground">{t("info.owner")}</span>
+                <b className="min-w-0 truncate">{proprietario.name}</b>
+              </>
+            )}
+            {own?.mortgaged && <span className="text-destructive">· {t("tile.mortgaged")}</span>}
+          </div>
+        )}
+      </div>
+
+      {/* azioni: compaiono solo su una proprietà tua e solo quando sono legali */}
+      <AzioniProprieta game={game} myId={myId} tile={index} />
 
       {tile.kind === "street" && tile.rent ? (
         <>
@@ -50,13 +86,13 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
             {tile.rent.map((r, i) => (
               <Fragment key={i}>
                 <span>{t(`info.rent${i}`)}</span>
-                <span className="text-right tabular-nums text-success">€{r}</span>
+                <span className="text-right font-mono tabular-nums text-success">{euro(r)}</span>
               </Fragment>
             ))}
           </div>
           <div className="flex justify-between gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
-            <span>{t("info.price")}: <b className="text-foreground">€{tile.price}</b></span>
-            <span>{t("info.house")}: <b className="text-foreground">€{tile.houseCost}</b></span>
+            <span>{t("info.price")}: <b className="font-mono text-foreground">{euro(tile.price ?? 0)}</b></span>
+            <span>{t("info.house")}: <b className="font-mono text-foreground">{euro(tile.houseCost ?? 0)}</b></span>
           </div>
         </>
       ) : (
@@ -64,7 +100,7 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
           <p>{tileDesc(t, tile, game)}</p>
           {tile.price != null && (
             <p>
-              {t("info.price")}: <b className="text-foreground">€{tile.price}</b>
+              {t("info.price")}: <b className="font-mono text-foreground">{euro(tile.price)}</b>
             </p>
           )}
         </div>

@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Gavel } from "lucide-react";
+import { toast } from "sonner";
 import { AUCTION_MS, BOARD } from "@tangentopoly/game";
 import type { AuctionFrame, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { GROUP_COLOR } from "@/lib/colors";
+import { GROUP_COLOR, GROUP_LABEL } from "@/lib/colors";
 import { useT, useTileName } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 import { useGame } from "@/lib/store";
+import { euro } from "@/lib/utils";
 import { TileDetails } from "./TileDetails";
 
-const QUICK_BIDS = [2, 10, 100];
+// rilanci proporzionati al titolo, multipli di 5
+const step = (price: number, frac: number) => Math.max(5, Math.round((price * frac) / 5) * 5);
+const quickBids = (price: number) => [step(price, 0.05), step(price, 0.1), step(price, 0.25)];
 
 // drains toward the deadline: 10s to open, 6s after each bid
 function TimeBar({ deadline, total }: { deadline: number | undefined; total: number }) {
@@ -22,8 +26,8 @@ function TimeBar({ deadline, total }: { deadline: number | undefined; total: num
   }, []);
   const pct = deadline ? Math.max(0, Math.min(100, ((deadline - now) / total) * 100)) : 0;
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-      <div className={`h-full rounded-full ${pct < 30 ? "bg-destructive" : "bg-warning"}`} style={{ width: `${pct}%` }} />
+    <div className="h-1.5 w-full overflow-hidden bg-muted">
+      <div className={`h-full ${pct < 30 ? "bg-destructive" : "bg-warning"}`} style={{ width: `${pct}%` }} />
     </div>
   );
 }
@@ -38,23 +42,35 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   const ref = useRef<HTMLDivElement>(null);
   const f = game.stack.at(-1);
   const live = f?.t === "auction";
+  const a = live ? (f as AuctionFrame) : null;
+  const leader = a?.leader;
+
   // mobile: l'asta si porta in vista da sola quando parte (la board è bloccata,
   // si interagisce da qui). L'istanza nascosta dell'altro breakpoint non ha box: no-op.
   useEffect(() => {
     if (live && !matchMedia("(min-width: 768px)").matches) ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [live]);
-  if (!live) return null;
-  const a = f as AuctionFrame;
+
+  // sorpasso: 6 secondi per accorgersene, serve un segnale
+  const wasLeader = useRef(false);
+  useEffect(() => {
+    if (wasLeader.current && leader && leader !== myId) toast.warning(t("auction.outbid"));
+    wasLeader.current = leader === myId;
+  }, [leader, myId, t]);
+
+  if (!a) return null;
   const tile = BOARD[a.tile];
   const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
   const myCash = game.players.find((p) => p.id === myId)?.cash ?? 0;
   const canBid = a.active.includes(myId) && a.leader !== myId;
 
-  const n = Math.floor(Number(raise));
-  const raiseOk = canBid && n > 0 && a.bid + n <= myCash;
+  // Il campo è l'OFFERTA, non il rialzo: si scrive quanto si vuole offrire.
+  // Il motore ragiona in incrementi, quindi la differenza la facciamo qui.
+  const offerta = Math.floor(Number(raise));
+  const raiseOk = canBid && offerta > a.bid && offerta <= myCash;
   const doRaise = () => {
     if (!raiseOk) return;
-    send({ type: "bid", amount: n });
+    send({ type: "bid", amount: offerta - a.bid });
     setRaise("");
   };
 
@@ -66,12 +82,21 @@ export function AuctionPanel({ game }: { game: PublicState }) {
           <Gavel className="size-3.5" />
           {t("auction.title", { name: tn(a.tile) })}
         </div>
-        {tile.group && <div className="h-1.5 rounded-full" style={{ background: GROUP_COLOR[tile.group] }} />}
+        {tile.group && (
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1" style={{ background: GROUP_COLOR[tile.group] }} />
+            <span className="text-micro tracking-widest text-muted-foreground uppercase">{GROUP_LABEL[tile.group]}</span>
+            <div className="h-px flex-1" style={{ background: GROUP_COLOR[tile.group] }} />
+          </div>
+        )}
 
         <div className="flex items-end justify-between">
           <div>
             <div className="text-2xs font-semibold tracking-wide uppercase text-muted-foreground">{t("auction.current")}</div>
-            <div className="text-2xl font-bold tabular-nums text-warning">€{a.bid}</div>
+            {/* key sul leader: la cifra rientra a ogni cambio di testa */}
+            <div key={a.leader ?? "none"} className="font-mono text-2xl font-bold tabular-nums text-warning duration-200 animate-in zoom-in-95">
+              {euro(a.bid)}
+            </div>
           </div>
           <div className="text-xs text-muted-foreground">{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
         </div>
@@ -79,9 +104,9 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         <TimeBar deadline={game.deadline} total={a.bids.length ? AUCTION_MS.bid : AUCTION_MS.start} />
 
         <div className="flex gap-1">
-          {QUICK_BIDS.map((d) => (
-            <Button key={d} className="flex-1 tabular-nums" size="sm" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
-              +€{d}
+          {quickBids(tile.price ?? 0).map((d) => (
+            <Button key={d} className="flex-1 font-mono tabular-nums" size="sm" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
+              {euro(a.bid + d)}
             </Button>
           ))}
         </div>
@@ -90,10 +115,12 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         <div className="flex gap-1">
           <Input
             type="number"
-            min={1}
+            min={a.bid + 1}
+            max={myCash}
+            step={1}
             inputMode="numeric"
             placeholder={t("auction.custom")}
-            className="h-8 flex-1 tabular-nums"
+            className="h-9 flex-1 font-mono tabular-nums"
             value={raise}
             disabled={!canBid}
             onChange={(e) => setRaise(e.target.value)}
@@ -103,13 +130,24 @@ export function AuctionPanel({ game }: { game: PublicState }) {
             {t("auction.raise")}
           </Button>
         </div>
+        {canBid && offerta > 0 && !raiseOk && (
+          <div className="text-2xs text-destructive">
+            {offerta <= a.bid ? t("auction.tooLow", { amount: euro(a.bid) }) : t("auction.max", { amount: euro(myCash) })}
+          </div>
+        )}
+
+        {canBid && (
+          <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-destructive" onClick={() => send({ type: "fold" })}>
+            {t("auction.fold")}
+          </Button>
+        )}
 
         <div className="flex h-16 flex-col gap-1 overflow-y-auto bg-muted p-2 text-muted-foreground">
           {a.bids.length === 0 && <div className="text-xs">{t("auction.noBids")}</div>}
           {[...a.bids].reverse().map((b, i) => (
             <div className="flex items-center gap-1 text-xs leading-none" key={a.bids.length - i}>
               <b className="text-foreground">{names[b.pid]}</b> -{" "}
-              <span className={i === 0 ? "tabular-nums text-warning" : "text-muted-foreground"}>€{b.amount}</span>
+              <span className={`font-mono ${i === 0 ? "tabular-nums text-warning" : "text-muted-foreground"}`}>{euro(b.amount)}</span>
             </div>
           ))}
         </div>

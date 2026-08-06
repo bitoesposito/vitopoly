@@ -61,9 +61,8 @@ export interface Trade {
   get: Bundle;
 }
 
-// Configurable at lobby creation (richup-style). Defaults in setup.ts.
+// Fisso, non configurabile: i valori vivono in DEFAULT_SETTINGS (setup.ts).
 export interface GameSettings {
-  maxPlayers: number; // 2..8
   startingCash: number;
   doubleRentFullSet: boolean; // x2 base rent on full color group
   vacationCash: boolean; // taxes/bank fees accumulate on Free Parking, landing collects
@@ -110,7 +109,7 @@ export type ClientAction =
   | { type: "bankrupt" }
   | { type: "endTurn" }
   | { type: "start" }
-  | { type: "updateSettings"; settings: Partial<GameSettings> } // lobby, host only
+  | { type: "profile"; name?: string; token?: number } // lobby: nome e inchiostro, solo i propri
   | { type: "proposeTrade"; to: PlayerId; give: Bundle; get: Bundle }
   | { type: "respondTrade"; id: string; accept: boolean }
   | { type: "cancelTrade"; id: string }

@@ -15,3 +15,7 @@ export function tileCell(i: number): { row: number; col: number } {
 
 // token walk duration for n board steps — shared by Tokens.tsx and the ws event choreography
 export const walkMs = (steps: number) => Math.min(300 + steps * 45, 800);
+
+// €1.500, non €1500
+const EUR = new Intl.NumberFormat("it-IT");
+export const euro = (n: number) => `€${EUR.format(n)}`;

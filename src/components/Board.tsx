@@ -9,22 +9,30 @@ import { tileCell } from "@/lib/utils";
 export function Board({ game }: { game: PublicState }) {
   // l'asta è un interrupt di gioco: board bloccata (niente blur), si agisce dal pannello asta
   const auctionLive = game.status === "playing" && activeNode(game).t === "auction";
-  // square board; gap-px + bg-border = uniform grid lines
   return (
     // sempre quadrata: larghezza = min(spazio orizzontale, altezza viewport - gutter), aspect-square fa il resto
     <div
-      className="relative m-auto grid aspect-square w-full gap-px border border-border bg-border md:w-[min(100%,100dvh_-_1rem)]"
+      // gap-px su paper-line: il filo tra due note è una riga incisa
+      className="filetto tratteggio relative m-auto grid aspect-square min-h-0 w-full gap-px border bg-paper-line md:w-[min(100%,100dvh_-_2.5rem)]"
+      // containerType inline-size: la tipografia delle celle è in cqi, quindi la
+      // plancia RIMPICCIOLISCE invece di andare a capo. Sotto una certa misura
+      // preferiamo testo minuscolo ma intero a testo leggibile spezzato.
       style={{
-        gridTemplateColumns: "1.55fr repeat(9, 1fr) 1.55fr",
-        gridTemplateRows: "1.55fr repeat(9, 1fr) 1.55fr",
+        containerType: "inline-size",
+        // minmax(0,…) e non 1fr: una traccia 1fr non scende sotto il min-content del
+        // contenuto, quindi i nomi lunghi spingevano la griglia oltre l'aspect-square
+        // e la plancia usciva dal viewport (misurata: 760 larga, 808 alta)
+        gridTemplateColumns: "minmax(0, 1.55fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.55fr)",
+        gridTemplateRows: "minmax(0, 1.55fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.55fr)",
       }}
     >
       {BOARD.map((_, i) => {
         const { row, col } = tileCell(i);
         return (
           // grid (non block): il button è un item stretchato, MAI su una baseline di testo —
-          // l'inline-block dentro un div si sfalsa con le metriche del font caricato
-          <div key={i} className="grid min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }}>
+          // l'inline-block dentro un div si sfalsa con le metriche del font caricato.
+          // inert: lo scrim è solo visivo, senza questo le celle restano operabili
+          <div key={i} className="grid min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }} inert={auctionLive}>
             <Tile index={i} game={game} />
           </div>
         );

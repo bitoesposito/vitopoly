@@ -41,10 +41,10 @@ describe("building", () => {
     const s = started();
     s.players[0].cash = 10000;
     s.props[1] = { owner: "a", mortgaged: false, houses: 0 };
-    expect(build(s, "a", 1)).toBe("need the full color group");
+    expect(build(s, "a", 1)).toBe("serve l'intero gruppo di colore");
     ownGroup(s, [1, 3], "a");
     expect(build(s, "a", 1)).toBeNull(); // 1 -> house 1
-    expect(build(s, "a", 1)).toBe("build evenly"); // must build on 3 first
+    expect(build(s, "a", 1)).toBe("costruisci in modo uniforme"); // must build on 3 first
     expect(build(s, "a", 3)).toBeNull();
     expect(s.bank.houses).toBe(30);
   });

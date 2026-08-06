@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { PublicState } from "@tangentopoly/game";
-import { TOKEN_COLOR } from "@/lib/colors";
+import { TOKEN_COLOR, serie } from "@/lib/colors";
 import { tileCell, walkMs } from "@/lib/utils";
 import { useGame } from "@/lib/store";
 
@@ -51,27 +51,26 @@ const SPREAD = [
   [0, 0], [9, 7], [-9, 7], [9, -7], [-9, -7], [0, 11], [0, -11], [15, 0],
 ];
 
-function Token({ name, token, pos, current }: { name: string; token: number; pos: number; current: boolean }) {
+function Token({ token, pos, current }: { token: number; pos: number; current: boolean }) {
   const [x, y] = useEdgeWalk(pos);
   const color = TOKEN_COLOR[token % 8];
   const [dx, dy] = current ? [0, 0] : SPREAD[token % 8];
   return (
-    <div
-      className={`absolute ${current ? "z-20" : "z-10"}`}
-      style={{ left: `${x}%`, top: `${y}%` }}
-      title={name}
-    >
+    // l'overlay è pointer-events-none: niente tooltip, l'identità è la lettera
+    <div className={`absolute ${current ? "z-20" : "z-10"}`} style={{ left: `${x}%`, top: `${y}%` }} aria-hidden>
       <div
         className="relative transition-transform duration-300"
         style={{ transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` }}
       >
-        {current && <span className="absolute -inset-2 animate-ping rounded-full opacity-40" style={{ background: color }} />}
+        {current && <span className="absolute -inset-2 animate-ping opacity-35" style={{ background: color }} />}
         <span
-          className={`block rounded-[3px] ring-black/40 transition-all duration-300 ${
-            current ? "size-4 ring-2 ring-offset-2 ring-offset-background sm:size-5" : "size-2.5 opacity-90 ring-1 sm:size-3"
+          className={`flex items-center justify-center font-mono leading-none ring-1 ring-paper-ink/50 transition-all duration-300 ${
+            current ? "size-5 text-2xs ring-2 ring-offset-2 ring-offset-background sm:size-6 sm:text-xs" : "size-4 text-micro opacity-95 sm:size-[1.15rem]"
           }`}
-          style={{ background: color }}
-        />
+          style={{ background: color, color: "var(--color-paper-ink)" }}
+        >
+          {serie(token)}
+        </span>
       </div>
     </div>
   );
@@ -84,7 +83,7 @@ export function Tokens({ game }: { game: PublicState }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
       {game.players.filter((p) => !p.bankrupt).map((p) => (
-        <Token key={p.id} name={p.name} token={p.token} pos={tokenPos[p.id] ?? p.pos} current={game.status === "playing" && p.id === currentId} />
+        <Token key={p.id} token={p.token} pos={tokenPos[p.id] ?? p.pos} current={game.status === "playing" && p.id === currentId} />
       ))}
     </div>
   );

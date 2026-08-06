@@ -1,23 +1,51 @@
-import { Building2, CircleHelp, CircleParking, Gift, Hotel, House, Landmark, Lock, Play, Siren, type LucideIcon } from "lucide-react";
+import {
+  Banknote,
+  Briefcase,
+  FileStack,
+  Gavel,
+  HandCoins,
+  Hotel,
+  House,
+  Lock,
+  Mail,
+  Mailbox,
+  Milestone,
+  RadioTower,
+  Receipt,
+  Siren,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileKind } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
-import { GROUP_COLOR, TOKEN_COLOR } from "@/lib/colors";
+import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/colors";
+import { euro } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TileDetails } from "./TileDetails";
 
-// special tiles: icon instead of name
+// Ogni marchio dice cosa succede sulla casella.
 const KIND_ICON: Partial<Record<TileKind, LucideIcon>> = {
-  go: Play,
-  chest: Gift,
-  chance: CircleHelp,
+  go: Banknote, // VIA: è lì che il denaro viene emesso
+  chest: Mail, // Favori: la busta
+  chance: Siren, // Blitz: la perquisizione
   jail: Lock,
-  parking: CircleParking,
-  tax: Landmark,
-  gotojail: Siren,
+  parking: Briefcase, // Latitanza: la valigia
+  tax: HandCoins, // Tangente / Mazzetta
+  gotojail: Gavel, // Mani Pulite
 };
 
-// Which side of the tile faces the board center (for the color bar). GO top-left.
+// chiave = nome della casella in BOARD
+const ENTE_ICON: Record<string, LucideIcon> = {
+  "Poste Italiane": Mailbox,
+  INPS: FileStack, // la pila di pratiche
+  Enel: Zap,
+  RAI: RadioTower,
+  Autostrade: Milestone,
+  Equitalia: Receipt,
+};
+
+// Which side of the tile faces the board center (for the ink band). GO top-left.
 function innerSide(i: number): "top" | "right" | "bottom" | "left" {
   if (i % 10 === 0) return "top"; // corners: irrelevant, no group anyway
   if (i < 10) return "bottom"; // top edge
@@ -47,12 +75,13 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
   const tile = BOARD[index];
   const t = useT();
   const name = useTileName()(index);
-  const Icon = KIND_ICON[tile.kind];
+  const Icon = ENTE_ICON[tile.name] ?? KIND_ICON[tile.kind];
   const own = game.props[index];
   const owner = own ? game.players.find((p) => p.id === own.owner) : undefined;
   const side = innerSide(index);
   const isCorner = index % 10 === 0;
   const buyable = tile.price != null;
+  const regione = tile.group ? GROUP_LABEL[tile.group] : undefined;
 
   return (
     <Popover>
@@ -61,76 +90,66 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           type="button"
           // transform-gpu: cella isolata sul proprio layer — evita il ghosting delle bande
           // (dipinte sfalsate rispetto al box) causato dal churn di layer del filter in hover
-          className="relative h-full w-full transform-gpu overflow-hidden bg-card font-condensed text-inherit hover:brightness-125 lg:font-sans"
-          // cella tinta del colore del proprietario: color-mix col fondo tiene leggibile
-          // ciò che ci sta sopra; ipotecata = tinta quasi spenta
-          style={owner ? { background: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 14 : 32}%, var(--color-card))` } : undefined}
+          className="nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset focus-visible:outline-none"
+          // velatura decisa: sulla plancia il proprietario si legge a colpo d'occhio dal colore
+          style={owner ? { backgroundColor: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 14 : 30}%, var(--color-paper))` } : undefined}
         >
-          {/* banda sul lato interno per TUTTE le celle del bordo: colore del set, o neutra
-              dove il set non c'è — così niente strisce vuote e contenuti allineati */}
+          {/* banda su TUTTE le celle del bordo: contenuti allineati anche senza set */}
           {!isCorner && (
-            <div className={`absolute ${BAR[side]}`} style={{ background: tile.group ? GROUP_COLOR[tile.group] : "var(--color-muted)" }} />
+            <div
+              className={`absolute ${BAR[side]}`}
+              title={regione}
+              style={{ background: tile.group ? GROUP_COLOR[tile.group] : "var(--color-paper-line)" }}
+            />
           )}
 
-          {/* nastro da sequestro: proprietà ipotecata */}
+          {/* ipotecata = nota fuori corso */}
           {own?.mortgaged && (
-            <span
-              aria-label={t("tile.mortgaged")}
-              className="pointer-events-none absolute top-1/2 left-1/2 z-10 flex min-h-[0.9em] w-[140%] -translate-x-1/2 -translate-y-1/2 -rotate-30 items-center justify-center"
-              style={{ background: "repeating-linear-gradient(45deg, #eab308 0 .6em, #18181b .6em 1.2em)" }}
-            >
-              <span className="hidden text-[0.6em] font-black tracking-wider text-black uppercase lg:inline"
-              style={{textShadow: `-1px -1px 0 #eab308, 1px -1px 0 #eab308, -1px 1px 0 #eab308, 1px 1px 0 #eab308`}}>
-                {t("tile.mortgaged")}
-              </span>
+            <span className="sovrastampa z-10">
+              <span>{t("tile.mortgaged")}</span>
             </span>
           )}
 
-          {/* caselle speciali: icona grande in filigrana al centro, dietro al testo */}
+          {/* filigrana */}
           {Icon && (
             <Icon
               aria-hidden
-              className="pointer-events-none absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 text-neutral-700 sm:size-4 lg:size-6"
+              className="pointer-events-none absolute top-1/2 left-1/2 size-[min(4.6cqi,1.5rem)] -translate-x-1/2 -translate-y-1/2 text-paper-line/45"
             />
           )}
 
           {/* tre slot ad altezza fissa: nome sopra (uguale per tutte le celle), stato al
               centro, prezzo sotto — le celle adiacenti restano allineate */}
-          <div className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none xl:text-base lg:text-sm md:text-xs sm:text-[0.625rem] text-[0.5625rem] ${isCorner ? "p-1" : `p-0.5 ${PAD[side]}`}`}>
-            {/* min-h + items-start: i nomi partono tutti dalla stessa quota, il contenuto
-                lungo cresce verso il basso invece di traboccare sopra */}
-            <span className="flex min-h-[2.5em] w-full items-start justify-center px-px font-medium break-words text-foreground">
-              {tile.kind === "railroad" ? (
-                <span className="flex flex-col items-center justify-center gap-0.5">
-                  <Building2 className="hidden size-3.5 shrink-0 sm:block sm:size-4" aria-label={name} />
-                  {name}
-                </span>
-              ) : (
-                name
+          <div
+            className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none text-[min(2.1cqi,0.75rem)] ${isCorner ? "p-[min(0.5cqi,0.25rem)]" : `p-[min(0.3cqi,0.125rem)] ${PAD[side]}`}`}
+          >
+            <span className="flex w-full flex-col items-center">
+              {regione && (
+                <span className="w-full truncate text-[min(1.5cqi,0.5625rem)] tracking-[0.06em] text-paper-ink/75 uppercase">{regione}</span>
               )}
+              {/* -0.02em di tracking: recupera i 2-3px che facevano sforare
+                  "Tangente", "Autostrade" ed "Equitalia" senza rimpicciolire tutto */}
+              <span className="flex w-full items-start justify-center text-[min(2.25cqi,0.875rem)] leading-[1.06] font-medium tracking-[-0.02em] break-words text-paper-ink">
+                {name}
+              </span>
             </span>
             {buyable && (
               <>
-                <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-0.5">
+                <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-[min(0.3cqi,0.125rem)] overflow-hidden">
                   {own && own.houses === 5 ? (
-                    <Hotel className="size-3 text-foreground lg:size-4" />
+                    <Hotel className="size-[min(3cqi,1rem)] text-paper-ink" />
                   ) : (
-                    Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-2.5 text-foreground lg:size-3.5" />)
+                    Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-[min(2.1cqi,0.875rem)] text-paper-ink" />)
                   )}
                 </span>
-                <span className="flex h-[1.2em] items-center justify-center text-muted-foreground">
-                  <span className="hidden sm:inline">€{tile.price}</span>
-                </span>
+                <span className="flex items-center justify-center font-mono leading-none tabular-nums text-paper-ink/75">{euro(tile.price ?? 0)}</span>
               </>
             )}
             {/* tasse: importo da pagare in basso, come i prezzi delle proprietà */}
             {tile.kind === "tax" && (
-              <span className="flex h-[1.2em] items-center justify-center text-muted-foreground">
-                <span className="hidden sm:inline">€{tile.taxAmount}</span>
-              </span>
+              <span className="flex items-center justify-center font-mono leading-none tabular-nums text-paper-ink/75">{euro(tile.taxAmount ?? 0)}</span>
             )}
           </div>
-
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64">

@@ -25,8 +25,8 @@ export class RoomDO extends DurableObject<Env> {
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
 
-    // debug escape hatch: raw state dump (pre-launch tooling, remove before real users)
-    if (url.pathname.endsWith("/debug")) return Response.json(this.game);
+    // debug escape hatch: passa da redact() come ogni altra uscita di stato
+    if (url.pathname.endsWith("/debug")) return Response.json(redact(this.game));
 
     if (req.headers.get("Upgrade") !== "websocket") return new Response("expected websocket", { status: 426 });
     const pid = url.searchParams.get("pid");
@@ -37,12 +37,8 @@ export class RoomDO extends DurableObject<Env> {
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ pid, name }); // survives hibernation — the trust boundary
 
-    const joined = addPlayer(this.game, pid, name); // no-op if already joined (reconnect)
-    if (!joined && this.game.status === "lobby") {
-      this.send(server, { type: "error", error: "stanza piena" });
-      server.close(4000, "cannot join");
-      return new Response(null, { status: 101, webSocket: client });
-    }
+    // no-op se già dentro (reconnect); null solo a partita iniziata -> spettatore
+    const joined = addPlayer(this.game, pid, name);
     this.send(server, { type: "chatHistory", msgs: this.chat });
     if (joined) {
       setConnected(this.game, pid, true);

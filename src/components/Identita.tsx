@@ -36,8 +36,8 @@ export function Identita({ game }: { game: PublicState }) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-1.5">
+    <div className="space-y-6">
+      <div className="space-y-1">
         <label className="block font-condensed text-micro tracking-widest text-muted-foreground uppercase" htmlFor="mio-nome">
           {t("id.name")}
         </label>
@@ -69,9 +69,9 @@ export function Identita({ game }: { game: PublicState }) {
         )}
       </div>
 
-      <fieldset className="space-y-1.5">
+      <fieldset className="space-y-2">
         <legend className="font-condensed text-micro tracking-widest text-muted-foreground uppercase">{t("id.ink")}</legend>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid w-fit grid-cols-4 gap-2">
           {Array.from({ length: TOKENS }, (_, i) => {
             const altro = game.players.find((p) => p.id !== myId && p.token === i);
             const mio = me.token === i;
@@ -99,7 +99,7 @@ export function Identita({ game }: { game: PublicState }) {
             );
           })}
         </div>
-        <p className="text-2xs text-muted-foreground">{t("id.inkHint", { ink: TOKEN_NAME[me.token % TOKENS] })}</p>
+        <p className="pt-1 text-2xs text-muted-foreground">{t("id.inkHint", { ink: TOKEN_NAME[me.token % TOKENS] })}</p>
       </fieldset>
     </div>
   );

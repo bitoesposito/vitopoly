@@ -33,7 +33,7 @@ export function Lobby() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-5 p-5">
       <header className="space-y-2">
-        <div className="campo-guilloche border-y border-border py-3">
+        <div className="border-y border-border py-3">
           <h1 className="font-condensed text-[clamp(2.5rem,13vw,4rem)] leading-[0.85] font-bold tracking-tight uppercase">
             Tangento<span className="text-warning">poly</span>
           </h1>

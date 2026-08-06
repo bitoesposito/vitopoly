@@ -67,6 +67,17 @@ export default function App() {
             <PreMatch game={game} />
           ) : (
             <>
+              {/* solo mobile: la plancia partiva incollata al bordo alto. Il marchio
+                  dà l'aria che mancava ed è anche l'unico posto dove il nome del
+                  gioco compare durante la partita. */}
+              <header className="flex w-full items-baseline justify-between px-3 pt-2 md:hidden">
+                <span className="font-condensed text-sm font-bold tracking-tight uppercase">
+                  Tangento<span className="text-warning">poly</span>
+                </span>
+                <span className="font-mono text-micro tracking-widest text-muted-foreground uppercase">
+                  {t("lobby.serie")}
+                </span>
+              </header>
               <Board game={game} />
               <div className="w-full pb-20 md:hidden md:pb-0">
                 <GamePanels game={game}/>

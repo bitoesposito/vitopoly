@@ -2,35 +2,35 @@
 name: Tangentopoly
 description: Una plancia che è un foglio di carta valori dello Stato — inchiostri d'intaglio su carta, non un tabellone ri-skinnato.
 colors:
-  background: "oklch(0.168 0.018 168)"
-  foreground: "oklch(0.93 0.012 92)"
-  card: "oklch(0.225 0.019 168)"
-  popover: "oklch(0.205 0.019 168)"
-  sidebar: "oklch(0.196 0.019 168)"
-  muted: "oklch(0.268 0.016 168)"
-  muted-foreground: "oklch(0.745 0.016 95)"
-  secondary: "oklch(0.288 0.019 168)"
-  accent: "oklch(0.3 0.021 168)"
+  background: "oklch(0.288 0.022 168)"
+  foreground: "oklch(0.95 0.012 92)"
+  card: "oklch(0.352 0.024 168)"
+  popover: "oklch(0.332 0.023 168)"
+  sidebar: "oklch(0.318 0.023 168)"
+  muted: "oklch(0.41 0.021 168)"
+  muted-foreground: "oklch(0.805 0.016 95)"
+  secondary: "oklch(0.395 0.022 168)"
+  accent: "oklch(0.415 0.024 168)"
   primary: "oklch(0.9 0.014 90)"
   primary-foreground: "oklch(0.19 0.02 168)"
   border: "oklch(0.86 0.02 90 / 16%)"
   input: "oklch(0.86 0.02 90 / 22%)"
   ring: "oklch(0.74 0.132 76)"
-  paper: "oklch(0.923 0.016 88)"
+  paper: "oklch(0.832 0.018 88)"
   paper-ink: "oklch(0.245 0.022 166)"
   paper-line: "oklch(0.6 0.022 160)"
   verde-valore: "oklch(0.63 0.104 158)"
   bollo: "oklch(0.745 0.132 76)"
   sanguigna: "oklch(0.605 0.163 30)"
   indaco: "oklch(0.565 0.112 262)"
-  sanguigna-carta: "oklch(0.47 0.16 30)"
+  sanguigna-carta: "oklch(0.44 0.15 30)"
   indaco-carta: "oklch(0.43 0.13 262)"
   serie-puglia: "#7a5c3e"
-  serie-calabria: "#4d7386"
-  serie-campania: "#b06a7d"
-  serie-sicilia: "#a4661f"
+  serie-calabria: "#456678"
+  serie-campania: "#94566a"
+  serie-sicilia: "#8f5819"
   serie-lazio: "#a83a26"
-  serie-veneto: "#97761d"
+  serie-veneto: "#836618"
   serie-liguria: "#2f7a52"
   serie-lombardia: "#24457f"
   # Materiale del dado: un oggetto fisico, non una superficie d'interfaccia. Palette
@@ -180,7 +180,7 @@ components:
 
 La plancia non è un tabellone: è un foglio di carta valori emesso da un'amministrazione che non funziona. La scrivania su cui poggia è inchiostro d'intaglio verde-nero; la nota è carta chiara e sta solo dove la carta esiste davvero (celle della plancia, talloncini dei titoli, carte evento). Tutto il resto — pannelli, roster, chat — è la scrivania: cromo scuro, sobrio, che non compete con il foglio.
 
-Il mondo rifiuta due riferimenti in modo esplicito e verificabile nel codice: il panno verde Hasbro (non esiste nessun verde da tavolo da gioco; il verde è quello d'intaglio dei tagli grossi) e il dark-dashboard-con-un-accento (non c'è un accento unico: ci sono quattro inchiostri, ognuno con un solo mestiere, più otto inchiostri di serie regionali). La densità è alta e l'ornamento è quasi nullo: l'unico decoro è il guilloche, e sta solo dove c'è scala per vederlo.
+Il mondo rifiuta due riferimenti in modo esplicito e verificabile nel codice: il panno verde Hasbro (non esiste nessun verde da tavolo da gioco; il verde è quello d'intaglio dei tagli grossi) e il dark-dashboard-con-un-accento (non c'è un accento unico: ci sono quattro inchiostri, ognuno con un solo mestiere, più otto inchiostri di serie regionali). La densità è alta e l'ornamento è nullo: non c'è decoro, c'è materia — la carta ha una grana, la scrivania ha il tratteggio del bulino, e nient'altro.
 
 Il registro è documentale. Ogni cifra è un numero di serie (mono, tabular), ogni nome di regione è microtesto legale in maiuscoletto spaziato, ogni stato di una nota è una sovrastampa obliqua e non un cambio di colore. L'app è dark-only per costruzione: `.dark` viene applicata in `main.tsx` e il tema light è stato rimosso dal foglio di stile.
 
@@ -254,7 +254,7 @@ Un inchiostro per regione, in scalata di valore come una serie di banconote: Pug
 
 Tre colonne su desktop, una su mobile. Da 2xl (96rem) la chat prende una colonna propria a sinistra (20rem); al centro la plancia; a destra la sidebar a larghezza fissa (20rem) con roster, pannelli e chat collassabile. Sotto md (48rem) tutto si impila: plancia in alto, pannelli sotto, chat come bottom-sheet.
 
-**La plancia** è una griglia 11×11 sempre quadrata, con tracce `1.55fr` agli angoli e `1fr` sui bordi, larga `min(100%, 100dvh - 1rem)` da md in su. Il centro occupa il blocco 9×9 interno ed è il pannello guilloche: dadi in alto, azione primaria subito sotto, log nella metà bassa. La metà alta è ancorata in alto (mai centrata) così che dadi e riga di turno non si spostino quando compaiono prompt e bottoni.
+**La plancia** è una griglia 11×11 sempre quadrata, con tracce `1.55fr` agli angoli e `1fr` sui bordi, larga `min(100%, 100dvh - 2.5rem)` da md in su, con `min-h-0` perché l'aspect-square vinca sul min-content delle celle. Il centro occupa il blocco 9×9 interno: dadi in alto, azione primaria subito sotto, log nella metà bassa. La metà alta è ancorata in alto (mai centrata) così che dadi e riga di turno non si spostino quando compaiono prompt e bottoni.
 
 **Ritmo di spaziatura**: passi da 1px (il filetto), 0.125rem, 0.25rem, 0.5rem, 0.75rem e 1rem. I pannelli usano una variabile propria (`--card-spacing`: 1rem, 0.75rem in taglia `sm`) invece di padding sparsi. Il gutter di pagina è 0.5rem da md in su, ed è lo stesso su tutte e tre le colonne.
 
@@ -267,7 +267,7 @@ Tre colonne su desktop, una su mobile. Da 2xl (96rem) la chat prende una colonna
 
 ## Elevation & Depth
 
-Il sistema è **piatto sul foglio**. La profondità sulla plancia non si fa con le ombre: si fa con il filetto inciso, con la velatura d'inchiostro del proprietario sulla carta (8–16% in `color-mix`) e con il guilloche di fondo. Sulla scrivania la gerarchia è tonale: `background` → `sidebar` → `popover` → `card` sono quattro gradazioni dello stesso verde-nero, separate da un anello a 1px (`ring-foreground/10`).
+Il sistema è **piatto sul foglio**. La profondità sulla plancia non si fa con le ombre: si fa con il filetto inciso, con la velatura d'inchiostro del proprietario sulla carta (8–16% in `color-mix`) e con la grana del substrato. Sulla scrivania la gerarchia è tonale: `background` → `sidebar` → `popover` → `card` sono quattro gradazioni dello stesso verde-nero, separate da un anello a 1px (`ring-foreground/25`).
 
 L'ombra esiste **solo dove un oggetto è fisicamente staccato dal foglio**: il dado in aria e il bottom-sheet della chat che si solleva sopra la pagina su mobile.
 
@@ -286,12 +286,12 @@ L'ombra esiste **solo dove un oggetto è fisicamente staccato dal foglio**: il d
 
 Le forme ricorrenti sono tre: il **rettangolo di carta** (cella, talloncino, carta evento), la **banda d'inchiostro** (4px sul lato interno della cella, 1px come filetto nei pannelli) e il **timbro quadro** (16–24px, lettera di serie in negativo su inchiostro del giocatore, anello `paper-ink/50`).
 
-Il **guilloche** (`public/guilloche.svg`, rosette parametriche disegnate — non un gradiente che ci somiglia) è l'unica texture del sistema, dimensionata `min(115%, 40rem)` e centrata. Sta solo dove c'è scala per vederla: il pannello centrale della plancia e la testata della lobby. A 31px di cella l'incisione sparirebbe.
+La **texture** è materia, non ornamento, e vive in due token. `--grana` è un rumore frattale finissimo (SVG inline, opacità .055) applicato a ogni superficie `.nota`: senza, la carta è solo un rettangolo chiaro. `--tratteggio` è un reticolo diagonale a 45 gradi con alpha .016 sul fondo pagina: è il bulino della scrivania, percepibile solo di sfuggita. Nessuna delle due si vede guardandola: si vedono togliendole.
 
 L'unico raggio del progetto è `0.15em` sulle facce del dado: è la smussatura di un oggetto fisico, non un raggio d'interfaccia.
 
 ### Named Rules
-**La Regola del Guilloche.** Il campo inciso si applica solo dove c'è superficie: se l'elemento è più piccolo di una card, niente guilloche.
+**La Regola della Materia.** Le texture non si disegnano, si sentono: se una texture si nota come motivo invece che come superficie, è troppo forte. Un rosone guilloche a piena opacità è stato rimosso proprio per questo — a schermo diventava l'elemento dominante.
 
 ## Components
 
@@ -346,7 +346,7 @@ Una sola curva d'ingresso per le carte e le chip (`cubic-bezier(0.22, 1, 0.36, 1
 - **Don't** introdurre raggi: `--radius` è 0 e ogni `rounded-*` derivato è un no-op. L'unico raggio del progetto è la smussatura in em delle facce del dado.
 - **Don't** ripuntare `--card` sulla carta: un solo `muted-foreground` serve chrome scura e superfici chiare, e il ribaltamento renderebbe illeggibile ogni testo secondario del codebase.
 - **Don't** aggiungere un quinto inchiostro funzionale o riusare i quattro esistenti fuori dal loro mestiere (niente sanguigna per "importante", niente bollo per "primario").
-- **Don't** applicare il guilloche a superfici piccole: sotto la dimensione di una card l'incisione diventa rumore.
+- **Don't** introdurre un motivo decorativo riconoscibile: la texture è grana e tratteggio, mai un disegno che si guarda.
 - **Don't** usare gli inchiostri di serie regionali come fondo di testo o colorare con essi il nome di un giocatore.
 - **Don't** mettere un occhiello o un'etichetta sopra un titolo: il titolo si porta da solo.
 - **Don't** aggiungere ombre a elementi che poggiano sul piano; l'ombra è riservata a ciò che è davvero sollevato.

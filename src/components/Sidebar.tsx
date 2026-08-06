@@ -33,15 +33,14 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
     prevLen.current = chat.length;
   }, [chat, open]);
 
-  // desktop: "/" porta il focus in chat. Un tasto dedicato, non un carattere
-  // qualsiasi: quello rubava il focus a chi naviga da tastiera (WCAG 3.2.1).
+  // desktop: si scrive in chat digitando, senza cliccare il campo. Il focus viene
+  // spostato SOLO se non stai già navigando un controllo (target === body): così chi
+  // gira la plancia col Tab non se lo vede portare via a metà strada.
   useEffect(() => {
     if (!open || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const h = (e: KeyboardEvent) => {
-      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
-      const t = e.target as HTMLElement;
-      if (t.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
-      e.preventDefault();
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      if (e.target !== document.body) return;
       inputRef.current?.focus();
     };
     window.addEventListener("keydown", h);

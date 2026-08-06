@@ -45,6 +45,5 @@ cambiarle.
   inventato.
 - [`DESIGN.md`](DESIGN.md) — il sistema di design ricavato dal codice costruito, con il
   suo sidecar in `.impeccable/design.json`.
-- `scripts/gen-guilloche.mjs` — rigenera `public/guilloche.svg` (rosette parametriche).
 - `scripts/verifica-dadi.mjs` — controlla il dado 3D leggendo il CSS: pip per faccia,
   facce opposte che sommano a 7, e che ogni valore uscito mostri davvero la sua faccia.

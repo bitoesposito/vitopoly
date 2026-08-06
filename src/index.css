@@ -94,19 +94,19 @@
    talloncini, carte evento). Ribaltare `--card` renderebbe illeggibile ogni
    `text-muted-foreground` del codebase, che serve sia chrome scura sia carta. */
 .dark {
-    --background: oklch(0.168 0.018 168);
-    --foreground: oklch(0.93 0.012 92);
-    --card: oklch(0.225 0.019 168);
-    --card-foreground: oklch(0.93 0.012 92);
-    --popover: oklch(0.205 0.019 168);
-    --popover-foreground: oklch(0.93 0.012 92);
+    --background: oklch(0.288 0.022 168);
+    --foreground: oklch(0.95 0.012 92);
+    --card: oklch(0.352 0.024 168);
+    --card-foreground: oklch(0.95 0.012 92);
+    --popover: oklch(0.332 0.023 168);
+    --popover-foreground: oklch(0.95 0.012 92);
     --primary: oklch(0.9 0.014 90);
     --primary-foreground: oklch(0.19 0.02 168);
-    --secondary: oklch(0.288 0.019 168);
-    --secondary-foreground: oklch(0.93 0.012 92);
-    --muted: oklch(0.268 0.016 168);
-    --muted-foreground: oklch(0.745 0.016 95); /* 6.9:1 su --card */
-    --accent: oklch(0.3 0.021 168);
+    --secondary: oklch(0.395 0.022 168);
+    --secondary-foreground: oklch(0.95 0.012 92);
+    --muted: oklch(0.41 0.021 168);
+    --muted-foreground: oklch(0.805 0.016 95); /* 6.9:1 su --card */
+    --accent: oklch(0.415 0.024 168);
     --accent-foreground: oklch(0.94 0.012 92);
     --destructive: oklch(0.605 0.163 30); /* sanguigna */
     --border: oklch(0.86 0.02 90 / 16%);
@@ -117,16 +117,16 @@
     --chart-3: oklch(0.56 0.11 262);
     --chart-4: oklch(0.605 0.163 30);
     --chart-5: oklch(0.5 0.02 168);
-    --sidebar: oklch(0.196 0.019 168);
-    --sidebar-foreground: oklch(0.93 0.012 92);
+    --sidebar: oklch(0.318 0.023 168);
+    --sidebar-foreground: oklch(0.95 0.012 92);
     --sidebar-primary: oklch(0.56 0.11 262);
     --sidebar-primary-foreground: oklch(0.96 0.01 90);
-    --sidebar-accent: oklch(0.288 0.019 168);
-    --sidebar-accent-foreground: oklch(0.93 0.012 92);
+    --sidebar-accent: oklch(0.395 0.022 168);
+    --sidebar-accent-foreground: oklch(0.95 0.012 92);
     --sidebar-border: oklch(0.86 0.02 90 / 14%);
     --sidebar-ring: oklch(0.74 0.132 76);
 
-    --paper: oklch(0.923 0.016 88);
+    --paper: oklch(0.832 0.018 88);
     --paper-ink: oklch(0.245 0.022 166); /* 13.2:1 su --paper */
     --paper-line: oklch(0.6 0.022 160);
     --verde-valore: oklch(0.63 0.104 158);
@@ -134,28 +134,30 @@
     --sanguigna: oklch(0.605 0.163 30);
     --indaco: oklch(0.565 0.112 262);
     /* gli stessi inchiostri su carta: quelli sopra stanno sotto 4,5:1 sul chiaro */
-    --sanguigna-carta: oklch(0.47 0.16 30);
+    --sanguigna-carta: oklch(0.44 0.15 30);
     --indaco-carta: oklch(0.43 0.13 262);
     --verde-carta: oklch(0.4 0.1 158);
     --bollo-carta: oklch(0.42 0.1 76);
 }
 
 /* Materiali: substrato, filetto, sovrastampa. Lo stato si timbra, non si colora. */
+:root {
+    /* grana della carta: rumore fine, non una texture disegnata */
+    --grana: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='.055'/%3E%3C/svg%3E");
+    /* scrivania: tratteggio d'intaglio a 45 gradi, appena percettibile */
+    --tratteggio: repeating-linear-gradient(45deg, oklch(1 0 0 / 0.016) 0 1px, transparent 1px 7px);
+}
+/* La carta ha una grana: senza, il substrato è solo un rettangolo chiaro.
+   `background-color` e non la scorciatoia, perché la tinta del proprietario
+   arriva inline e non deve cancellare la texture. */
 .nota {
-    background: var(--paper);
+    background-color: var(--paper);
+    background-image: var(--grana);
     color: var(--paper-ink);
 }
 /* non in @layer: deve battere il `border-border` della base */
 .filetto {
     border-color: var(--paper-line);
-}
-/* filigrana, non disegno: deve leggersi solo quando la cerchi. A piena opacità
-   il rosone diventa l'elemento dominante dello schermo. */
-.campo-guilloche {
-    background-image: url("/guilloche.svg");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: min(62%, 22rem) auto;
 }
 /* IPOTECA / FUORI: timbro obliquo, non intercetta il puntatore */
 .sovrastampa {
@@ -310,6 +312,7 @@
     }
   body {
     @apply bg-background text-foreground;
+    background-image: var(--tratteggio);
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;

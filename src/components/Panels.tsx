@@ -407,7 +407,7 @@ export function GamePanels({ game }: { game: PublicState }) {
       <AssetsPanel game={game} myId={myId} />
       {/* staccata da tutto: è l'azione più distruttiva del gioco */}
       {canBankrupt && (
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-2">
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-2 max-md:pr-16">
           <span className="text-2xs text-muted-foreground">{t("debt.bankruptHint")}</span>
           <Button
             size="sm"

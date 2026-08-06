@@ -92,7 +92,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           // (dipinte sfalsate rispetto al box) causato dal churn di layer del filter in hover
           className="nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset focus-visible:outline-none"
           // velatura bassa: il proprietario lo dice la lettera di serie, non la tinta
-          style={owner ? { background: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 8 : 16}%, var(--color-paper))` } : undefined}
+          style={owner ? { backgroundColor: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 8 : 16}%, var(--color-paper))` } : undefined}
         >
           {/* banda su TUTTE le celle del bordo: contenuti allineati anche senza set */}
           {!isCorner && (

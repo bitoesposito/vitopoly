@@ -148,9 +148,7 @@ export function Center({ game }: { game: PublicState }) {
   if (game.status === "ended") {
     const classifica = [...game.players].sort((a, b) => patrimonio(game, b.id) - patrimonio(game, a.id));
     return (
-      // stesso campo inciso del centro in partita: la vittoria era l'unico stato in
-      // cui il mondo spariva, e per giunta nel momento di massima attenzione
-      <div className="campo-guilloche grid h-full place-items-center overflow-y-auto bg-card p-3 font-condensed">
+      <div className="grid h-full place-items-center overflow-y-auto bg-card p-3 font-condensed">
         <div className="w-full max-w-xs text-center">
           <h2 className="text-2xl font-bold text-warning">
             {t("center.winner", { name: game.winner ? names[game.winner] : t("center.nobody") })}
@@ -257,8 +255,8 @@ export function Center({ game }: { game: PublicState }) {
   );
 
   return (
-    // il centro è parte del tabellone: stessa voce delle tiles, stesso campo inciso
-    <div className="campo-guilloche flex h-full flex-col gap-2 overflow-y-auto bg-card p-2 font-condensed sm:p-3">
+    // il centro è parte del tabellone: stessa voce delle tiles
+    <div className="flex h-full flex-col gap-2 overflow-y-auto bg-card p-2 font-condensed sm:p-3">
       <p className="sr-only" role="status" aria-live="polite">
         {annuncio}
       </p>

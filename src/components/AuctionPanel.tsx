@@ -63,13 +63,14 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
   const myCash = game.players.find((p) => p.id === myId)?.cash ?? 0;
   const canBid = a.active.includes(myId) && a.leader !== myId;
-  const margine = myCash - a.bid; // quanto puoi ancora rilanciare
 
-  const n = Math.floor(Number(raise));
-  const raiseOk = canBid && n > 0 && a.bid + n <= myCash;
+  // Il campo è l'OFFERTA, non il rialzo: si scrive quanto si vuole offrire.
+  // Il motore ragiona in incrementi, quindi la differenza la facciamo qui.
+  const offerta = Math.floor(Number(raise));
+  const raiseOk = canBid && offerta > a.bid && offerta <= myCash;
   const doRaise = () => {
     if (!raiseOk) return;
-    send({ type: "bid", amount: n });
+    send({ type: "bid", amount: offerta - a.bid });
     setRaise("");
   };
 
@@ -105,7 +106,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         <div className="flex gap-1">
           {quickBids(tile.price ?? 0).map((d) => (
             <Button key={d} className="flex-1 font-mono tabular-nums" size="sm" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
-              +{euro(d)}
+              {euro(a.bid + d)}
             </Button>
           ))}
         </div>
@@ -114,7 +115,8 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         <div className="flex gap-1">
           <Input
             type="number"
-            min={1}
+            min={a.bid + 1}
+            max={myCash}
             step={1}
             inputMode="numeric"
             placeholder={t("auction.custom")}
@@ -128,8 +130,10 @@ export function AuctionPanel({ game }: { game: PublicState }) {
             {t("auction.raise")}
           </Button>
         </div>
-        {canBid && n > 0 && a.bid + n > myCash && (
-          <div className="text-2xs text-destructive">{t("auction.max", { amount: euro(Math.max(0, margine)) })}</div>
+        {canBid && offerta > 0 && !raiseOk && (
+          <div className="text-2xs text-destructive">
+            {offerta <= a.bid ? t("auction.tooLow", { amount: euro(a.bid) }) : t("auction.max", { amount: euro(myCash) })}
+          </div>
         )}
 
         {canBid && (

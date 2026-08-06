@@ -2,11 +2,11 @@
 // Campo colore, mai fondo di testo: il significato lo porta GROUP_LABEL.
 export const GROUP_COLOR: Record<string, string> = {
   brown: "#7a5c3e", // Puglia — terra d'ombra
-  lightblue: "#4d7386", // Calabria — azzurro slavato
-  pink: "#b06a7d", // Campania — carminio spento
-  orange: "#a4661f", // Sicilia — ocra bruciata
+  lightblue: "#456678", // Calabria — azzurro slavato
+  pink: "#94566a", // Campania — carminio spento
+  orange: "#8f5819", // Sicilia — ocra bruciata
   red: "#a83a26", // Lazio — sanguigna
-  yellow: "#97761d", // Veneto — oro bollo
+  yellow: "#836618", // Veneto — oro bollo
   green: "#2f7a52", // Liguria — verde valore
   darkblue: "#24457f", // Lombardia — indaco profondo
 };

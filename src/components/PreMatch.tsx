@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlayerList } from "@/components/PlayerList";
 import { Regole } from "@/components/Regole";
+import { Identita } from "@/components/Identita";
 import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { send } from "@/lib/ws";
@@ -22,6 +23,16 @@ export function PreMatch({ game }: { game: PublicState }) {
 
   return (
     <div className="flex w-full max-w-xl flex-col gap-3 p-3">
+      {/* card 0: la tua identità. Prima di guardare chi c'è, decidi chi sei. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("id.title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Identita game={game} />
+        </CardContent>
+      </Card>
+
       {/* card 1: giocatori + invito */}
       <Card>
         <CardHeader>

@@ -23,6 +23,10 @@ export const GROUP_LABEL: Record<string, string> = {
 };
 
 // Timbri dei giocatori: sopra 3:1 su --card. Non colorano mai un nome.
+// Nomi degli inchiostri: servono da etichetta accessibile ai selettori di colore.
+// Un pallino senza nome è informazione affidata al solo colore.
+export const TOKEN_NAME = ["Sanguigna", "Verde valore", "Indaco", "Ocra", "Porpora", "Acquamarina", "Carminio", "Oliva"];
+
 export const TOKEN_COLOR = ["#d1674b", "#4fae78", "#5b7fc7", "#c99a3c", "#a86bb0", "#4fb3ac", "#cf6f96", "#93a94a"];
 
 // L'identità che non passa dal colore. Gli inchiostri si ripetono ogni 8, le

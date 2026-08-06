@@ -19,7 +19,7 @@ import {
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileKind } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
-import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR, serie } from "@/lib/colors";
+import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/colors";
 import { euro } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TileDetails } from "./TileDetails";
@@ -91,8 +91,8 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           // transform-gpu: cella isolata sul proprio layer — evita il ghosting delle bande
           // (dipinte sfalsate rispetto al box) causato dal churn di layer del filter in hover
           className="nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset focus-visible:outline-none"
-          // velatura bassa: il proprietario lo dice la lettera di serie, non la tinta
-          style={owner ? { backgroundColor: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 8 : 16}%, var(--color-paper))` } : undefined}
+          // velatura decisa: sulla plancia il proprietario si legge a colpo d'occhio dal colore
+          style={owner ? { backgroundColor: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 14 : 30}%, var(--color-paper))` } : undefined}
         >
           {/* banda su TUTTE le celle del bordo: contenuti allineati anche senza set */}
           {!isCorner && (
@@ -114,44 +114,32 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           {Icon && (
             <Icon
               aria-hidden
-              className="pointer-events-none absolute top-1/2 left-1/2 size-[4.6cqi] -translate-x-1/2 -translate-y-1/2 text-paper-line/45"
+              className="pointer-events-none absolute top-1/2 left-1/2 size-[min(4.6cqi,1.5rem)] -translate-x-1/2 -translate-y-1/2 text-paper-line/45"
             />
           )}
 
           {/* tre slot ad altezza fissa: nome sopra (uguale per tutte le celle), stato al
               centro, prezzo sotto — le celle adiacenti restano allineate */}
           <div
-            className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none text-[2.1cqi] ${isCorner ? "p-[0.5cqi]" : `p-[0.3cqi] ${PAD[side]}`}`}
+            className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none text-[min(2.1cqi,0.75rem)] ${isCorner ? "p-[min(0.5cqi,0.25rem)]" : `p-[min(0.3cqi,0.125rem)] ${PAD[side]}`}`}
           >
             <span className="flex w-full flex-col items-center">
-              {/* intestazione: lettera del proprietario e serie, in linea. La lettera
-                  era assoluta in alto a sinistra e finiva sopra al nome. */}
-              {(regione || (owner && !isCorner)) && (
-                <span className="flex w-full items-center justify-center gap-[0.5cqi] leading-none">
-                  {owner && !isCorner && (
-                    <span
-                      className="shrink-0 font-mono text-[1.7cqi]"
-                      style={{ color: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} 55%, var(--color-paper-ink))` }}
-                    >
-                      {serie(owner.token)}
-                    </span>
-                  )}
-                  {regione && <span className="min-w-0 truncate text-[1.5cqi] tracking-[0.06em] text-paper-ink/75 uppercase">{regione}</span>}
-                </span>
+              {regione && (
+                <span className="w-full truncate text-[min(1.5cqi,0.5625rem)] tracking-[0.06em] text-paper-ink/75 uppercase">{regione}</span>
               )}
               {/* -0.02em di tracking: recupera i 2-3px che facevano sforare
                   "Tangente", "Autostrade" ed "Equitalia" senza rimpicciolire tutto */}
-              <span className="flex w-full items-start justify-center text-[2.25cqi] leading-[1.06] font-medium tracking-[-0.02em] break-words text-paper-ink">
+              <span className="flex w-full items-start justify-center text-[min(2.25cqi,0.875rem)] leading-[1.06] font-medium tracking-[-0.02em] break-words text-paper-ink">
                 {name}
               </span>
             </span>
             {buyable && (
               <>
-                <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-[0.3cqi] overflow-hidden">
+                <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-[min(0.3cqi,0.125rem)] overflow-hidden">
                   {own && own.houses === 5 ? (
-                    <Hotel className="size-[3cqi] text-paper-ink" />
+                    <Hotel className="size-[min(3cqi,1rem)] text-paper-ink" />
                   ) : (
-                    Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-[2.1cqi] text-paper-ink" />)
+                    Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-[min(2.1cqi,0.875rem)] text-paper-ink" />)
                   )}
                 </span>
                 <span className="flex items-center justify-center font-mono leading-none tabular-nums text-paper-ink/75">{euro(tile.price ?? 0)}</span>

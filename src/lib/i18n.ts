@@ -19,6 +19,14 @@ const IT: Record<string, string> = {
 
   // Niente più chiavi di impostazioni: non esistono interruttori da etichettare.
   // Il regolamento si legge in rules.* ed è lo stesso per tutte le partite.
+  "id.title": "Chi sei",
+  "id.name": "Il tuo nome",
+  "id.rename": "Cambia",
+  "id.nameEmpty": "Serve un nome.",
+  "id.nameTaken": "Quel nome è già di un altro giocatore.",
+  "id.ink": "Il tuo inchiostro",
+  "id.inkTaken": "{ink} — già di {name}",
+  "id.inkHint": "Sei {ink}. Sulla plancia le tue proprietà si tingono di questo colore.",
   "settings.hostStarts": "Tocca a {name} far partire la partita.",
   "settings.invite": "Invita giocatori",
   "settings.inviteAlone": "Sei solo — il giro non si fa da soli, condividi il link. Non c'è un tetto di posti.",
@@ -172,6 +180,7 @@ const IT: Record<string, string> = {
   "info.rent3": "3 case",
   "info.rent4": "4 case",
   "info.rent5": "Hotel",
+  "info.owner": "di",
   "info.price": "Prezzo",
   "info.house": "Casa",
   "tile.mortgaged": "Ipoteca",

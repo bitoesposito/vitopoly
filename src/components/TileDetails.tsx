@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileDef } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
-import { GROUP_COLOR, GROUP_LABEL } from "@/lib/colors";
+import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/colors";
 import { euro } from "@/lib/utils";
 
 type T = ReturnType<typeof useT>;
@@ -39,6 +39,8 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
   const tile = BOARD[index];
   const t = useT();
   const name = useTileName()(index);
+  const own = game.props[index];
+  const proprietario = own ? game.players.find((p) => p.id === own.owner) : undefined;
 
   return (
     <div className="space-y-3 text-sm">
@@ -49,6 +51,16 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
           <div className="mt-0.5 flex items-center gap-1.5">
             <span className="h-3 w-1 shrink-0" style={{ background: GROUP_COLOR[tile.group] }} />
             <span className="text-micro tracking-widest text-muted-foreground uppercase">{GROUP_LABEL[tile.group]}</span>
+          </div>
+        )}
+        {/* sulla plancia il possesso è solo colore: qui il nome, per chi il colore
+            non lo distingue e per chi semplicemente non lo ricorda */}
+        {proprietario && (
+          <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+            <span className="size-3 shrink-0" style={{ background: TOKEN_COLOR[proprietario.token % 8] }} />
+            <span className="text-muted-foreground">{t("info.owner")}</span>
+            <b className="min-w-0 truncate">{proprietario.name}</b>
+            {own?.mortgaged && <span className="text-destructive">· {t("tile.mortgaged")}</span>}
           </div>
         )}
       </div>

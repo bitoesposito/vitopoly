@@ -5,6 +5,7 @@ import { alive, byId, cash, charge, cur, expropriate, moveAndResolve, nextPlayer
 import * as props from "./properties";
 import { handleTrade, voidTradesTouching } from "./trades";
 import { CHANCE, CHEST } from "./cards";
+import { MAX_NAME, TOKENS } from "./setup";
 
 type Node = TurnPhase | Interrupt;
 
@@ -299,6 +300,24 @@ function shuffled(s: GameState, n: number): number[] {
 function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   const isHost = s.players[0]?.id === pid;
 
+  if (a.type === "profile") {
+    const me = s.players.find((p) => p.id === pid);
+    if (!me) return err("non sei in partita");
+    if (a.name !== undefined) {
+      const nome = a.name.trim().slice(0, MAX_NAME);
+      if (!nome) return err("il nome non può essere vuoto");
+      if (s.players.some((p) => p.id !== pid && p.name.trim().toLowerCase() === nome.toLowerCase()))
+        return err("quel nome è già preso");
+      me.name = nome;
+    }
+    if (a.token !== undefined) {
+      if (!Number.isInteger(a.token) || a.token < 0 || a.token >= TOKENS) return err("colore non valido");
+      if (s.players.some((p) => p.id !== pid && p.token === a.token)) return err("quel colore è già preso");
+      me.token = a.token;
+    }
+    return ok(s);
+  }
+
   if (a.type !== "start") return err("partita non iniziata");
   if (!isHost) return err("solo l'host può iniziare");
   if (s.players.length < 2) return err("servono almeno 2 giocatori");
@@ -352,7 +371,7 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
 // Derived from the SAME table (+ the cash raisers on your turn / your debt). Feeds
 // client button enablement AND the soak test.
 export function legalActions(s: Pick<GameState, "status" | "phase" | "stack" | "players" | "current">, pid: PlayerId): ClientAction["type"][] {
-  if (s.status === "lobby") return ["start"];
+  if (s.status === "lobby") return ["start", "profile"];
   if (s.status === "ended") return [];
   const base = Object.keys(HANDLERS[activeNode(s).t]) as ClientAction["type"][];
   const raiser = s.players[s.current]?.id === pid || s.stack.some((f) => f.t === "debt" && f.debtor === pid);

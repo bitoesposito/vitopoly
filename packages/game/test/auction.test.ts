@@ -108,3 +108,32 @@ describe("buy / decline / auction", () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe("fare cassa durante l'asta", () => {
+  it("chi è ancora in gara può ipotecare anche se non è il suo turno", () => {
+    const s = started();
+    s.props[6] = { owner: "b", mortgaged: false, houses: 0 };
+    s.phase = { t: "buyPrompt", tile: 1, again: false };
+    const d = apply(s, "a", { type: "decline" }); // parte l'asta
+    if (!d.ok) throw new Error(d.error);
+    expect(d.state.stack.at(-1)?.t).toBe("auction");
+    expect(d.state.players[d.state.current].id).toBe("a"); // non è il turno di b
+    const m = apply(d.state, "b", { type: "mortgage", tile: 6 });
+    expect(m.ok).toBe(true);
+    if (m.ok) expect(m.state.props[6]!.mortgaged).toBe(true);
+  });
+
+  it("chi si è ritirato dall'asta non può più fare cassa fuori turno", () => {
+    const s = started();
+    s.props[6] = { owner: "b", mortgaged: false, houses: 0 };
+    s.phase = { t: "buyPrompt", tile: 1, again: false };
+    const d = apply(s, "a", { type: "decline" });
+    if (!d.ok) throw new Error(d.error);
+    const f = apply(d.state, "b", { type: "fold" });
+    if (!f.ok) throw new Error(f.error);
+    // se l'asta è ancora aperta, b è fuori e non può più smontare il patrimonio
+    if (f.state.stack.at(-1)?.t === "auction") {
+      expect(apply(f.state, "b", { type: "mortgage", tile: 6 }).ok).toBe(false);
+    }
+  });
+});

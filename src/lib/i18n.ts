@@ -59,6 +59,7 @@ const IT: Record<string, string> = {
 
   "center.turnOf": "turno di",
   "center.yourTurn": "È il tuo turno",
+  "center.yourCash": "Hai",
   "center.roll": "Tira i dadi",
   "center.rollAgain": "Doppio! Tira ancora",
   "center.endTurn": "Fine turno →",
@@ -95,6 +96,7 @@ const IT: Record<string, string> = {
 
   "buy.q": "Comprare {name} per",
   "buy.buy": "Compra",
+  "buy.short": "Ti mancano {amount}: puoi ipotecare o vendere dal pannello Proprietà.",
   "buy.declineAuction": "Rifiuta (asta)",
   "buy.decline": "Rifiuta",
   "auction.title": "Asta: {name}",

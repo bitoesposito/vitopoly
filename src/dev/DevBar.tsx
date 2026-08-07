@@ -56,6 +56,11 @@ const SCENARIOS: [string, () => GameState | null][] = [
     g.players[0].pos = 39;
     g.phase = { t: "buyPrompt", tile: 39, again: false };
   })],
+  ["buyPrompt (a secco)", () => base((g) => {
+    g.players[0].pos = 39;
+    g.players[0].cash = 120; // Milano costa 400: mancano 280
+    g.phase = { t: "buyPrompt", tile: 39, again: false };
+  })],
   ["postRoll + prop.", () => base((g) => {
     g.phase = { t: "postRoll", again: false };
     g.props = {

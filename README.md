@@ -43,7 +43,6 @@ cambiarle.
 
 - [`PRODUCT.md`](PRODUCT.md) — verità di prodotto: utenti, scopo, vincoli, cosa non va
   inventato.
-- [`DESIGN.md`](DESIGN.md) — il sistema di design ricavato dal codice costruito, con il
-  suo sidecar in `.impeccable/design.json`.
-- `scripts/verifica-dadi.mjs` — controlla il dado 3D leggendo il CSS: pip per faccia,
-  facce opposte che sommano a 7, e che ogni valore uscito mostri davvero la sua faccia.
+- [`DESIGN.md`](DESIGN.md) — il sistema di design ricavato dal codice costruito.
+- `scripts/shot.mjs` e `scripts/dev-shot.mjs` — screenshot dell'app viva (partita a due,
+  o un singolo scenario `/dev`): guardarla è l'unico modo per verificarne l'aspetto.

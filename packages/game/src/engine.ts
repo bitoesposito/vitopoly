@@ -333,9 +333,9 @@ function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   return ok(s, [info("partita iniziata")]);
 }
 
-/** Chi può fare cassa adesso: chi ha il turno, chi ha un debito aperto, e chi è
- *  ancora in gara in un'asta. Usata sia dal gate delle azioni sia da legalActions,
- *  così il client non può calcolarla diversamente. */
+/** Chi può fare cassa adesso: chi ha il turno, chi ha un debito aperto, chi è ancora
+ *  in gara in un'asta (offrire oltre i propri contanti è vietato: senza questo chi
+ *  resta corto non avrebbe mosse). Usata dal gate e da legalActions: una sola fonte. */
 export function canRaiseCash(s: Pick<GameState, "players" | "current" | "stack">, pid: PlayerId): boolean {
   if (s.players[s.current]?.id === pid) return true;
   const top = s.stack.at(-1);
@@ -352,12 +352,7 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
     return handleTrade(clone(state), pid, a); // orthogonal region
   if (a.type === "votekick") return votekick(clone(state), pid, a.target); // orthogonal region
   if (a.type === "mortgage" || a.type === "sellHouse" || a.type === "sellProperty") {
-    // Cash raisers: il tuo turno, il tuo debito, oppure un'asta in cui stai ancora
-    // offrendo. L'asta è una gara di contanti e il motore vieta di offrire oltre il
-    // proprio contante: senza questo, chi resta corto non ha nessuna mossa legale.
-    // Fuori da questi casi resta vietato: nessuno smonta il proprio patrimonio
-    // mentre tocca a un altro.
-    const s = clone(state);
+    const s = clone(state); // cash raisers: fuori dai casi di canRaiseCash nessuno smonta il proprio patrimonio
     if (!canRaiseCash(s, pid)) return err("non è il tuo turno");
     const fn = { mortgage: props.mortgage, sellHouse: props.sellHouse, sellProperty: props.sellProperty }[a.type];
     return assetOp(s, pid, a.tile, a.type, fn);
@@ -382,8 +377,7 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
   return h(clone(state), pid, a);
 }
 
-// Derived from the SAME table (+ the cash raisers on your turn / your debt). Feeds
-// client button enablement AND the soak test.
+// Derived from the SAME table (+ canRaiseCash). Feeds client button enablement AND the soak test.
 export function legalActions(s: Pick<GameState, "status" | "phase" | "stack" | "players" | "current">, pid: PlayerId): ClientAction["type"][] {
   if (s.status === "lobby") return ["start", "profile"];
   if (s.status === "ended") return [];

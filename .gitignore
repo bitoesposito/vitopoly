@@ -24,3 +24,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# stato del plugin impeccable (critique, sidecar, cache): non è il gioco
+.impeccable

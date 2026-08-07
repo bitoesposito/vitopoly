@@ -9,9 +9,8 @@ import { useT } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 import { shareInvite } from "@/lib/share";
 
-// Schermata pre-partita. Stessa lingua della home: nessuna card, sezioni separate
-// da un filetto, etichette in maiuscoletto spaziato. Le impostazioni non esistono
-// più — né qui né sul filo — e i posti non hanno tetto.
+// Sala d'attesa, non un cruscotto: colonna sola e centrata, sezioni separate da un
+// filetto e non da una cornice — card di peso uguale appiattivano ogni gerarchia.
 const ETICHETTA = "font-condensed text-micro tracking-widest text-muted-foreground uppercase";
 
 export function PreMatch({ game }: { game: PublicState }) {
@@ -22,10 +21,7 @@ export function PreMatch({ game }: { game: PublicState }) {
   const alone = game.players.length < 2;
 
   return (
-    // Colonna sola, stretta e centrata: è una sala d'attesa, non un cruscotto.
-    // Il ritmo lo fa il contrasto — 32px fra le sezioni, 8px dentro — e a separarle
-    // è un filetto, non una cornice: quattro card di peso uguale erano il motivo per
-    // cui niente sembrava più importante di nient'altro.
+    // ritmo per contrasto: 32px fra le sezioni, 8px dentro
     <div className="mx-auto flex w-full max-w-md flex-col gap-8 p-5">
       <section className="space-y-3">
         <h2 className={ETICHETTA}>{t("id.title")}</h2>

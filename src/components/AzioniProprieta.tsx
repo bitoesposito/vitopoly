@@ -15,13 +15,11 @@ import { useT } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 import { euro } from "@/lib/utils";
 
-// Le azioni su una proprietà tua, in un file suo perché le usano due superfici che
-// non devono conoscersi: il pannello Proprietà e il popover della casella.
-//
-// Nessuna regola è riscritta qui. Il MOTIVO per cui un'azione non si può fare arriva
-// dai predicati del motore (percheNo*), il MOMENTO in cui si può fare da legalActions.
-// Prima la UI riscriveva le condizioni a mano e mostrava "costruisci" anche senza il
-// set completo: si premeva, e il server rifiutava.
+// Le azioni su una proprietà tua: le usano il pannello Proprietà e il popover della
+// casella. Nessuna regola riscritta qui — il MOTIVO per cui non si può viene dai
+// predicati del motore (percheNo*), il MOMENTO da legalActions.
+type AzioneProp = Extract<ClientAction, { tile: number }>;
+
 export function AzioniProprieta({ game, myId, tile }: { game: PublicState; myId: string; tile: number }) {
   const t = useT();
   const own = game.props[tile];
@@ -31,9 +29,8 @@ export function AzioniProprieta({ game, myId, tile }: { game: PublicState; myId:
   const legal = new Set(legalActions(game, myId));
   const strada = def.kind === "street";
 
-  // mostrata = l'azione ha senso su questa casella; spenta = adesso non si può, e il
-  // title dice perché. Spegnere spiegando è meglio che nascondere senza motivo.
-  const azioni: { tipo: ClientAction["type"]; mostra: boolean; perche: string | null; nodo: React.ReactNode }[] = [
+  // mostrata = ha senso su questa casella; spenta = adesso non si può, e il title dice perché
+  const azioni: { tipo: AzioneProp["type"]; mostra: boolean; perche: string | null; nodo: React.ReactNode }[] = [
     {
       tipo: "build",
       mostra: strada && !own.mortgaged && own.houses < 5,
@@ -93,7 +90,7 @@ export function AzioniProprieta({ game, myId, tile }: { game: PublicState; myId:
             className="flex-1 pointer-coarse:min-h-11"
             disabled={!!motivo}
             title={motivo ?? undefined}
-            onClick={() => send({ type: tipo } as ClientAction)}
+            onClick={() => send({ type: tipo, tile })}
           >
             {nodo}
           </Button>

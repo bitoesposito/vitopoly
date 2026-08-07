@@ -8,15 +8,10 @@ import { euro } from "@/lib/utils";
 import { useT, useTileName } from "@/lib/i18n";
 import { BundleChips } from "./Panels";
 
-// Animated event cards. Each popup pops in the moment it's pushed (ws.ts schedules
-// the timing), stacks on the previous ones, and dismisses itself after a hold long
-// enough to read. Non-blocking: clicks pass through around the stack, a tap on a
-// card dismisses it. Trades get their own animation: the exchanged assets fly
-// between the two players.
-
-// Blitz = perquisizione (sanguigna), Favori = busta (indaco).
-// Inchiostri "da carta": la carta evento è carta, quindi gli accenti sono quelli
-// stampabili sul chiaro, non quelli tarati sul fondo scuro.
+// Animated event cards. Each pops in when pushed (ws.ts schedules the timing), stacks
+// on the previous ones, and dismisses itself after a readable hold. Non-blocking:
+// clicks pass through around the stack. Trades fly the exchanged assets between players.
+// Accenti "da carta": la carta evento è carta, quindi inchiostri stampabili sul chiaro.
 const STYLE: Record<CardPopup["kind"], { icon: LucideIcon; accent: string; titleKey: string }> = {
   chance: { icon: Siren, accent: "var(--color-sanguigna-carta)", titleKey: "popup.chance" },
   chest: { icon: Mail, accent: "var(--color-indaco-carta)", titleKey: "popup.chest" },

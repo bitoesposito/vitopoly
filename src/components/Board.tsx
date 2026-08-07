@@ -14,14 +14,12 @@ export function Board({ game }: { game: PublicState }) {
     <div
       // gap-px su paper-line: il filo tra due note è una riga incisa
       className="filetto tratteggio relative m-auto grid aspect-square min-h-0 w-full gap-px border bg-paper-line md:w-[min(100%,100dvh_-_2.5rem)]"
-      // containerType inline-size: la tipografia delle celle è in cqi, quindi la
-      // plancia RIMPICCIOLISCE invece di andare a capo. Sotto una certa misura
-      // preferiamo testo minuscolo ma intero a testo leggibile spezzato.
+      // containerType inline-size: la tipografia delle celle è in cqi, quindi la plancia
+      // RIMPICCIOLISCE invece di andare a capo — meglio minuscolo intero che leggibile spezzato.
       style={{
         containerType: "inline-size",
-        // minmax(0,…) e non 1fr: una traccia 1fr non scende sotto il min-content del
-        // contenuto, quindi i nomi lunghi spingevano la griglia oltre l'aspect-square
-        // e la plancia usciva dal viewport (misurata: 760 larga, 808 alta)
+        // minmax(0,…) e non 1fr: 1fr non scende sotto il min-content, e i nomi lunghi
+        // spingevano la griglia oltre l'aspect-square fino a uscire dal viewport
         gridTemplateColumns: "minmax(0, 1.55fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.55fr)",
         gridTemplateRows: "minmax(0, 1.55fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.55fr)",
       }}

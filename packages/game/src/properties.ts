@@ -3,14 +3,10 @@ import { BOARD, groupTiles } from "./board-data";
 
 // Asset management: build/sell/mortgage. Mounted under BOTH postRoll and debt nodes.
 // Each returns an error string or null on success (state mutated in place — caller passes a clone).
-//
-// Ogni operazione è divisa in due: `perche<Op>` dice PERCHÉ non si può (o null se si
-// può), l'operazione la esegue. Il client chiama i predicati per spegnere i bottoni
-// con il motivo giusto; il motore chiama gli stessi predicati prima di mutare. Non
-// esiste un secondo posto dove le regole possano divergere.
+// `perche<Op>` dice perché non si può (null = si può): il client li chiama per spegnere
+// i bottoni col motivo giusto, il motore prima di mutare. Le regole stanno solo qui.
 
-/** Vista minima che i predicati richiedono: la stessa che il client ha in mano
- *  (PublicState non ha seed e decks, e a queste regole non servono). */
+/** Vista minima dei predicati: la stessa che ha il client (PublicState). */
 export type Regole = Pick<GameState, "props" | "players" | "settings" | "bank">;
 
 const chi = (s: Regole, pid: PlayerId) => s.players.find((p) => p.id === pid);

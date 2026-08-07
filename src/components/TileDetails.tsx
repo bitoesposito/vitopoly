@@ -35,9 +35,8 @@ function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
   }
 }
 
-// Popover della casella: cosa è, quanto rende, di chi è — e, se è tua, cosa puoi
-// farci adesso. Le azioni sono le stesse del pannello Proprietà (stesso componente):
-// chi apre una casella per informarsi si aspetta di poterci anche agire.
+// Popover della casella: cosa è, quanto rende, di chi è — e, se è tua, le stesse azioni
+// del pannello Proprietà: chi apre per informarsi si aspetta di poterci agire.
 export function TileDetails({ index, game }: { index: number; game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const tile = BOARD[index];

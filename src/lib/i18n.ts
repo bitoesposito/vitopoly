@@ -17,8 +17,6 @@ const IT: Record<string, string> = {
     "Da Foggia alla Milano di Mani Pulite: compri, incassi, corrompi e prima o poi finisci dentro. Quanti amici vuoi, in tempo reale.",
   "lobby.noAccount": "Niente account, niente installazione: serve solo il link.",
 
-  // Niente più chiavi di impostazioni: non esistono interruttori da etichettare.
-  // Il regolamento si legge in rules.* ed è lo stesso per tutte le partite.
   "id.title": "Chi sei",
   "id.name": "Il tuo nome",
   "id.rename": "Cambia",
@@ -146,8 +144,7 @@ const IT: Record<string, string> = {
   "trade.send": "Invia",
   "bundle.nothing": "niente",
 
-  // Regolamento. È una VARIANTE: chi conosce il Monopoly non conosce queste caselle,
-  // e prima non poteva scoprirle se non atterrandoci sopra.
+  // Regolamento: è una VARIANTE, queste caselle non si scoprono se non atterrandoci sopra.
   "rules.title": "Come si gioca",
   "rules.turn": "Il giro",
   "rules.turnBody":
@@ -206,7 +203,7 @@ export function translate(key: string, vars?: Vars): string {
   return s;
 }
 
-// Hook mantenuto per compatibilità di firma: t(key, vars). Nessuna sottoscrizione.
+// Monolingua: nessuna sottoscrizione, l'hook esiste solo per la firma t(key, vars).
 export function useT() {
   return translate;
 }

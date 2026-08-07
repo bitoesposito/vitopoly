@@ -15,6 +15,9 @@ export type ClientMsg =
   | { type: "chat"; text: string };
 
 export type ServerMsg =
+  // Il segreto del posto: coniato alla prima occupazione, mandato SOLO a quella socket.
+  // I pid viaggiano nello stato pubblico, quindi da soli non bastano più a sedersi.
+  | { type: "seat"; token: string }
   | { type: "state"; state: PublicState; events: GameEvent[] }
   | { type: "chat"; msg: ChatMsg }
   | { type: "chatHistory"; msgs: ChatMsg[] }

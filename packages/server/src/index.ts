@@ -6,6 +6,8 @@ export interface Env {
   ROOM: DurableObjectNamespace;
 }
 
+// Aperto di proposito: non c'è cookie né credenziale da rubare con una richiesta
+// cross-origin. Il confine è il segreto di posto (room.ts), non l'origine.
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",

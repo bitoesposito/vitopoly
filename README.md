@@ -46,3 +46,6 @@ cambiarle.
 - [`DESIGN.md`](DESIGN.md) — il sistema di design ricavato dal codice costruito.
 - `scripts/shot.mjs` e `scripts/dev-shot.mjs` — screenshot dell'app viva (partita a due,
   o un singolo scenario `/dev`): guardarla è l'unico modo per verificarne l'aspetto.
+- `scripts/prova-server.mjs` — il confine di fiducia del server contro un server vero:
+  segreti di posto, impostore respinto, rientro, `/debug` chiuso, nessun timer a stanza
+  vuota. Vuole `pnpm dev` acceso.

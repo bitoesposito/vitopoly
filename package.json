@@ -3,13 +3,14 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "packageManager": "pnpm@11.7.0",
   "scripts": {
     "dev": "pnpm --parallel --include-workspace-root -r run serve",
     "serve": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc -b --noEmit",
+    "typecheck": "tsc -b --noEmit && pnpm -r typecheck",
     "preview": "vite preview"
   },
   "dependencies": {

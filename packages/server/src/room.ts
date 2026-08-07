@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { activeNode, addPlayer, apply, auctionTimeout, createGame, redact, setConnected, timeoutAction, timeoutMs } from "@tangentopoly/game";
+import { activeNode, addPlayer, apply, auctionTimeout, createGame, redact, setConnected, timeoutAction, timeoutMs, violazioni } from "@tangentopoly/game";
 import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@tangentopoly/game";
 import type { Env } from "./index";
 
@@ -7,10 +7,16 @@ function seed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0] || 1;
 }
 
+// Una stanza morta viene cancellata dopo questo silenzio: fine partita, o nessuno collegato.
+const PULIZIA_MS = 24 * 60 * 60 * 1000;
+
 // One room = one Durable Object. State is a single JSON blob under key "game".
 export class RoomDO extends DurableObject<Env> {
   private game!: GameState;
   private chat!: ChatMsg[];
+  // pid -> segreto. Fuori dal blob del gioco: redact() non può perderlo per sbaglio.
+  private seats!: Record<string, string>;
+  private ultimaChat: Record<string, number> = {};
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -19,32 +25,54 @@ export class RoomDO extends DurableObject<Env> {
       this.game = (await ctx.storage.get<GameState>("game")) ?? createGame(seed());
       this.game.kickVotes ??= {}; // blobs persisted before votekick existed
       this.chat = (await ctx.storage.get<ChatMsg[]>("chat")) ?? [];
+      this.seats = (await ctx.storage.get<Record<string, string>>("seats")) ?? {};
     });
+  }
+
+  // Il posto è di chi ne ha il segreto. Chi arriva con un pid mai visto lo occupa e
+  // riceve il segreto; chi arriva con un pid già occupato e il segreto sbagliato non è
+  // quel giocatore, e resta spettatore. (Le stanze aperte prima di questo controllo non
+  // hanno segreti: il primo che si collega si prende il posto.)
+  private async claimSeat(pid: string, token: string | null): Promise<string | null> {
+    const mio = this.seats[pid];
+    if (mio) return mio === token ? mio : null;
+    const nuovo = crypto.randomUUID();
+    this.seats = { ...this.seats, [pid]: nuovo };
+    await this.ctx.storage.put("seats", this.seats);
+    return nuovo;
   }
 
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
+    const pid = url.searchParams.get("pid");
+    const token = url.searchParams.get("token");
 
-    // debug escape hatch: passa da redact() come ogni altra uscita di stato
-    if (url.pathname.endsWith("/debug")) return Response.json(redact(this.game));
+    // debug escape hatch: solo per chi ha un posto in questa stanza, e sempre da redact()
+    if (url.pathname.endsWith("/debug")) {
+      if (!pid || !token || this.seats[pid] !== token) return new Response("non sei di questa stanza", { status: 403 });
+      return Response.json(redact(this.game));
+    }
 
     if (req.headers.get("Upgrade") !== "websocket") return new Response("expected websocket", { status: 426 });
-    const pid = url.searchParams.get("pid");
     const name = (url.searchParams.get("name") || "Player").slice(0, 20);
     if (!pid) return new Response("missing pid", { status: 400 });
 
+    const seat = await this.claimSeat(pid, token);
     const { 0: client, 1: server } = new WebSocketPair();
     this.ctx.acceptWebSocket(server);
-    server.serializeAttachment({ pid, name }); // survives hibernation — the trust boundary
+    // l'attachment sopravvive all'ibernazione: è QUI che il pid diventa affidabile
+    server.serializeAttachment({ pid: seat ? pid : `spettatore:${crypto.randomUUID()}`, name });
 
-    // no-op se già dentro (reconnect); null solo a partita iniziata -> spettatore
-    const joined = addPlayer(this.game, pid, name);
     this.send(server, { type: "chatHistory", msgs: this.chat });
-    if (joined) {
+    // seat null = pid altrui senza segreto: guarda e basta
+    const joined = seat ? addPlayer(this.game, pid, name) : null;
+    if (seat && joined) {
+      this.send(server, { type: "seat", token: seat });
       setConnected(this.game, pid, true);
       await this.persistAndBroadcast();
     } else {
-      // game already started: stay as a spectator — sees state and chat, no seat
+      // partita già iniziata, o posto di qualcun altro: spettatore, vede stato e chat
+      if (!seat) this.send(server, { type: "error", error: "questo posto è di un altro giocatore: puoi solo guardare" });
       this.send(server, { type: "state", state: redact(this.game), events: [] });
     }
 
@@ -74,6 +102,10 @@ export class RoomDO extends DurableObject<Env> {
       const text = String(msg.text ?? "").slice(0, 300).trim();
       const name = this.game.players.find((p) => p.id === pid)?.name ?? att.name ?? "?";
       if (!text) return;
+      // ogni messaggio è una scrittura su storage: uno al secondo a testa basta e avanza
+      const ora = Date.now();
+      if (ora - (this.ultimaChat[pid] ?? 0) < 1000) return;
+      this.ultimaChat[pid] = ora;
       const m: ChatMsg = { pid, name, text, ts: Date.now() };
       this.chat = [...this.chat, m].slice(-100);
       await this.ctx.storage.put("chat", this.chat);
@@ -101,6 +133,12 @@ export class RoomDO extends DurableObject<Env> {
     await this.persistAndBroadcast();
   }
 
+  // una socket che muore male non chiama webSocketClose: senza questo il giocatore
+  // resterebbe "collegato" per sempre e la stanza continuerebbe a giocare da sola
+  async webSocketError(ws: WebSocket): Promise<void> {
+    await this.webSocketClose(ws);
+  }
+
   // Timer: fires when the current wait-node's deadline passes; applies the default action.
   // Same deal as webSocketMessage: a throw would reset the DO, so catch and retry.
   async alarm(): Promise<void> {
@@ -113,6 +151,8 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private async handleAlarm(): Promise<void> {
+    // stanza finita o abbandonata: l'unico alarm che resta è quello che la cancella
+    if (this.game.status === "ended" || !this.inLinea()) return void (await this.ctx.storage.deleteAll());
     if (this.game.status !== "playing" || !this.game.deadline) return;
     if (Date.now() < this.game.deadline - 1000) {
       // an action moved the deadline after this alarm was queued — re-arm
@@ -135,8 +175,9 @@ export class RoomDO extends DurableObject<Env> {
 
   // Single commit path: cap log, persist, broadcast, re-arm the timer.
   private async commit(r: Extract<Result, { ok: true }>, from?: WebSocket): Promise<void> {
-    if (!invariantsOk(r.state)) {
-      console.error("invariant violation, state not persisted:", JSON.stringify(r.events));
+    const rotte = violazioni(r.state);
+    if (rotte.length) {
+      console.error("invarianti violate, stato non salvato:", rotte, JSON.stringify(r.events));
       if (from) this.send(from, { type: "error", error: "errore interno (stato non salvato)" });
       return;
     }
@@ -145,13 +186,20 @@ export class RoomDO extends DurableObject<Env> {
     await this.persistAndBroadcast(r.events);
   }
 
+  // C'è ancora qualcuno che sta giocando davvero? Il timer del turno esiste per non far
+  // aspettare gli altri: senza nessuno collegato non ha nessuno da sbloccare, e una
+  // stanza abbandonata si giocherebbe da sola fino alla bancarotta di qualcuno.
+  private inLinea(): boolean {
+    return this.game.players.some((p) => p.connected && !p.bankrupt);
+  }
+
   private async persistAndBroadcast(events: GameEvent[] = []): Promise<void> {
-    if (this.game.status === "playing") {
+    if (this.game.status === "playing" && this.inLinea()) {
       this.game.deadline = Date.now() + timeoutMs(this.game);
       await this.ctx.storage.setAlarm(this.game.deadline);
     } else {
       this.game.deadline = undefined;
-      await this.ctx.storage.deleteAlarm();
+      await this.ctx.storage.setAlarm(Date.now() + PULIZIA_MS); // partita finita o stanza vuota: si cancella
     }
     await this.ctx.storage.put("game", this.game);
     const s = JSON.stringify({ type: "state", state: redact(this.game), events } satisfies ServerMsg);
@@ -171,12 +219,4 @@ export class RoomDO extends DurableObject<Env> {
       /* socket closing */
     }
   }
-}
-
-function invariantsOk(s: GameState): boolean {
-  if (s.status === "playing" && (s.current < 0 || s.current >= s.players.length || s.players[s.current].bankrupt)) return false;
-  if (s.players.some((p) => p.cash < 0)) return false;
-  const houses = Object.values(s.props).reduce((n, o) => n + (o!.houses === 5 ? 0 : o!.houses), 0);
-  if (houses + s.bank.houses !== 32) return false;
-  return true;
 }

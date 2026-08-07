@@ -26,7 +26,10 @@ export function connect(code: string, name: string): void {
     socket.onclose = null; // deliberate close: don't trigger the old socket's retry
     socket.close();
   }
-  const url = `${WS_BASE}/api/room/${code}/ws?pid=${myId}&name=${encodeURIComponent(name)}`;
+  // Il segreto del posto, coniato dal server alla prima entrata: senza, chiunque legga
+  // il tuo pid nello stato pubblico potrebbe rientrare come te. Uno per stanza.
+  const token = localStorage.getItem(`tangentopoly:token:${code}`) ?? "";
+  const url = `${WS_BASE}/api/room/${code}/ws?pid=${myId}&token=${token}&name=${encodeURIComponent(name)}`;
   socket = new WebSocket(url);
   socket.onopen = () => {
     retries = 0;
@@ -44,6 +47,9 @@ export function connect(code: string, name: string): void {
   socket.onmessage = (ev) => {
     const msg = JSON.parse(ev.data) as ServerMsg;
     switch (msg.type) {
+      case "seat":
+        localStorage.setItem(`tangentopoly:token:${code}`, msg.token);
+        break;
       case "state":
         useGame.setState({ game: msg.state, error: null }); // wholesale replace — no merging, no folding
         useGame.getState().pushEvents(msg.events);

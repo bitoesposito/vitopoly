@@ -15,7 +15,6 @@ import { AzioniProprieta } from "./AzioniProprieta";
 import { PlayerList } from "./PlayerList";
 import { AuctionPanel } from "./AuctionPanel";
 
-// compact game panels
 function Panel({ ring, children }: { ring?: string; children: React.ReactNode }) {
   return (
     <Card size="sm" className={ring}>
@@ -62,8 +61,8 @@ function PropCell({ game, tile, sel, onClick }: { game: PublicState; tile: numbe
   );
 }
 
-// Le mie proprietà: griglia di celle, tocchi una cella e sotto compaiono le azioni
-// per QUELLA proprietà a tutta larghezza (niente più bottoni che schiacciano i nomi).
+// Le mie proprietà: tocchi una cella e sotto compaiono le azioni per QUELLA proprietà,
+// a tutta larghezza invece che spalmate su ogni riga.
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const t = useT();
   const [sel, setSel] = useState<number | null>(null);
@@ -255,9 +254,8 @@ export function BundleChips({ b, fly, paper }: { b: Bundle; fly?: "r" | "l"; pap
   );
 }
 
-// Pannello Scambi unico e navigabile: lista <-> dettaglio proposta / nuovo scambio.
-// La freccia in header torna alla lista; una proposta nuova apre da sola il dettaglio
-// e resta listata (con "Mostra") finché non si conclude o viene rifiutata.
+// Pannello Scambi navigabile: lista <-> dettaglio. Una proposta nuova apre da sola il
+// dettaglio e resta listata (con "Mostra") finché non si conclude.
 export function TradePanel({ game, myId }: { game: PublicState; myId: string }) {
   const tr = useT();
   const tradeOpen = useGame((s) => s.tradeOpen);

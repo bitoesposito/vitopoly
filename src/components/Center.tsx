@@ -140,6 +140,7 @@ export function Center({ game }: { game: PublicState }) {
   const legal = new Set(legalActions(game, myId));
   const isMyTurn = game.players[game.current]?.id === myId;
   const me = game.players.find((p) => p.id === myId);
+  const corrente = game.players[game.current];
   const names = Object.fromEntries(game.players.map((p) => [p.id, p.name]));
   const node = activeNode(game);
   const again = game.phase.t === "postRoll" && game.phase.again && game.stack.length === 0;
@@ -187,6 +188,8 @@ export function Center({ game }: { game: PublicState }) {
     return null;
   })();
 
+  // quanto manca per comprare la casella su cui sei fermo (0 = te la puoi permettere)
+  const manca = node.t === "buyPrompt" && isMyTurn ? Math.max(0, (BOARD[node.tile].price ?? 0) - (me?.cash ?? 0)) : 0;
   const debito = node.t === "debt" ? (node as DebtFrame) : null;
   const dovuto = debito?.claims.reduce((s, c) => s + c.amount, 0) ?? 0;
   // a chi si deve
@@ -199,6 +202,7 @@ export function Center({ game }: { game: PublicState }) {
     dice ? t("aria.rolled", { d1: dice.d1, d2: dice.d2 }) : "",
     isMyTurn ? t("center.yourTurn") : t("center.turnOf") + " " + (names[game.players[game.current]?.id] ?? ""),
     node.t === "buyPrompt" ? t("buy.q", { name: tn(node.tile) }) + " " + euro(BOARD[node.tile].price ?? 0) : "",
+    manca > 0 ? t("buy.short", { amount: euro(manca) }) : "",
     debito && debito.debtor === myId ? t("debt.youOwe", { total: euro(dovuto), to: creditori }) : "",
   ]
     .filter(Boolean)
@@ -228,7 +232,13 @@ export function Center({ game }: { game: PublicState }) {
       )}
       {node.t === "buyPrompt" && isMyTurn && (
         <>
-          <Button size="lg" className={AZIONE} disabled={(me?.cash ?? 0) < (BOARD[node.tile].price ?? 0)} onClick={() => send({ type: "buy" })}>
+          <Button
+            size="lg"
+            className={AZIONE}
+            disabled={manca > 0}
+            title={manca > 0 ? t("buy.short", { amount: euro(manca) }) : undefined}
+            onClick={() => send({ type: "buy" })}
+          >
             {t("buy.buy")}
           </Button>
           <Button size="lg" className={AZIONE} variant="secondary" onClick={() => send({ type: "decline" })}>
@@ -275,9 +285,9 @@ export function Center({ game }: { game: PublicState }) {
           )}
           <Countdown deadline={game.deadline} />
         </span>
-        {/* le regole restano raggiungibili in partita: è una variante, e finora si
-            scoprivano solo atterrandoci sopra */}
-        {me && <span className="font-mono tabular-nums text-success">{euro(me.cash)}</span>}
+        {/* la cifra sta accanto al nome, quindi è di CHI HA IL TURNO: prima mostrava
+            sempre la mia e si leggeva come il contante dell'altro */}
+        {corrente && <span className="font-mono tabular-nums text-success">{euro(corrente.cash)}</span>}
         <Popover>
           <PopoverTrigger asChild>
             <Button size="icon-sm" variant="ghost" aria-label={t("rules.title")}>
@@ -304,11 +314,27 @@ export function Center({ game }: { game: PublicState }) {
         <Die3D value={dice?.d2 ?? null} spin={spin} alt />
       </button>
 
+      {/* quando in alto c'è il contante di un altro, il mio resta visibile qui: durante
+          un'asta è il numero che decide quanto posso offrire */}
+      {me && !isMyTurn && (
+        <div className="text-2xs text-muted-foreground sm:text-xs">
+          {t("center.yourCash")} <span className="font-mono tabular-nums text-success">{euro(me.cash)}</span>
+        </div>
+      )}
+
       {/* single action zone; #azione = bersaglio dello skip link (40 celle lo precedono) */}
       <div id="azione" tabIndex={-1} className="flex flex-col items-center gap-2 focus:outline-none">
         {node.t === "buyPrompt" && isMyTurn && (
-          <div className="text-center text-sm font-semibold lg:text-base">
-            {t("buy.q", { name: tn(node.tile) })} <span className="font-mono text-success">{euro(BOARD[node.tile].price ?? 0)}</span>?
+          <div className="space-y-1 text-center">
+            <div className="text-sm font-semibold lg:text-base">
+              {t("buy.q", { name: tn(node.tile) })} <span className="font-mono text-success">{euro(BOARD[node.tile].price ?? 0)}</span>?
+            </div>
+            {/* mancano i soldi: dirlo, e dire quanti. Un bottone spento non si capiva. */}
+            {manca > 0 && (
+              <div role="alert" className="text-xs font-semibold text-destructive lg:text-sm">
+                {t("buy.short", { amount: euro(manca) })}
+              </div>
+            )}
           </div>
         )}
         {debito && (debito.debtor === myId ? (

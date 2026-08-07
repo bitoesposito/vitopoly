@@ -84,15 +84,15 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* gioco sempre in dark (main.tsx aggiunge .dark) — il tema light è stato rimosso.
-   La classe .dark resta: le utility `dark:` dei componenti ui la usano. */
+/* gioco sempre in dark (main.tsx aggiunge .dark); la classe resta perché le utility
+   `dark:` dei componenti ui la usano */
 :root {
     --radius: 0;
 }
 
-/* La carta NON è `--card`: è un materiale applicato dove la carta esiste (celle,
-   talloncini, carte evento). Ribaltare `--card` renderebbe illeggibile ogni
-   `text-muted-foreground` del codebase, che serve sia chrome scura sia carta. */
+/* La carta NON è `--card`: è un materiale applicato dove la carta esiste davvero
+   (celle, talloncini, carte evento). Ribaltare `--card` spegnerebbe ogni
+   `text-muted-foreground`, che serve sia la chrome scura sia la carta. */
 .dark {
     --background: oklch(0.288 0.022 168);
     --foreground: oklch(0.95 0.012 92);
@@ -147,9 +147,8 @@
     /* scrivania: tratteggio d'intaglio a 45 gradi, appena percettibile */
     --tratteggio: repeating-linear-gradient(45deg, oklch(1 0 0 / 0.016) 0 1px, transparent 1px 7px);
 }
-/* La carta ha una grana: senza, il substrato è solo un rettangolo chiaro.
-   `background-color` e non la scorciatoia, perché la tinta del proprietario
-   arriva inline e non deve cancellare la texture. */
+/* `background-color` e non la scorciatoia: la tinta del proprietario arriva inline
+   e non deve cancellare la grana. */
 .nota {
     background-color: var(--paper);
     background-image: var(--grana);
@@ -210,18 +209,15 @@
 .chip-fly-r { animation: chip-r 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .chip-fly-l { animation: chip-l 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-/* Dadi 3D (Center.tsx): cubo a 6 facce con pip reali, geometria in em (1em = lato,
-   dimensione via --die). Il lancio è diviso in due: la SCENA porta l'arco (il dado
-   sale e ricade), il CUBO porta la rotazione. Entrambi i dadi durano uguale — la
-   varietà sta nei giri, non nel tempo — e si posano con una decelerazione
-   esponenziale, non con un rimbalzo. Palette avorio, indipendente dal tema. */
+/* Dadi 3D (Center.tsx): cubo a 6 facce, geometria in em (1em = lato, misura via --die).
+   Il lancio è diviso in due: la SCENA porta l'arco, il CUBO la rotazione. Durata uguale
+   per entrambi i dadi — la varietà sta nei giri — e si posano decelerando, non rimbalzando. */
 .die-scene {
     width: var(--die, 3rem);
     height: var(--die, 3rem);
-    /* NIENTE perspective (come il riferimento): proiezione ortografica -> a riposo
-       si vede solo la faccia frontale arrotondata, zero artefatti agli angoli */
+    /* niente perspective: ortografica -> a riposo solo la faccia frontale, zero artefatti.
+       Niente filter: su un antenato appiattisce il 3D dei figli. */
     transition: transform .25s ease;
-    /* niente filter: su un antenato appiattisce il 3D dei figli (facce schiacciate) */
 }
 /* l'arco del lancio: su e giù, con la salita più rapida della discesa */
 @keyframes die-toss {
@@ -284,10 +280,8 @@
 .die-right::after { margin: -.3em 0 0 -.3em; box-shadow: .4em 0, 0 .4em, .4em .4em; }
 .die-left::after { margin: -.35em 0 0 -.35em; box-shadow: .25em .25em, .5em .5em; }
 
-/* perspective() DENTRO i keyframe: scorcio prospettico al cubo in movimento (senza,
-   l'ortografica lo appiattisce in rettangoli); a riposo il cubo è axis-aligned e la
-   prospettiva è ininfluente -> faccia frontale pulita, zero artefatti agli angoli */
-/* 9em e non 4: più vicino lo scorcio stira le facce */
+/* perspective() DENTRO i keyframe: scorcio solo al cubo in movimento, a riposo
+   axis-aligned e pulito. 9em e non 4: più vicino, lo scorcio stira le facce. */
 @keyframes die-roll {
     50% { transform: perspective(9em) rotateX(1turn) rotateY(1.25turn) rotateZ(.25turn) scale(.86); }
     to { transform: perspective(9em) rotateX(2turn) rotateY(2.5turn) rotateZ(.5turn); }
@@ -299,8 +293,7 @@
 .die-rolling { animation: die-roll var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }
 .die-rolling-alt { animation: die-roll-alt var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }
 
-/* tray cliccabile: hover = leggera inclinazione 3D dei cubi (si vedono i lati),
-   click = "pressione" sui dadi. I due dadi si inclinano in verso opposto. */
+/* hover sul tray: i due cubi si inclinano in verso opposto e mostrano i lati */
 .dice-tray:not(:disabled):hover .die { --die-tilt: perspective(9em) rotateX(-12deg) rotateY(14deg); }
 .dice-tray:not(:disabled):hover .die-rolling-alt { --die-tilt: perspective(9em) rotateX(-12deg) rotateY(-14deg); }
 .dice-tray:not(:disabled):active .die-scene { transform: scale(.9); }

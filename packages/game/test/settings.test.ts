@@ -69,16 +69,10 @@ describe("game settings", () => {
   it("vacation pot: bank fees accumulate, landing collects", () => {
     const s = started();
     expect(s.settings.vacationCash).toBe(true);
-    // income tax via charge
-    s.players[0].pos = 4;
-    const r = apply(s, "a", { type: "roll" }); // roll moves elsewhere, so test the funnel directly instead
-    expect(r.ok).toBe(true);
-    // direct: charge through the transfer funnel
-    const s2 = started();
-    s2.players[0].cash = 1000;
-    s2.phase = { t: "postRoll", again: false };
-    s2.stack.push({ t: "debt", debtor: "a", claims: [{ creditor: "bank", amount: 200 }] });
-    const paid = apply(s2, "a", { type: "payDebt" });
+    s.players[0].cash = 1000;
+    s.phase = { t: "postRoll", again: false };
+    s.stack.push({ t: "debt", debtor: "a", claims: [{ creditor: "bank", amount: 200 }] });
+    const paid = apply(s, "a", { type: "payDebt" });
     if (!paid.ok) throw new Error(paid.error);
     expect(paid.state.vacationPot).toBe(200);
   });

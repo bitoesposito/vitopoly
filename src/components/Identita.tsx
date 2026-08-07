@@ -9,8 +9,7 @@ import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { send } from "@/lib/ws";
 
-// La tua identità prima della partita: nome e inchiostro. Il vincolo di unicità è
-// del motore; qui lo si vede PRIMA di premere, non dopo il rifiuto.
+// Nome e inchiostro. Il vincolo di unicità è del motore: qui lo si vede prima di premere.
 export function Identita({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();

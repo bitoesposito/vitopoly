@@ -2,8 +2,7 @@ import { BAIL, BOARD, GO_SALARY } from "@tangentopoly/game";
 import { GROUP_COLOR, GROUP_LABEL } from "@/lib/colors";
 import { useT } from "@/lib/i18n";
 
-// L'unica spiegazione del gioco: è una variante, e le differenze non si scoprono
-// giocando se non atterrandoci sopra.
+// L'unica spiegazione del gioco: le differenze dal Monopoly non si scoprono giocando.
 export function Regole() {
   const t = useT();
   // le serie in ordine di prezzo

@@ -11,8 +11,7 @@ import { useT } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/colors";
 import { GamePanels } from "@/components/Panels";
 
-// La chat ha UNA casa sola a ogni misura: la colonna destra da md in su, il
-// bottom-sheet sotto md. Prima ne aveva tre e si spostava fra i viewport.
+// La chat ha UNA casa sola a ogni misura: colonna destra da md in su, bottom-sheet sotto.
 export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: () => void; className?: string }) {
   const chat = useGame((s) => s.chat);
   const game = useGame((s) => s.game);

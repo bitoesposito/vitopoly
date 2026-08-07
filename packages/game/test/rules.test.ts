@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { apply } from "../src/engine";
 import { rentFor } from "../src/rent";
-import { build, sellHouse } from "../src/properties";
+import { build, percheNoBuild, percheNoMortgage, percheNoSellProperty, percheNoUnmortgage, sellHouse } from "../src/properties";
 import { started } from "./helpers";
 import type { GameState } from "../src/types";
 
@@ -192,5 +192,44 @@ describe("trades", () => {
     if (!r.ok) return;
     expect(r.state.trades).toHaveLength(0);
     expect(r.state.players[0].cash).toBe(1500); // nothing executed
+  });
+});
+
+describe("predicati delle regole (usati anche dalla UI)", () => {
+  it("costruire richiede il set completo, e il motivo è lo stesso che vede il client", () => {
+    const s = started();
+    s.players[0].cash = 10000;
+    s.props[1] = { owner: "a", mortgaged: false, houses: 0 };
+    // Foggia senza Trani: niente set
+    expect(percheNoBuild(s, "a", 1)).toBe("serve l'intero gruppo di colore");
+    expect(build(s, "a", 1)).toBe("serve l'intero gruppo di colore"); // motore e predicato d'accordo
+    ownGroup(s, [1, 3], "a");
+    expect(percheNoBuild(s, "a", 1)).toBeNull();
+  });
+
+  it("i predicati coprono i casi in cui il bottone non deve essere premibile", () => {
+    const s = started();
+    s.players[0].cash = 10000;
+    ownGroup(s, [1, 3], "a");
+    // ipotecata: non ci si costruisce
+    s.props[1]!.mortgaged = true;
+    expect(percheNoBuild(s, "a", 1)).toBe("è ipotecata");
+    s.props[1]!.mortgaged = false;
+    // senza contanti
+    s.players[0].cash = 0;
+    expect(percheNoBuild(s, "a", 1)).toBe("non te lo puoi permettere");
+    s.players[0].cash = 10000;
+    // banca a secco
+    s.bank.houses = 0;
+    expect(percheNoBuild(s, "a", 1)).toBe("la banca ha finito le case");
+    s.bank.houses = 32;
+    // con edifici sul gruppo non si ipoteca né si svende
+    expect(build(s, "a", 1)).toBeNull();
+    expect(percheNoMortgage(s, "a", 3)).toBe("il gruppo ha edifici");
+    expect(percheNoSellProperty(s, "a", 3)).toBe("il gruppo ha edifici");
+    // riscatto senza soldi
+    s.props[6] = { owner: "a", mortgaged: true, houses: 0 };
+    s.players[0].cash = 0;
+    expect(percheNoUnmortgage(s, "a", 6)).toBe("non te lo puoi permettere");
   });
 });

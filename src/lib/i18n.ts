@@ -17,8 +17,6 @@ const IT: Record<string, string> = {
     "Da Foggia alla Milano di Mani Pulite: compri, incassi, corrompi e prima o poi finisci dentro. Quanti amici vuoi, in tempo reale.",
   "lobby.noAccount": "Niente account, niente installazione: serve solo il link.",
 
-  // Niente più chiavi di impostazioni: non esistono interruttori da etichettare.
-  // Il regolamento si legge in rules.* ed è lo stesso per tutte le partite.
   "id.title": "Chi sei",
   "id.name": "Il tuo nome",
   "id.rename": "Cambia",
@@ -59,6 +57,7 @@ const IT: Record<string, string> = {
 
   "center.turnOf": "turno di",
   "center.yourTurn": "È il tuo turno",
+  "center.yourCash": "Hai",
   "center.roll": "Tira i dadi",
   "center.rollAgain": "Doppio! Tira ancora",
   "center.endTurn": "Fine turno →",
@@ -95,6 +94,7 @@ const IT: Record<string, string> = {
 
   "buy.q": "Comprare {name} per",
   "buy.buy": "Compra",
+  "buy.short": "Ti mancano {amount}: puoi ipotecare o vendere dal pannello Proprietà.",
   "buy.declineAuction": "Rifiuta (asta)",
   "buy.decline": "Rifiuta",
   "auction.title": "Asta: {name}",
@@ -121,6 +121,7 @@ const IT: Record<string, string> = {
   "debt.bankruptHint": "Esci dal giro e lasci tutto alla banca.",
   "debt.confirmBankrupt": "Dichiarare bancarotta? Lo Stato si riprende tutto e tu esci dal giro.",
   "assets.title": "Le tue proprietà ({n})",
+  "assets.notNow": "Non in questo momento del turno.",
   "assets.mortgage": "Ipoteca +{amount}",
   "assets.unmortgage": "Riscatta {amount}",
   "assets.sell": "Vendi +{amount}",
@@ -143,8 +144,7 @@ const IT: Record<string, string> = {
   "trade.send": "Invia",
   "bundle.nothing": "niente",
 
-  // Regolamento. È una VARIANTE: chi conosce il Monopoly non conosce queste caselle,
-  // e prima non poteva scoprirle se non atterrandoci sopra.
+  // Regolamento: è una VARIANTE, queste caselle non si scoprono se non atterrandoci sopra.
   "rules.title": "Come si gioca",
   "rules.turn": "Il giro",
   "rules.turnBody":
@@ -203,7 +203,7 @@ export function translate(key: string, vars?: Vars): string {
   return s;
 }
 
-// Hook mantenuto per compatibilità di firma: t(key, vars). Nessuna sottoscrizione.
+// Monolingua: nessuna sottoscrizione, l'hook esiste solo per la firma t(key, vars).
 export function useT() {
   return translate;
 }

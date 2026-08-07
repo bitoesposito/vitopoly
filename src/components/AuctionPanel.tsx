@@ -64,8 +64,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   const myCash = game.players.find((p) => p.id === myId)?.cash ?? 0;
   const canBid = a.active.includes(myId) && a.leader !== myId;
 
-  // Il campo è l'OFFERTA, non il rialzo: si scrive quanto si vuole offrire.
-  // Il motore ragiona in incrementi, quindi la differenza la facciamo qui.
+  // Il campo è l'OFFERTA netta, non il rialzo; il motore ragiona in incrementi.
   const offerta = Math.floor(Number(raise));
   const raiseOk = canBid && offerta > a.bid && offerta <= myCash;
   const doRaise = () => {

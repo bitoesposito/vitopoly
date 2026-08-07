@@ -121,6 +121,7 @@ const IT: Record<string, string> = {
   "debt.bankruptHint": "Esci dal giro e lasci tutto alla banca.",
   "debt.confirmBankrupt": "Dichiarare bancarotta? Lo Stato si riprende tutto e tu esci dal giro.",
   "assets.title": "Le tue proprietà ({n})",
+  "assets.notNow": "Non in questo momento del turno.",
   "assets.mortgage": "Ipoteca +{amount}",
   "assets.unmortgage": "Riscatta {amount}",
   "assets.sell": "Vendi +{amount}",

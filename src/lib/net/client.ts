@@ -11,7 +11,6 @@ const HTTP_BASE = import.meta.env.VITE_SERVER_URL ?? "http://localhost:8787";
 const WS_BASE = HTTP_BASE.replace(/^http/, "ws");
 
 let socket: WebSocket | null = null;
-let retries = 0;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
 export async function createRoom(): Promise<string> {
@@ -35,16 +34,18 @@ export function connect(code: string, name: string): void {
   socket = new WebSocket(`${WS_BASE}/api/room/${code}/ws?pid=${myId}&token=${token}&name=${encodeURIComponent(name)}`);
 
   socket.onopen = () => {
-    retries = 0;
     useGame.setState({ connected: true, code, name, retries: 0 });
     history.replaceState(null, "", `?room=${code}`); // senza questo l'host che ricarica perde la stanza
   };
   socket.onclose = (e) => {
     useGame.setState({ connected: false });
     if (e.code === 4000) return; // respinto (stanza piena / partita iniziata)
-    // reset del DO, deploy, rete ballerina: lo stato è persistito, si riprova con backoff
-    useGame.setState({ retries: retries + 1 });
-    retryTimer = setTimeout(() => connect(code, name), Math.min(1000 * 2 ** retries++, 10_000));
+    // reset del DO, deploy, rete ballerina: lo stato è persistito, si riprova con backoff.
+    // Il conteggio sta SOLO nello store: è lo stesso numero che il banner mostra, e
+    // tenerne una seconda copia qui significava allinearli a mano su tre righe.
+    const attempt = useGame.getState().retries;
+    useGame.setState({ retries: attempt + 1 });
+    retryTimer = setTimeout(() => connect(code, name), Math.min(1000 * 2 ** attempt, 10_000));
   };
   socket.onmessage = (ev) => receive(JSON.parse(ev.data) as ServerMsg, code);
 }

@@ -1,13 +1,12 @@
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { TokenStamp } from "@/components/TokenStamp";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { netWorth, playerNames } from "@/lib/selectors";
 import { euro } from "@/lib/format";
 
 // Fine partita: la classifica per patrimonio, e una porta per rigiocare.
 export function GameOver({ game }: { game: PublicState }) {
-  const t = useT();
   const names = playerNames(game);
   const standings = [...game.players].sort((a, b) => netWorth(game, b.id) - netWorth(game, a.id));
 

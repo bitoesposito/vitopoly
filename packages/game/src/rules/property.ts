@@ -34,7 +34,6 @@ export function whyNotBuild(s: RulesView, pid: PlayerId, tile: TileId): string |
   const group = groupTiles(def.group!);
   if (!group.every((t) => s.props[t]?.owner === pid)) return "serve l'intero gruppo di colore";
   if (group.some((t) => s.props[t]!.mortgaged)) return "il gruppo ha strade ipotecate";
-  if (s.settings.evenBuild && own.houses !== Math.min(...group.map((t) => s.props[t]!.houses))) return "costruisci in modo uniforme";
   if ((owner(s, pid)?.cash ?? 0) < def.houseCost!) return "non te lo puoi permettere";
   const toHotel = own.houses === 4;
   if (toHotel && s.bank.hotels < 1) return "la banca ha finito gli hotel";
@@ -47,8 +46,6 @@ export function whyNotSellHouse(s: RulesView, pid: PlayerId, tile: TileId): stri
   const own = s.props[tile];
   if (def.kind !== "street" || !own || own.owner !== pid) return "non è una tua strada";
   if (own.houses === 0) return "niente da vendere";
-  const group = groupTiles(def.group!);
-  if (s.settings.evenBuild && own.houses !== Math.max(...group.map((t) => s.props[t]!.houses))) return "vendi in modo uniforme";
   return null;
 }
 

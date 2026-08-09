@@ -5,7 +5,7 @@ import type { Bundle } from "@tangentopoly/game";
 import { GROUP_COLOR } from "@/lib/palette";
 import { useGame, type CardPopup } from "@/lib/store";
 import { euro } from "@/lib/format";
-import { useT, useTileName, type MsgKey } from "@/lib/i18n";
+import { translate as t, tileName as tn, type MsgKey } from "@/lib/i18n";
 import { BundleChips } from "@/components/panels/BundleChips";
 
 // Animated event cards. Each pops in when pushed (ws.ts schedules the timing), stacks
@@ -50,8 +50,6 @@ function TradeBody({ p }: { p: Extract<CardPopup, { kind: "trade" }> }) {
 }
 
 function PopCard({ popup, depth }: { popup: CardPopup; depth: number }) {
-  const t = useT();
-  const tn = useTileName();
   const [out, setOut] = useState(false);
   const [entered, setEntered] = useState(popup.wait === 0); // invisible while waiting -> no ghost click-catcher
   const trade = popup.kind === "trade";

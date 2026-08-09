@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Rules } from "@/components/lobby/Rules";
 import { useGame } from "@/lib/store";
-import { useT, useTileName } from "@/lib/i18n";
+import { translate as t, tileName as tn } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { euro } from "@/lib/format";
 import { lastRoll } from "@/lib/selectors";
@@ -26,8 +26,6 @@ export function Center({ game }: { game: PublicState }) {
   const [thumbBar] = useState(() => document.getElementById("barra-azione"));
   const myId = useGame((s) => s.myId);
   const events = useGame((s) => s.events);
-  const t = useT();
-  const tn = useTileName();
 
   if (game.status === "ended") return <GameOver game={game} />;
 

@@ -1,7 +1,7 @@
 import { Ticket } from "lucide-react";
 import type { Player, PublicState } from "@tangentopoly/game";
 import { Input } from "@/components/ui/input";
-import { useT } from "@/lib/i18n";
+import { translate as tr } from "@/lib/i18n";
 import { ownedTiles } from "@/lib/selectors";
 import { PropertyCell } from "../PropertyCell";
 import type { BundleDraft } from "./draft";
@@ -17,7 +17,6 @@ export function BundleEditor({ game, player, title, accent, draft, onChange }: {
   draft: BundleDraft;
   onChange: (d: BundleDraft) => void;
 }) {
-  const tr = useT();
   const tiles = ownedTiles(game, player.id);
   const toggle = (t: number) =>
     onChange({ ...draft, props: draft.props.includes(t) ? draft.props.filter((x) => x !== t) : [...draft.props, t] });

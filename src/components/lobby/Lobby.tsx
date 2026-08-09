@@ -3,14 +3,13 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGame } from "@/lib/store";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { connect, createRoom } from "@/lib/net/client";
 import { Rules } from "@/components/lobby/Rules";
 
 export function Lobby() {
   const savedName = useGame((s) => s.name);
   const error = useGame((s) => s.error); // e.g. "stanza piena" — show it, allow retry
-  const t = useT();
   const [name, setName] = useState(savedName);
   const [busy, setBusy] = useState(false);
   const room = new URLSearchParams(location.search).get("room"); // join via friend's link

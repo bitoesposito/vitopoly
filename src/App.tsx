@@ -1,5 +1,5 @@
 import { useGame } from "@/lib/store";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { Lobby } from "@/components/lobby/Lobby";
 import { PreMatch } from "@/components/lobby/PreMatch";
 import { Board } from "@/components/board/Board";
@@ -11,7 +11,6 @@ export default function App() {
   const connected = useGame((s) => s.connected);
   const retries = useGame((s) => s.retries);
   const myId = useGame((s) => s.myId);
-  const t = useT();
 
   // ws.ts reconnects on its own; just show a banner while offline
   if (!game) return <Lobby />;

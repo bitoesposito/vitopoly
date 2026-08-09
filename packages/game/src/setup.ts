@@ -6,9 +6,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   doubleRentFullSet: true,
   vacationCash: true,
   auction: true,
-  noRentInPrison: false,
   mortgageAllowed: true,
-  evenBuild: false,
   randomOrder: true,
 };
 

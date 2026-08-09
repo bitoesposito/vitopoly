@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronDown, MessageSquare } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { Chat } from "@/components/Chat";
 import { GamePanels } from "@/components/panels/GamePanels";
 
@@ -16,7 +16,6 @@ export function Sidebar({ game }: { game: PublicState }) {
   const [chatOpen, setChatOpen] = useState(() => matchMedia("(min-width: 48rem)").matches);
   const [sheetH, setSheetH] = useState<number>();
   const [thumbBar] = useState(() => document.getElementById("barra-azione"));
-  const t = useT();
 
   const toggle = (
     <Button size="icon" className="size-11" aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")} onClick={() => setChatOpen((o) => !o)}>

@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TOKEN_COLOR, TOKEN_NAME } from "@/lib/palette";
 import { useGame } from "@/lib/store";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 
 // Nome e inchiostro. Il vincolo di unicità è del motore: qui lo si vede prima di premere.
 export function Identity({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
-  const t = useT();
   const me = game.players.find((p) => p.id === myId);
   const [draft, setDraft] = useState(me?.name ?? "");
   const [touched, setTouched] = useState(false); // validiamo dopo il blur, non a ogni tasto

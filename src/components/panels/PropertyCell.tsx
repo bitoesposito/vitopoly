@@ -1,15 +1,13 @@
 import { Check, Hotel, House } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState } from "@tangentopoly/game";
-import { useT, useTileName } from "@/lib/i18n";
+import { translate as t, tileName as tn } from "@/lib/i18n";
 import { GROUP_COLOR, GROUP_LABEL } from "@/lib/palette";
 import { euro } from "@/lib/format";
 
 // Talloncino d'atto: serie (filetto + regione), nome, stato — prezzo, case, ipoteca.
 // Selezionabile: lo usano sia il pannello Proprietà sia i due lati di uno scambio.
 export function PropertyCell({ game, tile, sel, onClick }: { game: PublicState; tile: number; sel: boolean; onClick: () => void }) {
-  const tn = useTileName();
-  const t = useT();
   const o = game.props[tile];
   const def = BOARD[tile];
   const g = def.group ?? "";

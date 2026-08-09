@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileKind } from "@tangentopoly/game";
-import { useT, useTileName } from "@/lib/i18n";
+import { translate as t, tileName as tn } from "@/lib/i18n";
 import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/palette";
 import { euro } from "@/lib/format";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -73,8 +73,7 @@ const PAD: Record<string, string> = {
 // click = popover with costs and actions
 export function Tile({ index, game }: { index: number; game: PublicState }) {
   const tile = BOARD[index];
-  const t = useT();
-  const name = useTileName()(index);
+  const name = tn(index);
   const Icon = ENTE_ICON[tile.name] ?? KIND_ICON[tile.kind];
   const own = game.props[index];
   const owner = own ? game.players.find((p) => p.id === own.owner) : undefined;

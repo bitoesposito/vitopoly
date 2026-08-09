@@ -1,7 +1,7 @@
 import { Briefcase, Check, Crown, Lock, MonitorSmartphone, Ticket, UserX, WifiOff } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { useGame } from "@/lib/store";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { TOKEN_COLOR, tokenLetter } from "@/lib/palette";
 import { euro } from "@/lib/format";
@@ -26,7 +26,6 @@ const isTurn = (game: PublicState, pid: string) => game.status === "playing" && 
 // in hover (sempre visibile su touch) per non sporcare la lista.
 export function PlayerList({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
-  const t = useT();
   const code = useGame((s) => s.code);
   const canVote = game.players.some((p) => p.id === myId && !p.bankrupt); // spettatori e falliti non votano
   return (

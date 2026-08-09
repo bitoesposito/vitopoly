@@ -1,8 +1,9 @@
 import type { AuctionFrame, ClientAction, GameState, PlayerId } from "./types";
-import { activeNode } from "./engine";
-import { cur } from "./flow";
+import { activeNode } from "./core/nodes";
+import { cur } from "./core/players";
 
-// How long each wait-node gets before the server auto-resolves it.
+// Quanto tempo ha ogni nodo d'attesa prima che il server lo risolva da solo.
+
 export const TIMEOUT_MS: Record<string, number> = {
   preRoll: 60_000,
   buyPrompt: 30_000,
@@ -10,7 +11,7 @@ export const TIMEOUT_MS: Record<string, number> = {
   debt: 120_000,
 };
 
-// Auctions run on their own clock: 10s to open, 6s after every bid.
+/** Le aste hanno un orologio proprio: 10s per aprire, 6s dopo ogni offerta. */
 export const AUCTION_MS = { start: 10_000, bid: 6_000 };
 
 export function timeoutMs(s: GameState): number {
@@ -19,9 +20,9 @@ export function timeoutMs(s: GameState): number {
   return TIMEOUT_MS[node.t];
 }
 
-// The default action that unblocks the current wait. Auctions are handled by
-// auctionTimeout (a server-only settle, not a client action) — see resolveTimeout.
-// For debt the server tries this first, then falls back to bankrupt.
+/** L'azione di default che sblocca l'attesa corrente. Le aste no: le chiude
+ *  auctionTimeout (aggiudicazione lato server, non una ClientAction). Per il debito il
+ *  server prova questa e poi ripiega sulla bancarotta. */
 export function timeoutAction(s: GameState): { pid: PlayerId; action: ClientAction } | null {
   if (s.status !== "playing") return null;
   const node = activeNode(s);
@@ -33,7 +34,7 @@ export function timeoutAction(s: GameState): { pid: PlayerId; action: ClientActi
     case "postRoll":
       return { pid: cur(s).id, action: { type: "endTurn" } };
     case "auction":
-      return null; // timer expiry settles the auction: engine.auctionTimeout()
+      return null;
     case "debt":
       return { pid: node.debtor, action: { type: "payDebt" } };
   }

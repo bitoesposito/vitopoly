@@ -39,10 +39,13 @@
     <div id="root"></div>
     <!-- Zona pollice: la plancia è quadra, quindi su un telefono l'azione primaria finirebbe
          nel terzo alto. Center ci sposta dentro i bottoni sotto md (non li duplica). Fuori da
-         React perché esista già al primo render: niente setState dentro un effect. -->
+         React perché esista già al primo render: niente setState dentro un effect.
+         Altezza BLOCCATA (min-h = padding + 3.25rem di bottone): con 0, 1 o 3 azioni la barra
+         non cambia più misura, quindi non ballano né la plancia né il bottone della chat.
+         pr-15 = corsia riservata alla chat, che è absolute a destra. -->
     <div
       id="barra-azione"
-      class="fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center justify-center gap-2 border-t border-border bg-card/95 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-sm empty:hidden md:hidden"
+      class="fixed inset-x-0 bottom-0 z-30 flex min-h-[calc(4.25rem_+_env(safe-area-inset-bottom))] items-center justify-center gap-2 border-t border-border bg-card/95 p-2 pr-15 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-sm empty:hidden md:hidden"
     ></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

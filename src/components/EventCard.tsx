@@ -2,17 +2,17 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Handshake, KeyRound, Lock, Mail, Siren, type LucideIcon } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
 import type { Bundle } from "@tangentopoly/game";
-import { GROUP_COLOR } from "@/lib/colors";
+import { GROUP_COLOR } from "@/lib/palette";
 import { useGame, type CardPopup } from "@/lib/store";
-import { euro } from "@/lib/utils";
-import { useT, useTileName } from "@/lib/i18n";
-import { BundleChips } from "./Panels";
+import { euro } from "@/lib/format";
+import { useT, useTileName, type MsgKey } from "@/lib/i18n";
+import { BundleChips } from "@/components/panels/BundleChips";
 
 // Animated event cards. Each pops in when pushed (ws.ts schedules the timing), stacks
 // on the previous ones, and dismisses itself after a readable hold. Non-blocking:
 // clicks pass through around the stack. Trades fly the exchanged assets between players.
 // Accenti "da carta": la carta evento è carta, quindi inchiostri stampabili sul chiaro.
-const STYLE: Record<CardPopup["kind"], { icon: LucideIcon; accent: string; titleKey: string }> = {
+const STYLE: Record<CardPopup["kind"], { icon: LucideIcon; accent: string; titleKey: MsgKey }> = {
   chance: { icon: Siren, accent: "var(--color-sanguigna-carta)", titleKey: "popup.chance" },
   chest: { icon: Mail, accent: "var(--color-indaco-carta)", titleKey: "popup.chest" },
   jailed: { icon: Lock, accent: "var(--color-sanguigna-carta)", titleKey: "popup.jail" },

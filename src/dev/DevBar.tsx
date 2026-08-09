@@ -3,7 +3,7 @@ import { addPlayer, CHANCE, CHEST, createGame } from "@tangentopoly/game";
 import type { GameState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { useGame, type PopupInput } from "@/lib/store";
-import { choreograph } from "@/lib/ws";
+import { choreograph } from "@/lib/net/choreography";
 
 // dev-only screen simulator. Reachable at /dev in `pnpm dev` builds only
 // (gated in main.tsx by import.meta.env.DEV — never bundled in prod).

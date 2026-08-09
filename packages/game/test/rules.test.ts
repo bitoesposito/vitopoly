@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { apply } from "../src/engine";
-import { rentFor } from "../src/rent";
-import { build, percheNoBuild, percheNoMortgage, percheNoSellProperty, percheNoUnmortgage, sellHouse } from "../src/properties";
+import { rentFor } from "../src/rules/rent";
+import { build, whyNotBuild, whyNotMortgage, whyNotSellProperty, whyNotUnmortgage, sellHouse } from "../src/rules/property";
 import { started } from "./helpers";
 import type { GameState } from "../src/types";
 
@@ -89,18 +89,22 @@ describe("asset actions: own turn only", () => {
     expect(apply(s, "b", { type: "mortgage", tile: 6 }).ok).toBe(true);
   });
 
-  it("sellProperty: deed back to the bank at half price", () => {
+  it("sellProperty: deed back to the bank at mortgage + 25%", () => {
     const s = started();
     s.props[6] = { owner: "a", mortgaged: false, houses: 0 };
     const r = apply(s, "a", { type: "sellProperty", tile: 6 });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.state.props[6]).toBeUndefined();
-    expect(r.state.players[0].cash).toBe(1500 + 50); // price 100 / 2
-    // mortgaged deeds have nothing left to sell
+    expect(r.state.players[0].cash).toBe(1500 + 63); // price 100 -> 50 * 1.25
+    // già ipotecata: metà prezzo l'ha già incassata, resta il solo plusvalore
     const m = started();
     m.props[6] = { owner: "a", mortgaged: true, houses: 0 };
-    expect(apply(m, "a", { type: "sellProperty", tile: 6 }).ok).toBe(false);
+    const rm = apply(m, "a", { type: "sellProperty", tile: 6 });
+    expect(rm.ok).toBe(true);
+    if (!rm.ok) return;
+    expect(rm.state.props[6]).toBeUndefined();
+    expect(rm.state.players[0].cash).toBe(1500 + 13); // 50 * 0.25; 50 + 13 = 63, come la vendita piena
   });
 });
 
@@ -201,10 +205,10 @@ describe("predicati delle regole (usati anche dalla UI)", () => {
     s.players[0].cash = 10000;
     s.props[1] = { owner: "a", mortgaged: false, houses: 0 };
     // Foggia senza Trani: niente set
-    expect(percheNoBuild(s, "a", 1)).toBe("serve l'intero gruppo di colore");
+    expect(whyNotBuild(s, "a", 1)).toBe("serve l'intero gruppo di colore");
     expect(build(s, "a", 1)).toBe("serve l'intero gruppo di colore"); // motore e predicato d'accordo
     ownGroup(s, [1, 3], "a");
-    expect(percheNoBuild(s, "a", 1)).toBeNull();
+    expect(whyNotBuild(s, "a", 1)).toBeNull();
   });
 
   it("i predicati coprono i casi in cui il bottone non deve essere premibile", () => {
@@ -213,23 +217,23 @@ describe("predicati delle regole (usati anche dalla UI)", () => {
     ownGroup(s, [1, 3], "a");
     // ipotecata: non ci si costruisce
     s.props[1]!.mortgaged = true;
-    expect(percheNoBuild(s, "a", 1)).toBe("è ipotecata");
+    expect(whyNotBuild(s, "a", 1)).toBe("è ipotecata");
     s.props[1]!.mortgaged = false;
     // senza contanti
     s.players[0].cash = 0;
-    expect(percheNoBuild(s, "a", 1)).toBe("non te lo puoi permettere");
+    expect(whyNotBuild(s, "a", 1)).toBe("non te lo puoi permettere");
     s.players[0].cash = 10000;
     // banca a secco
     s.bank.houses = 0;
-    expect(percheNoBuild(s, "a", 1)).toBe("la banca ha finito le case");
+    expect(whyNotBuild(s, "a", 1)).toBe("la banca ha finito le case");
     s.bank.houses = 32;
     // con edifici sul gruppo non si ipoteca né si svende
     expect(build(s, "a", 1)).toBeNull();
-    expect(percheNoMortgage(s, "a", 3)).toBe("il gruppo ha edifici");
-    expect(percheNoSellProperty(s, "a", 3)).toBe("il gruppo ha edifici");
+    expect(whyNotMortgage(s, "a", 3)).toBe("il gruppo ha edifici");
+    expect(whyNotSellProperty(s, "a", 3)).toBe("il gruppo ha edifici");
     // riscatto senza soldi
     s.props[6] = { owner: "a", mortgaged: true, houses: 0 };
     s.players[0].cash = 0;
-    expect(percheNoUnmortgage(s, "a", 6)).toBe("non te lo puoi permettere");
+    expect(whyNotUnmortgage(s, "a", 6)).toBe("non te lo puoi permettere");
   });
 });

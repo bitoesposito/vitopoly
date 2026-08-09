@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { apply } from "../src/engine";
-import { rentFor } from "../src/rent";
-import { build } from "../src/properties";
-import { addPlayer, createGame, DEFAULT_SETTINGS } from "../src/setup";
+import { rentFor } from "../src/rules/rent";
+import { build } from "../src/rules/property";
+import { addPlayer, createGame, DEFAULT_SETTINGS, TOKENS } from "../src/setup";
 import { started } from "./helpers";
 
 describe("game settings", () => {
@@ -16,10 +16,15 @@ describe("game settings", () => {
     expect(g.state.players.every((p) => p.cash === DEFAULT_SETTINGS.startingCash)).toBe(true);
   });
 
-  it("i posti in lobby non hanno tetto", () => {
+  // Il tetto è il numero di inchiostri. Prima non c'era, e il nono giocatore riceveva
+  // token 0: stesso colore, stessa lettera e stesso scostamento del primo, cioè due
+  // pedine sovrapposte e indistinguibili sulla plancia.
+  it("in lobby ci si siede fino a TOKENS, poi si guarda", () => {
     const s = createGame(7);
-    for (let i = 0; i < 20; i++) expect(addPlayer(s, `p${i}`, `P${i}`)).not.toBeNull();
-    expect(s.players).toHaveLength(20);
+    for (let i = 0; i < TOKENS; i++) expect(addPlayer(s, `p${i}`, `P${i}`)).not.toBeNull();
+    expect(addPlayer(s, "p8", "P8")).toBeNull();
+    expect(s.players).toHaveLength(TOKENS);
+    expect(new Set(s.players.map((p) => p.token)).size).toBe(TOKENS);
     // a partita iniziata si entra solo da spettatori (addPlayer -> null)
     const g = apply(s, "p0", { type: "start" });
     if (!g.ok) throw new Error(g.error);

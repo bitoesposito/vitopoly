@@ -1,5 +1,5 @@
-import type { GameState, TileId } from "./types";
-import { BOARD, groupTiles } from "./board-data";
+import type { GameState, TileId } from "../types";
+import { BOARD, groupTiles } from "../data/tiles";
 
 // Pure math: what does landing on `tile` cost? 0 = no rent (unowned/mortgaged/self handled by caller).
 export function rentFor(s: GameState, tile: TileId, diceTotal: number): number {

@@ -75,3 +75,13 @@ export const BOARD: readonly TileDef[] = [
 export function groupTiles(group: string): number[] {
   return BOARD.flatMap((t, i) => (t.group === group ? [i] : []));
 }
+
+/** Il giro completo. Il tabellone è un anello: ogni conto di caselle passa da qui,
+ *  invece di ripetere `40` in sette punti fra motore e interfaccia. */
+export const TILES = BOARD.length;
+
+/** Passi da `from` a `to` andando in avanti (l'unico verso in cui si muove una pedina). */
+export const stepsTo = (from: number, to: number): number => (to - from + TILES) % TILES;
+
+/** La casella `n` passi indietro rispetto a `from`. */
+export const stepsBack = (from: number, n: number): number => (from - n + TILES) % TILES;

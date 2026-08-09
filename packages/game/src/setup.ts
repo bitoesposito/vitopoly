@@ -48,22 +48,30 @@ export function freeName(s: GameState, want: string, exceptId?: PlayerId): strin
   return base;
 }
 
-/** Primo inchiostro non occupato; oltre gli otto giocatori si ricomincia. */
+/** Primo inchiostro non occupato, oppure -1. Non ricicla: due giocatori con lo stesso
+ *  inchiostro avrebbero anche la stessa lettera e lo stesso scostamento sulla plancia,
+ *  cioè due pedine perfettamente sovrapposte e indistinguibili. Il tetto di `addPlayer`
+ *  garantisce che un posto libero ci sia sempre. */
 export function freeToken(s: GameState, exceptId?: PlayerId): number {
   const used = new Set(s.players.filter((p) => p.id !== exceptId).map((p) => p.token));
   for (let i = 0; i < TOKENS; i++) if (!used.has(i)) return i;
-  return s.players.length % TOKENS;
+  return -1;
 }
 
-// Membership is a server concern, not a game action — mutate directly, not via apply().
+/** Sedersi al tavolo. Competenza del server, non un'azione di gioco: muta direttamente.
+ *  `null` = non c'è posto (partita iniziata o tavolo pieno) -> spettatore. */
 export function addPlayer(s: GameState, id: PlayerId, name: string): Player | null {
-  if (s.players.some((p) => p.id === id)) return s.players.find((p) => p.id === id)!; // reconnect
+  if (s.players.some((p) => p.id === id)) return s.players.find((p) => p.id === id)!; // rientro
   if (s.status !== "lobby") return null;
-  // nessun tetto ai posti: chi arriva dopo l'inizio è spettatore
+  // Il tetto è il numero di inchiostri: oltre, due giocatori sarebbero indistinguibili
+  // sulla plancia (stesso colore, stessa lettera, stesso scostamento). Chi arriva dopo
+  // guarda, come chi arriva a partita iniziata.
+  const token = freeToken(s);
+  if (token < 0) return null;
   const p: Player = {
     id,
     name: freeName(s, name),
-    token: freeToken(s),
+    token,
     cash: s.settings.startingCash, // re-applied at start (settings may change in lobby)
     pos: 0,
     inJail: false,

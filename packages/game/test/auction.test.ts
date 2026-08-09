@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { apply, auctionTimeout } from "../src/engine";
+import { addPlayer, createGame } from "../src/setup";
 import { started } from "./helpers";
 import { checkInvariants } from "./invariants";
 import type { ClientAction, GameState, PlayerId } from "../src/types";
@@ -135,5 +136,55 @@ describe("fare cassa durante l'asta", () => {
     if (f.state.stack.at(-1)?.t === "auction") {
       expect(apply(f.state, "b", { type: "mortgage", tile: 6 }).ok).toBe(false);
     }
+  });
+});
+
+describe("l'asta si chiude sempre", () => {
+  // Regressione: tutti passano PRIMA che qualcuno offra. Restava un solo attivo senza
+  // leader; nel momento in cui offriva diventava l'unico attivo E il leader, e da lì
+  // nessuna azione era più legale — partita ferma fino al timer del server.
+  it("l'ultimo rimasto che offre si aggiudica il titolo", () => {
+    const s = createGame(5);
+    for (const n of ["a", "b", "c", "d"]) addPlayer(s, n, n.toUpperCase());
+    const st = apply(s, "a", { type: "start" });
+    if (!st.ok) throw new Error(st.error);
+    let g = st.state;
+    g.settings.randomOrder = false;
+    g.phase = { t: "buyPrompt", tile: 1, again: false };
+
+    const d = apply(g, g.players[g.current].id, { type: "decline" });
+    if (!d.ok) throw new Error(d.error);
+    g = d.state;
+
+    const leftover = g.players.map((p) => p.id).slice(0, 3);
+    for (const pid of leftover) {
+      const r = apply(g, pid, { type: "fold" });
+      if (!r.ok) throw new Error(`${pid}: ${r.error}`);
+      g = r.state;
+    }
+    const last = g.players.map((p) => p.id).find((id) => !leftover.includes(id))!;
+    expect(g.stack.at(-1)).toMatchObject({ t: "auction", leader: null, active: [last] });
+
+    const bid = apply(g, last, { type: "bid", amount: 30 });
+    expect(bid.ok).toBe(true);
+    if (!bid.ok) return;
+    expect(bid.state.stack).toHaveLength(0); // aggiudicata, non bloccata
+    expect(bid.state.props[1]).toMatchObject({ owner: last, houses: 0 });
+    expect(bid.state.players.find((p) => p.id === last)!.cash).toBe(1500 - 30);
+  });
+
+  it("se passano tutti senza offrire, il titolo resta invenduto", () => {
+    const s = started();
+    s.phase = { t: "buyPrompt", tile: 1, again: false };
+    const d = apply(s, "a", { type: "decline" });
+    if (!d.ok) throw new Error(d.error);
+    let g = d.state;
+    for (const pid of ["b", "a"]) {
+      const r = apply(g, pid, { type: "fold" });
+      if (!r.ok) throw new Error(`${pid}: ${r.error}`);
+      g = r.state;
+    }
+    expect(g.stack).toHaveLength(0);
+    expect(g.props[1]).toBeUndefined();
   });
 });

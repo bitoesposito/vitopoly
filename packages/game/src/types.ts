@@ -39,13 +39,21 @@ export interface AuctionFrame {
   active: PlayerId[]; // still bidding
   bids: { pid: PlayerId; amount: number }[]; // history for the UI log; amount = running total
 }
+/** Un pagamento dovuto. Una lista di claim = una coda ("paga €50 a ognuno"). */
+export interface Claim {
+  creditor: PlayerId | "bank";
+  amount: number;
+}
 export interface DebtFrame {
   t: "debt";
   debtor: PlayerId;
-  claims: { creditor: PlayerId | "bank"; amount: number }[]; // QUEUE: "pay each player 50" = N claims
+  claims: Claim[]; // QUEUE: "pay each player 50" = N claims
   deadline?: number;
 }
 export type Interrupt = AuctionFrame | DebtFrame;
+
+/** Dove la macchina aspetta: fase di turno, o l'interrupt che la sovrasta. */
+export type GameNode = TurnPhase | Interrupt;
 
 // Orthogonal region: trades live ALONGSIDE the turn, not inside it.
 export interface Bundle {

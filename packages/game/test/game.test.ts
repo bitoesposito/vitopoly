@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { apply } from "../src/engine";
-import { advance } from "../src/board";
+import { advance } from "../src/core/movement";
 import { addPlayer, createGame } from "../src/setup";
 import { started } from "./helpers";
-import type { GameState, Player } from "../src/types";
+import type { Player } from "../src/types";
 
 describe("lobby", () => {
   it("needs 2+ players to start", () => {
@@ -57,7 +57,6 @@ describe("roll -> postRoll", () => {
 
 describe("GO salary (advance unit)", () => {
   it("pays 200 when passing GO", () => {
-    const s = createGame(1) as GameState;
     const p: Player = {
       id: "a",
       name: "A",
@@ -71,13 +70,12 @@ describe("GO salary (advance unit)", () => {
       bankrupt: false,
       connected: true,
     };
-    advance(s, p, 3); // 39 -> 2, wraps past GO
+    advance(p, 3); // 39 -> 2, wraps past GO
     expect(p.pos).toBe(2);
     expect(p.cash).toBe(1700);
   });
 
   it("does not pay when not passing GO", () => {
-    const s = createGame(1);
     const p: Player = {
       id: "a",
       name: "A",
@@ -91,7 +89,7 @@ describe("GO salary (advance unit)", () => {
       bankrupt: false,
       connected: true,
     };
-    advance(s, p, 4); // 5 -> 9
+    advance(p, 4); // 5 -> 9
     expect(p.pos).toBe(9);
     expect(p.cash).toBe(1500);
   });

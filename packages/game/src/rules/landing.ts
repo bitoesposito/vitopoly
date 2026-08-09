@@ -1,8 +1,10 @@
-import type { GameState, Player } from "./types";
-import { BOARD, GO_SALARY } from "./board-data";
+import type { GameState, Player } from "../types";
+import { BOARD } from "../data/tiles";
 import { rentFor } from "./rent";
 
-// What a tile WANTS to happen. board.ts describes, never mutates phase/stack. flow.ts acts on it.
+// Cosa VUOLE che succeda una casella. Funzione pura: descrive, non tocca mai
+// phase/stack né i giocatori. Ad agire è core/movement.ts.
+
 export type Outcome =
   | { t: "none" }
   | { t: "offerBuy"; tile: number }
@@ -11,16 +13,7 @@ export type Outcome =
   | { t: "goToJail" }
   | { t: "vacation" };
 
-// Move a player `steps` forward, paying GO salary on pass/land. Mutates player.
-export function advance(_s: GameState, p: Player, steps: number): { from: number; to: number; passedGo: boolean } {
-  const from = p.pos;
-  p.pos = (from + steps) % BOARD.length;
-  const passedGo = p.pos < from || steps >= BOARD.length;
-  if (passedGo) p.cash += GO_SALARY;
-  return { from, to: p.pos, passedGo };
-}
-
-// The single switch: "what happens when I land on X".
+/** L'unico switch "cosa succede se atterro su X". */
 export function landing(s: GameState, p: Player, diceTotal: number): Outcome {
   const tile = BOARD[p.pos];
   switch (tile.kind) {
@@ -44,6 +37,6 @@ export function landing(s: GameState, p: Player, diceTotal: number): Outcome {
     case "parking":
       return { t: "vacation" };
     default:
-      return { t: "none" }; // go, jail (just visiting)
+      return { t: "none" }; // via, prigione (di passaggio)
   }
 }

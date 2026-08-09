@@ -32,12 +32,31 @@ Altri comandi: `pnpm build`, `pnpm typecheck`, `pnpm lint`, e `pnpm --filter
 | `packages/server/` | Cloudflare Worker: una stanza = un Durable Object, stato in un solo blob JSON, WebSocket. |
 
 Il motore decide, l'interfaccia racconta: il server manda stati interi e il client li
-riproduce come una linea temporale (`src/lib/ws.ts`) — la pedina cammina, la carta
+riproduce come una linea temporale (`src/lib/net/choreography.ts`) — la pedina cammina, la carta
 esce, poi il salto in prigione — senza mai divergere dallo stato autoritativo.
 
 Le regole sono fisse e uguali per tutte le partite: stanno in `DEFAULT_SETTINGS`
 (`packages/game/src/setup.ts`) e non esiste né un'interfaccia né un'azione di rete per
 cambiarle.
+
+### Dove mettere una logica nuova
+
+Il motore è diviso in quattro strati, e ognuno può importare solo quelli sopra di sé:
+
+| Strato | Cosa contiene | Esempio |
+|---|---|---|
+| `data/` | tabellone e mazzi come dati, zero logica | `tiles.ts`, `cards.ts` |
+| `rules/` | matematica e predicati puri, nessuna mutazione di fase | `rent.ts`, `landing.ts`, `property.ts` |
+| `core/` | la macchina condivisa che muta lo stato | `money.ts`, `movement.ts`, `estate.ts` |
+| `actions/` | un file per famiglia di `ClientAction` | `turn.ts`, `auction.ts`, `debt.ts` |
+
+`engine.ts` non contiene regole: contiene la **topologia** (`HANDLERS`), cioè quale azione
+è raggiungibile da quale nodo. Una regola nuova si aggiunge in `rules/`, l'azione che la
+usa in `actions/`, e la riga corrispondente nella tabella.
+
+Lato client la stessa disciplina: `lib/selectors.ts` per le derivazioni pure sullo stato,
+`lib/net/` per il trasporto, e i componenti divisi per zona dello schermo
+(`components/board/`, `components/panels/`, `components/lobby/`).
 
 ## Documenti
 

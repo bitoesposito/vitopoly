@@ -19,5 +19,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm --filter @tangentopoly/game test
+      - run: pnpm test   # radice: copre motore E client
       - run: pnpm build

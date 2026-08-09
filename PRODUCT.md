@@ -19,8 +19,8 @@ account, no signup anywhere in the codebase. Anyone arriving after the match sta
 spectator with chat and full state but no seat.
 
 The product is monolingual Italian by construction, not by localization default: tile names, card
-copy, and UI strings are authored directly in Italian and `i18n.ts` documents the single-language
-choice (`src/lib/i18n.ts:3`).
+copy, and UI strings are authored directly in Italian and `lib/i18n` documents the single-language
+choice (`src/lib/i18n/index.ts`).
 
 `[inferred]` Mixed devices in the same match — some players on a phone, some on a laptop — since the
 join path is a shared link and the layout carries a dedicated mobile arrangement (`src/App.tsx:45`).
@@ -38,13 +38,13 @@ The mechanism a neighbouring clone could not truthfully copy is the **re-authore
 already built:
 
 - Color sets are Italian regions in ascending order of malaffare, from Foggia to the Milano of Mani
-  Pulite (`packages/game/src/board-data.ts:29-73`).
+  Pulite (`packages/game/src/data/tiles.ts`).
 - "Railroads" are state-owned enterprises: Poste Italiane, INPS, Enel, RAI.
 - "Utilities" are concessions: Autostrade, Equitalia.
 - Tax tiles are `Tangente` (€200) and `Mazzetta` (€100); Free Parking is `Latitanza`; Go-to-Jail is
   `Mani Pulite`; the two card decks are `Blitz` (chance) and `Favori` (community chest).
 - 32 authored cards carry the voice ("Il vigile vuole il caffè: paga €15", "Un pentito fa il tuo
-  nome", "Il conto a Lugano frutta") — `packages/game/src/cards.ts:20-56`.
+  nome", "Il conto a Lugano frutta") — `packages/game/src/data/cards.ts`.
 
 Currency is € throughout.
 
@@ -74,7 +74,7 @@ Currency is € throughout.
 - 40 tiles, 8 color groups, bank of 32 houses and 12 hotels, seeded xorshift32 RNG so dice and
   shuffles are replayable in tests (`packages/game/src/types.ts:79-85`).
 - **The engine is authoritative and pure**; the client receives whole states and replays the event
-  list as a narrated timeline (`src/lib/ws.ts:65`). Engine invariants are covered by 11 test files
+  list as a narrated timeline (`src/lib/net/choreography.ts`). Engine invariants are covered by 11 test files
   (`packages/game/test/`).
 - Event log is capped at ~100 entries and is the only record of what happened
   (`packages/game/src/types.ts:91`).
@@ -92,14 +92,14 @@ Currency is € throughout.
 - Currency €.
 - The satire's target is the Tangentopoli scandal and Italian institutional corruption, played for
   comedy and never as an accusation against a living named person: every institution on the board is
-  an entity, and no real individual is named anywhere in `board-data.ts` or `cards.ts`. Future work
+  an entity, and no real individual is named anywhere in `data/tiles.ts` or `data/cards.ts`. Future work
   must not break that.
 - No logo, wordmark, or brand asset exists. `public/` is empty and the favicon is still Vite's.
 
 ## Evidence on Hand
 
-- Real, authored game content: `packages/game/src/board-data.ts` (40 tiles), `cards.ts` (32 cards),
-  `src/lib/i18n.ts` (every UI string).
+- Real, authored game content: `packages/game/src/data/tiles.ts` (40 tiles), `data/cards.ts` (32 cards),
+  `src/lib/i18n/it.ts` (every UI string).
 - A real test suite as proof of correctness: `packages/game/test/` (auction, debt, kick, rejection,
   rules, settings, soak, timeouts).
 - **Absent, and not to be fabricated:** logo or wordmark, imagery of any kind, screenshots, player
@@ -125,7 +125,7 @@ perceive a state change loses turns rather than merely losing convenience. Treat
 floor.
 
 Shipped since: a single `role="status" aria-live="polite"` announcer carries turn, dice result, buy
-prompt and debt (`src/components/Center.tsx`) — the dice result previously existed only as a CSS
+prompt and debt (`src/components/board/Center.tsx`) — the dice result previously existed only as a CSS
 transform and was invisible to a screen reader; player identity is carried by a **series letter**
 (A–Z, then A2/B2…) on token, roster, standings, chat and trade chips, never by colour alone; the
 board is `inert` while an auction holds the turn; the focus ring runs at full alpha. Open: the board

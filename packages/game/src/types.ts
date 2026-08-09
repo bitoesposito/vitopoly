@@ -130,7 +130,14 @@ export type GameEvent =
   | { e: "jailed"; pid: PlayerId }
   | { e: "bankrupt"; pid: PlayerId }
   | { e: "traded"; from: PlayerId; to: PlayerId; give: Bundle; get: Bundle }
-  | { e: "asset"; pid: PlayerId; tile: TileId; what: "build" | "sellHouse" | "mortgage" | "unmortgage" | "sellProperty"; amount: number; hotel: boolean }
+  | {
+      e: "asset";
+      pid: PlayerId;
+      tile: TileId;
+      what: "build" | "sellHouse" | "mortgage" | "unmortgage" | "sellProperty";
+      amount: number;
+      hotel: boolean;
+    }
   | { e: "info"; text: string };
 
 export type Result = { ok: true; state: GameState; events: GameEvent[] } | { ok: false; error: string };

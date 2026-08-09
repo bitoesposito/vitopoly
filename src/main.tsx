@@ -1,15 +1,15 @@
-import { lazy, StrictMode, Suspense } from "react"
-import { createRoot } from "react-dom/client"
+import { lazy, StrictMode, Suspense } from "react";
+import { createRoot } from "react-dom/client";
 
-import "./index.css"
-import App from "./App.tsx"
-import { Toaster } from "@/components/ui/sonner"
+import "./index.css";
+import App from "./App.tsx";
+import { Toaster } from "@/components/ui/sonner";
 
 // sempre modalità scura
-document.documentElement.classList.add("dark")
+document.documentElement.classList.add("dark");
 
 // Dev-only screen simulator: /dev in dev builds. DEV=false in prod → chunk never bundled.
-const DevBar = import.meta.env.DEV && location.pathname === "/dev" ? lazy(() => import("./dev/DevBar.tsx")) : null
+const DevBar = import.meta.env.DEV && location.pathname === "/dev" ? lazy(() => import("./dev/DevBar.tsx")) : null;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -21,4 +21,4 @@ createRoot(document.getElementById("root")!).render(
       </Suspense>
     )}
   </StrictMode>
-)
+);

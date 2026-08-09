@@ -36,8 +36,7 @@ export const TOKENS = 8; // inchiostri disponibili
  *  maiuscole e spazi, perché "Vito" e "vito " sono la stessa persona a colpo d'occhio. */
 export function freeName(s: GameState, want: string, exceptId?: PlayerId): string {
   const base = want.trim().slice(0, MAX_NAME) || "Giocatore";
-  const taken = (n: string) =>
-    s.players.some((p) => p.id !== exceptId && p.name.trim().toLowerCase() === n.trim().toLowerCase());
+  const taken = (n: string) => s.players.some((p) => p.id !== exceptId && p.name.trim().toLowerCase() === n.trim().toLowerCase());
   if (!taken(base)) return base;
   for (let i = 2; i < 100; i++) {
     const cand = `${base.slice(0, MAX_NAME - 3)} ${i}`;

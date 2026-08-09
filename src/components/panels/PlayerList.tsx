@@ -59,12 +59,13 @@ export function PlayerList({ game }: { game: PublicState }) {
           </span>
           <span className="ml-auto flex shrink-0 items-center gap-1">
             {(game.kickVotes[p.id]?.length ?? 0) > 0 && (
-              <span className="text-2xs tabular-nums text-destructive">
+              <span className="text-2xs text-destructive tabular-nums">
                 {game.kickVotes[p.id]!.length}/{game.players.filter((x) => !x.bankrupt && x.id !== p.id).length}
               </span>
             )}
-            {game.status === "playing" && canVote && (
-              !p.bankrupt && p.id !== myId ? (
+            {game.status === "playing" &&
+              canVote &&
+              (!p.bankrupt && p.id !== myId ? (
                 // il voto può essere quello decisivo: due tocchi, non uno
                 <ConfirmButton
                   size="icon-sm"
@@ -94,16 +95,15 @@ export function PlayerList({ game }: { game: PublicState }) {
                 </Button>
               ) : (
                 <span className="size-8 shrink-0" /> // slot riservato: cash allineata su tutte le righe
-              )
-            )}
-            {game.status !== "lobby" && <span className="font-mono tabular-nums text-success">{euro(p.cash)}</span>}
+              ))}
+            {game.status !== "lobby" && <span className="font-mono text-success tabular-nums">{euro(p.cash)}</span>}
           </span>
         </div>
       ))}
       {game.status === "playing" && game.settings.vacationCash && (
         <div className="flex items-center gap-1.5 border-t border-border px-2 pt-1.5 text-xs text-muted-foreground">
           <Briefcase className="size-3.5" /> {t("players.vacationPot")}
-          <span className="ml-auto font-mono tabular-nums text-warning">{euro(game.vacationPot)}</span>
+          <span className="ml-auto font-mono text-warning tabular-nums">{euro(game.vacationPot)}</span>
         </div>
       )}
     </div>

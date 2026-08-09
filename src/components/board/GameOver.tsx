@@ -19,10 +19,10 @@ export function GameOver({ game }: { game: PublicState }) {
         <ol className="mt-4 space-y-1 text-left text-xs">
           {standings.map((p, i) => (
             <li key={p.id} className="flex items-center gap-2 border-b border-border pb-1">
-              <span className="w-4 font-mono tabular-nums text-muted-foreground">{i + 1}</span>
+              <span className="w-4 font-mono text-muted-foreground tabular-nums">{i + 1}</span>
               <TokenStamp token={p.token} />
               <span className={`min-w-0 truncate ${p.bankrupt ? "text-muted-foreground line-through" : ""}`}>{p.name}</span>
-              <span className="ml-auto font-mono tabular-nums text-success">{euro(netWorth(game, p.id))}</span>
+              <span className="ml-auto font-mono text-success tabular-nums">{euro(netWorth(game, p.id))}</span>
             </li>
           ))}
         </ol>

@@ -53,7 +53,10 @@ describe("buy / decline / auction", () => {
     s = step(s, "a", { type: "bid", amount: 10 });
     const f = s.stack[0];
     if (f.t !== "auction") throw new Error("expected auction");
-    expect(f.bids).toEqual([{ pid: "b", amount: 2 }, { pid: "a", amount: 12 }]);
+    expect(f.bids).toEqual([
+      { pid: "b", amount: 2 },
+      { pid: "a", amount: 12 },
+    ]);
 
     const r = auctionTimeout(s);
     if (!r.ok) throw new Error(r.error);
@@ -105,7 +108,12 @@ describe("buy / decline / auction", () => {
     let s = started();
     s.phase = { t: "buyPrompt", tile: 1, again: false };
     s = step(s, "a", { type: "decline" });
-    const r = apply(s, "a", { type: "proposeTrade", to: "b", give: { cash: 10, props: [], jailCards: 0 }, get: { cash: 0, props: [], jailCards: 0 } });
+    const r = apply(s, "a", {
+      type: "proposeTrade",
+      to: "b",
+      give: { cash: 10, props: [], jailCards: 0 },
+      get: { cash: 0, props: [], jailCards: 0 },
+    });
     expect(r.ok).toBe(false);
   });
 });

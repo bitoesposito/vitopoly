@@ -26,9 +26,15 @@ function line(e: GameEvent, names: Record<string, string>, myId: string): string
     }
     case "asset": {
       const key: MsgKey =
-        e.what === "build" ? (e.hotel ? "ev.buildHotel" : "ev.build")
-        : e.what === "sellHouse" ? (e.hotel ? "ev.sellHotel" : "ev.sellHouse")
-        : (`ev.${e.what}` as const); // mortgage | unmortgage | sellProperty
+        e.what === "build"
+          ? e.hotel
+            ? "ev.buildHotel"
+            : "ev.build"
+          : e.what === "sellHouse"
+            ? e.hotel
+              ? "ev.sellHotel"
+              : "ev.sellHouse"
+            : (`ev.${e.what}` as const); // mortgage | unmortgage | sellProperty
       return t(key, { name: names[e.pid], tile: tileName(e.tile), amount: euro(e.amount) });
     }
     case "auctionWon":

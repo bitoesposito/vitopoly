@@ -38,7 +38,9 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
             onClick={() => pick(p.id)}
             aria-pressed={to === p.id}
             className={`flex items-center gap-1.5 border px-2 py-1 text-xs transition-colors ${
-              to === p.id ? "border-success bg-success/25 font-semibold ring-2 ring-success" : "border-border opacity-70 hover:bg-muted hover:opacity-100"
+              to === p.id
+                ? "border-success bg-success/25 font-semibold ring-2 ring-success"
+                : "border-border opacity-70 hover:bg-muted hover:opacity-100"
             }`}
           >
             <TokenStamp token={p.token} />

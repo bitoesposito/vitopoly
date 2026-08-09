@@ -50,7 +50,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
         )}
       </div>
 
-      <div key={compose ? "compose" : (detail?.id ?? "list")} className="space-y-2 duration-300 animate-in fade-in slide-in-from-top-1">
+      <div key={compose ? "compose" : (detail?.id ?? "list")} className="animate-in space-y-2 duration-300 fade-in slide-in-from-top-1">
         {compose ? (
           <TradeComposer game={game} myId={myId} />
         ) : detail ? (
@@ -87,11 +87,11 @@ function IncomingTrade({ trade }: { trade: Trade }) {
       <div className="h-1.5 rounded-full bg-success/50" />
       <div className="space-y-2 text-sm">
         <div className="space-y-1">
-          <div className="text-2xs font-semibold tracking-wide uppercase text-success">{tr("trade.youGet")}</div>
+          <div className="text-2xs font-semibold tracking-wide text-success uppercase">{tr("trade.youGet")}</div>
           <BundleChips b={trade.give} />
         </div>
         <div className="space-y-1">
-          <div className="text-2xs font-semibold tracking-wide uppercase text-destructive">{tr("trade.youGive")}</div>
+          <div className="text-2xs font-semibold tracking-wide text-destructive uppercase">{tr("trade.youGive")}</div>
           <BundleChips b={trade.get} />
         </div>
       </div>
@@ -99,7 +99,12 @@ function IncomingTrade({ trade }: { trade: Trade }) {
         <Button size="sm" className="flex-1" onClick={() => send({ type: "respondTrade", id: trade.id, accept: true })}>
           {tr("trade.accept")}
         </Button>
-        <Button size="sm" variant="secondary" className="flex-1" onClick={() => send({ type: "respondTrade", id: trade.id, accept: false })}>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="flex-1"
+          onClick={() => send({ type: "respondTrade", id: trade.id, accept: false })}
+        >
           {tr("trade.reject")}
         </Button>
       </div>

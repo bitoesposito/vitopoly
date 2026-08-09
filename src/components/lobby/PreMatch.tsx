@@ -47,7 +47,9 @@ export function PreMatch({ game }: { game: PublicState }) {
         <Button className="w-full" size="lg" disabled={!isHost || alone} onClick={() => send({ type: "start" })}>
           {alone ? t("settings.waiting") : t("settings.start")}
         </Button>
-        {!isHost && <p className="text-center text-xs text-muted-foreground">{t("settings.hostStarts", { name: game.players[0]?.name ?? "" })}</p>}
+        {!isHost && (
+          <p className="text-center text-xs text-muted-foreground">{t("settings.hostStarts", { name: game.players[0]?.name ?? "" })}</p>
+        )}
       </div>
 
       {/* consultazione, non un passo: in fondo e chiusa, come nella home */}

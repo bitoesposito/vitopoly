@@ -81,7 +81,7 @@ export function Identity({ game }: { game: PublicState }) {
                 type="button"
                 disabled={!!other}
                 // 44px pieni: è un bersaglio tattile, non un pallino
-                className={`relative flex h-11 w-full items-center justify-center ring-1 ring-paper-ink/40 transition-transform disabled:cursor-not-allowed disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${mine ? "ring-2 ring-ring" : "enabled:hover:scale-105"}`}
+                className={`relative flex h-11 w-full items-center justify-center ring-1 ring-paper-ink/40 transition-transform focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30 ${mine ? "ring-2 ring-ring" : "enabled:hover:scale-105"}`}
                 style={{ background: TOKEN_COLOR[i] }}
                 aria-pressed={mine}
                 // mai il colore da solo: il name dell'inchiostro sta nell'etichetta

@@ -97,7 +97,15 @@ export function drawCard(s: GameState, p: Player, deck: "chance" | "chest", agai
       charge(s, p.id, [{ creditor: "bank", amount: fx.amount }], "card", ev);
       return;
     case "payEach":
-      charge(s, p.id, alive(s).filter((x) => x.id !== p.id).map((x) => ({ creditor: x.id, amount: fx.amount })), "card", ev);
+      charge(
+        s,
+        p.id,
+        alive(s)
+          .filter((x) => x.id !== p.id)
+          .map((x) => ({ creditor: x.id, amount: fx.amount })),
+        "card",
+        ev
+      );
       return;
     case "collectEach":
       // ogni altro giocatore deve a p — gli insolventi ricevono il proprio frame di debito

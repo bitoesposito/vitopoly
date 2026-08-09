@@ -10,9 +10,7 @@ export interface ChatMsg {
   ts: number; // ms epoch, set by server
 }
 
-export type ClientMsg =
-  | { type: "action"; action: ClientAction }
-  | { type: "chat"; text: string };
+export type ClientMsg = { type: "action"; action: ClientAction } | { type: "chat"; text: string };
 
 export type ServerMsg =
   // Il segreto del posto: coniato alla prima occupazione, mandato SOLO a quella socket.

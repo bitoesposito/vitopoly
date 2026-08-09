@@ -11,22 +11,31 @@ import { euro } from "@/lib/format";
 export function BundleChips({ b, fly, paper }: { b: Bundle; fly?: "r" | "l"; paper?: boolean }) {
   const chips: React.ReactNode[] = [];
 
-  if (b.cash > 0) chips.push(<span key="€" className={`font-mono font-semibold ${paper ? "text-verde-carta" : "text-success"}`}>{euro(b.cash)}</span>);
+  if (b.cash > 0)
+    chips.push(
+      <span key="€" className={`font-mono font-semibold ${paper ? "text-verde-carta" : "text-success"}`}>
+        {euro(b.cash)}
+      </span>
+    );
   for (const t of b.props)
     chips.push(
       <span key={t} className="flex items-center gap-1">
-        <span className="size-2 shrink-0 rounded-full" style={{ background: GROUP_COLOR[BOARD[t].group ?? ""] ?? "var(--color-muted-foreground)" }} />
+        <span
+          className="size-2 shrink-0 rounded-full"
+          style={{ background: GROUP_COLOR[BOARD[t].group ?? ""] ?? "var(--color-muted-foreground)" }}
+        />
         {tn(t)}
-      </span>,
+      </span>
     );
   if (b.jailCards > 0)
     chips.push(
       <span key="j" className="flex items-center gap-1">
         <Ticket className="size-3" />×{b.jailCards}
-      </span>,
+      </span>
     );
 
-  if (chips.length === 0) return <span className={`text-xs ${paper ? "text-paper-ink/60" : "text-muted-foreground"}`}>{tr("bundle.nothing")}</span>;
+  if (chips.length === 0)
+    return <span className={`text-xs ${paper ? "text-paper-ink/60" : "text-muted-foreground"}`}>{tr("bundle.nothing")}</span>;
   return (
     <span className="flex flex-wrap gap-1">
       {chips.map((c, i) => (

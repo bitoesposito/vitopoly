@@ -20,8 +20,7 @@ export const unmortgageCost = (tile: TileId) => Math.ceil((BOARD[tile].price! / 
 /** Svendita alla banca: il 25% in più dell'ipoteca. Se il titolo è già ipotecato il
  *  giocatore ha incassato metà prezzo: gli resta solo quel plusvalore. I prezzi del
  *  tabellone sono pari, quindi ipoteca + plusvalore = vendita piena, al centesimo. */
-export const sellValue = (tile: TileId, mortgaged: boolean) =>
-  Math.round((BOARD[tile].price! / 2) * (mortgaged ? 0.25 : 1.25));
+export const sellValue = (tile: TileId, mortgaged: boolean) => Math.round((BOARD[tile].price! / 2) * (mortgaged ? 0.25 : 1.25));
 
 // ---- predicati -------------------------------------------------------
 

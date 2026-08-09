@@ -8,8 +8,7 @@ import { useGame } from "@/lib/store";
 // board grid tracks: 1.55fr corners, 1fr edges
 const TRACKS = [1.55, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.55];
 const TOTAL = TRACKS.reduce((a, b) => a + b, 0);
-const centerPct = (n: number) =>
-  ((TRACKS.slice(0, n - 1).reduce((a, b) => a + b, 0) + TRACKS[n - 1] / 2) / TOTAL) * 100;
+const centerPct = (n: number) => ((TRACKS.slice(0, n - 1).reduce((a, b) => a + b, 0) + TRACKS[n - 1] / 2) / TOTAL) * 100;
 
 const pct = (i: number): readonly [number, number] => {
   const { row, col } = tileCell(i);
@@ -49,7 +48,14 @@ function useEdgeWalk(target: number): readonly [number, number] {
 
 // fixed per-token offsets so stacked tokens stay visible
 const SPREAD = [
-  [0, 0], [9, 7], [-9, 7], [9, -7], [-9, -7], [0, 11], [0, -11], [15, 0],
+  [0, 0],
+  [9, 7],
+  [-9, 7],
+  [9, -7],
+  [-9, -7],
+  [0, 11],
+  [0, -11],
+  [15, 0],
 ];
 
 function Token({ token, pos, current }: { token: number; pos: number; current: boolean }) {
@@ -66,7 +72,9 @@ function Token({ token, pos, current }: { token: number; pos: number; current: b
         {current && <span className="absolute -inset-2 animate-ping opacity-35" style={{ background: color }} />}
         <span
           className={`flex items-center justify-center font-mono leading-none ring-1 ring-paper-ink/50 transition-all duration-300 ${
-            current ? "size-5 text-2xs ring-2 ring-offset-2 ring-offset-background sm:size-6 sm:text-xs" : "size-4 text-micro opacity-95 sm:size-[1.15rem]"
+            current
+              ? "size-5 text-2xs ring-2 ring-offset-2 ring-offset-background sm:size-6 sm:text-xs"
+              : "size-4 text-micro opacity-95 sm:size-[1.15rem]"
           }`}
           style={{ background: color, color: "var(--color-paper-ink)" }}
         >
@@ -83,9 +91,11 @@ export function Tokens({ game }: { game: PublicState }) {
   const tokenPos = useGame((s) => s.tokenPos); // choreographed display pos (ws.ts); state pos is the fallback
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
-      {game.players.filter((p) => !p.bankrupt).map((p) => (
-        <Token key={p.id} token={p.token} pos={tokenPos[p.id] ?? p.pos} current={game.status === "playing" && p.id === currentId} />
-      ))}
+      {game.players
+        .filter((p) => !p.bankrupt)
+        .map((p) => (
+          <Token key={p.id} token={p.token} pos={tokenPos[p.id] ?? p.pos} current={game.status === "playing" && p.id === currentId} />
+        ))}
     </div>
   );
 }

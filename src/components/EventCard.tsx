@@ -21,8 +21,7 @@ const STYLE: Record<CardPopup["kind"], { icon: LucideIcon; accent: string; title
 };
 
 // reading time, not a cinematic pause
-const holdMs = (p: CardPopup, body: string) =>
-  p.kind === "trade" ? 3200 : Math.min(1400 + body.length * 28, 3200);
+const holdMs = (p: CardPopup, body: string) => (p.kind === "trade" ? 3200 : Math.min(1400 + body.length * 28, 3200));
 
 function TradeBody({ p }: { p: Extract<CardPopup, { kind: "trade" }> }) {
   const empty = (b: Bundle) => b.cash === 0 && b.props.length === 0 && b.jailCards === 0;
@@ -56,10 +55,15 @@ function PopCard({ popup, depth }: { popup: CardPopup; depth: number }) {
   const { icon: Icon, accent, titleKey } = STYLE[popup.kind];
 
   const body =
-    popup.kind === "jailed" ? (popup.you ? t("ev.jailedYou") : t("ev.jailed", { name: popup.name }))
-    : popup.kind === "buy" ? tn(popup.tile)
-    : popup.kind === "trade" ? ""
-    : popup.text;
+    popup.kind === "jailed"
+      ? popup.you
+        ? t("ev.jailedYou")
+        : t("ev.jailed", { name: popup.name })
+      : popup.kind === "buy"
+        ? tn(popup.tile)
+        : popup.kind === "trade"
+          ? ""
+          : popup.text;
 
   useEffect(() => {
     const enter = setTimeout(() => setEntered(true), popup.wait);

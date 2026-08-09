@@ -18,7 +18,12 @@ export function Sidebar({ game }: { game: PublicState }) {
   const [thumbBar] = useState(() => document.getElementById("barra-azione"));
 
   const toggle = (
-    <Button size="icon" className="size-11" aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")} onClick={() => setChatOpen((o) => !o)}>
+    <Button
+      size="icon"
+      className="size-11"
+      aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
+      onClick={() => setChatOpen((o) => !o)}
+    >
       {chatOpen ? <ChevronDown /> : <MessageSquare />}
     </Button>
   );

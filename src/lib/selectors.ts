@@ -4,8 +4,7 @@ import type { GameEvent, PublicState } from "@tangentopoly/game";
 // Derivazioni pure sullo stato pubblico. Nessuna di queste è una regola: le regole
 // stanno nel motore. Qui c'è solo quello che la UI chiede allo stato più di una volta.
 
-export const playerNames = (game: PublicState): Record<string, string> =>
-  Object.fromEntries(game.players.map((p) => [p.id, p.name]));
+export const playerNames = (game: PublicState): Record<string, string> => Object.fromEntries(game.players.map((p) => [p.id, p.name]));
 
 export const ownedTiles = (game: PublicState, pid: string): number[] =>
   Object.entries(game.props)

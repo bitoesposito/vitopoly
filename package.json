@@ -12,7 +12,8 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc -b --noEmit && pnpm -r typecheck",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "format:check": "prettier --check \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@fontsource-variable/ibm-plex-sans": "^5.2.8",

@@ -47,12 +47,20 @@ describe("effetti delle carte", () => {
   it("gotoNearest: la prima del tipo giusto DOPO di te, altrimenti si riavvolge", () => {
     const s = started();
     s.players[0].pos = 6;
-    draw(s, "chance", CHANCE.findIndex((c) => c.fx.k === "gotoNearest" && c.fx.kind === "railroad"));
+    draw(
+      s,
+      "chance",
+      CHANCE.findIndex((c) => c.fx.k === "gotoNearest" && c.fx.kind === "railroad")
+    );
     expect(s.players[0].pos).toBe(15); // partecipate: 5, 15, 25, 35
 
     const wrap = started();
     wrap.players[0].pos = 36; // oltre l'ultima
-    draw(wrap, "chance", CHANCE.findIndex((c) => c.fx.k === "gotoNearest" && c.fx.kind === "railroad"));
+    draw(
+      wrap,
+      "chance",
+      CHANCE.findIndex((c) => c.fx.k === "gotoNearest" && c.fx.kind === "railroad")
+    );
     expect(wrap.players[0].pos).toBe(5); // si riavvolge sulla prima
     expect(cash(wrap, "a")).toBe(1500 + 200); // e passando dal VIA incassa
   });
@@ -67,18 +75,30 @@ describe("effetti delle carte", () => {
 
   it("collect / pay: cassa contro banca", () => {
     const c = started();
-    draw(c, "chance", CHANCE.findIndex((x) => x.fx.k === "collect" && x.fx.amount === 50));
+    draw(
+      c,
+      "chance",
+      CHANCE.findIndex((x) => x.fx.k === "collect" && x.fx.amount === 50)
+    );
     expect(cash(c, "a")).toBe(1550);
 
     const p = started();
-    draw(p, "chance", CHANCE.findIndex((x) => x.fx.k === "pay" && x.fx.amount === 15));
+    draw(
+      p,
+      "chance",
+      CHANCE.findIndex((x) => x.fx.k === "pay" && x.fx.amount === 15)
+    );
     expect(cash(p, "a")).toBe(1485);
   });
 
   it("pay senza contanti apre un debito invece di andare in negativo", () => {
     const s = started();
     s.players[0].cash = 5;
-    const { ev } = draw(s, "chance", CHANCE.findIndex((x) => x.fx.k === "pay" && x.fx.amount === 15));
+    const { ev } = draw(
+      s,
+      "chance",
+      CHANCE.findIndex((x) => x.fx.k === "pay" && x.fx.amount === 15)
+    );
     expect(cash(s, "a")).toBe(5); // non toccata
     expect(s.stack.at(-1)).toMatchObject({ t: "debt", debtor: "a" });
     expect(ev.some((e) => e.e === "paid")).toBe(false);

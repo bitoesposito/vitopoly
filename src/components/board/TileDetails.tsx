@@ -81,18 +81,22 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
       {tile.kind === "street" && tile.rent ? (
         <>
           <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("info.when")}</div>
-            <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">{t("info.get")}</div>
+            <div className="text-xs tracking-wide text-muted-foreground uppercase">{t("info.when")}</div>
+            <div className="text-right text-xs tracking-wide text-muted-foreground uppercase">{t("info.get")}</div>
             {tile.rent.slice(0, RENT_KEYS.length).map((r, i) => (
               <Fragment key={i}>
                 <span>{t(RENT_KEYS[i])}</span>
-                <span className="text-right font-mono tabular-nums text-success">{euro(r)}</span>
+                <span className="text-right font-mono text-success tabular-nums">{euro(r)}</span>
               </Fragment>
             ))}
           </div>
           <div className="flex justify-between gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
-            <span>{t("info.price")}: <b className="font-mono text-foreground">{euro(tile.price ?? 0)}</b></span>
-            <span>{t("info.house")}: <b className="font-mono text-foreground">{euro(tile.houseCost ?? 0)}</b></span>
+            <span>
+              {t("info.price")}: <b className="font-mono text-foreground">{euro(tile.price ?? 0)}</b>
+            </span>
+            <span>
+              {t("info.house")}: <b className="font-mono text-foreground">{euro(tile.houseCost ?? 0)}</b>
+            </span>
           </div>
         </>
       ) : (

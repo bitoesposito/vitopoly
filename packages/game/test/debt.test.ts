@@ -37,7 +37,14 @@ describe("debt resolution", () => {
     const s = started();
     s.phase = { t: "postRoll", again: false };
     s.players[0].cash = 60;
-    s.stack.push({ t: "debt", debtor: "a", claims: [{ creditor: "b", amount: 50 }, { creditor: "bank", amount: 100 }] });
+    s.stack.push({
+      t: "debt",
+      debtor: "a",
+      claims: [
+        { creditor: "b", amount: 50 },
+        { creditor: "bank", amount: 100 },
+      ],
+    });
     const r = apply(s, "a", { type: "payDebt" });
     expect(r.ok).toBe(true);
     if (!r.ok) return;

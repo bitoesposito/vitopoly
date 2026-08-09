@@ -14,7 +14,9 @@ export function Countdown({ deadline }: { deadline?: number }) {
 
   const left = Math.max(0, Math.round((deadline - now) / 1000));
   return (
-    <span className={`ml-1 inline-flex items-center gap-0.5 font-mono tabular-nums ${left <= 10 ? "font-bold text-destructive" : "text-muted-foreground"}`}>
+    <span
+      className={`ml-1 inline-flex items-center gap-0.5 font-mono tabular-nums ${left <= 10 ? "font-bold text-destructive" : "text-muted-foreground"}`}
+    >
       <Clock className="size-3.5" /> {left}s
     </span>
   );

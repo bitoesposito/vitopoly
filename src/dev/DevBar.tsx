@@ -52,50 +52,95 @@ const SCENARIOS: [string, () => GameState | null][] = [
   ["Impostazioni", () => base((g) => (g.status = "lobby"))],
   ["preRoll (io)", () => base()],
   ["preRoll (altro)", () => base((g) => (g.current = 1))],
-  ["buyPrompt", () => base((g) => {
-    g.players[0].pos = 39;
-    g.phase = { t: "buyPrompt", tile: 39, again: false };
-  })],
-  ["buyPrompt (a secco)", () => base((g) => {
-    g.players[0].pos = 39;
-    g.players[0].cash = 120; // Milano costa 400: mancano 280
-    g.phase = { t: "buyPrompt", tile: 39, again: false };
-  })],
-  ["postRoll + prop.", () => base((g) => {
-    g.phase = { t: "postRoll", again: false };
-    g.props = {
-      1: { owner: ME, mortgaged: false, houses: 2 },
-      3: { owner: ME, mortgaged: true, houses: 0 },
-      5: { owner: ME, mortgaged: false, houses: 0 },
-      6: { owner: "p2", mortgaged: false, houses: 0 },
-    };
-  })],
-  ["Asta", () => base((g) => {
-    g.stack = [{
-      t: "auction", tile: 6, queue: [], bid: 120, leader: "p2", active: [ME, "p2", "p3"],
-      bids: [{ pid: "p3", amount: 10 }, { pid: ME, amount: 20 }, { pid: "p2", amount: 120 }],
-    }];
-    g.deadline = Date.now() + 6_000;
-  })],
-  ["Debito", () => base((g) => {
-    g.players[0].cash = 60;
-    g.props[1] = { owner: ME, mortgaged: false, houses: 3 };
-    g.stack = [{ t: "debt", debtor: ME, claims: [{ creditor: "p2", amount: 450 }] }];
-  })],
-  ["Trade in arrivo", () => base((g) => {
-    g.props = { 1: { owner: ME, mortgaged: false, houses: 0 }, 6: { owner: "p2", mortgaged: false, houses: 0 } };
-    g.trades = [{ id: "t1", from: "p2", to: ME, give: { cash: 100, props: [6], jailCards: 0 }, get: { cash: 0, props: [1], jailCards: 0 } }];
-  })],
-  ["In prigione", () => base((g) => {
-    g.players[0].pos = 10;
-    g.players[0].inJail = true;
-    g.players[0].jailCards = 1;
-  })],
+  [
+    "buyPrompt",
+    () =>
+      base((g) => {
+        g.players[0].pos = 39;
+        g.phase = { t: "buyPrompt", tile: 39, again: false };
+      }),
+  ],
+  [
+    "buyPrompt (a secco)",
+    () =>
+      base((g) => {
+        g.players[0].pos = 39;
+        g.players[0].cash = 120; // Milano costa 400: mancano 280
+        g.phase = { t: "buyPrompt", tile: 39, again: false };
+      }),
+  ],
+  [
+    "postRoll + prop.",
+    () =>
+      base((g) => {
+        g.phase = { t: "postRoll", again: false };
+        g.props = {
+          1: { owner: ME, mortgaged: false, houses: 2 },
+          3: { owner: ME, mortgaged: true, houses: 0 },
+          5: { owner: ME, mortgaged: false, houses: 0 },
+          6: { owner: "p2", mortgaged: false, houses: 0 },
+        };
+      }),
+  ],
+  [
+    "Asta",
+    () =>
+      base((g) => {
+        g.stack = [
+          {
+            t: "auction",
+            tile: 6,
+            queue: [],
+            bid: 120,
+            leader: "p2",
+            active: [ME, "p2", "p3"],
+            bids: [
+              { pid: "p3", amount: 10 },
+              { pid: ME, amount: 20 },
+              { pid: "p2", amount: 120 },
+            ],
+          },
+        ];
+        g.deadline = Date.now() + 6_000;
+      }),
+  ],
+  [
+    "Debito",
+    () =>
+      base((g) => {
+        g.players[0].cash = 60;
+        g.props[1] = { owner: ME, mortgaged: false, houses: 3 };
+        g.stack = [{ t: "debt", debtor: ME, claims: [{ creditor: "p2", amount: 450 }] }];
+      }),
+  ],
+  [
+    "Trade in arrivo",
+    () =>
+      base((g) => {
+        g.props = { 1: { owner: ME, mortgaged: false, houses: 0 }, 6: { owner: "p2", mortgaged: false, houses: 0 } };
+        g.trades = [
+          { id: "t1", from: "p2", to: ME, give: { cash: 100, props: [6], jailCards: 0 }, get: { cash: 0, props: [1], jailCards: 0 } },
+        ];
+      }),
+  ],
+  [
+    "In prigione",
+    () =>
+      base((g) => {
+        g.players[0].pos = 10;
+        g.players[0].inJail = true;
+        g.players[0].jailCards = 1;
+      }),
+  ],
   ["Timer", () => base((g) => (g.deadline = Date.now() + 30_000))],
-  ["Fine partita", () => base((g) => {
-    g.status = "ended";
-    g.winner = "p2";
-  })],
+  [
+    "Fine partita",
+    () =>
+      base((g) => {
+        g.status = "ended";
+        g.winner = "p2";
+      }),
+  ],
 ];
 
 // EventCard test triggers: every kind the animation can play (+ a stacked burst)
@@ -104,16 +149,26 @@ const POPUPS: [string, PopupInput[]][] = [
   ["Favori", [{ kind: "chest", name: "Anna", text: CHEST[1].text }]],
   ["Prigione", [{ kind: "jailed", name: "Anna", you: false }]],
   ["Acquisto", [{ kind: "buy", name: "Tu", tile: 39, price: 400 }]],
-  ["Scambio", [{
-    kind: "trade", from: "Anna", to: "Bruno",
-    give: { cash: 150, props: [21, 23], jailCards: 0 },
-    get: { cash: 0, props: [5], jailCards: 1 },
-  }]],
-  ["Sequenza", [
-    { kind: "chance", name: "Bruno", text: CHANCE[8].text },
-    { kind: "jailed", name: "Bruno", you: false },
-    { kind: "buy", name: "Anna", tile: 21, price: 220 },
-  ]],
+  [
+    "Scambio",
+    [
+      {
+        kind: "trade",
+        from: "Anna",
+        to: "Bruno",
+        give: { cash: 150, props: [21, 23], jailCards: 0 },
+        get: { cash: 0, props: [5], jailCards: 1 },
+      },
+    ],
+  ],
+  [
+    "Sequenza",
+    [
+      { kind: "chance", name: "Bruno", text: CHANCE[8].text },
+      { kind: "jailed", name: "Bruno", you: false },
+      { kind: "buy", name: "Anna", tile: 21, price: 220 },
+    ],
+  ],
 ];
 
 function popup(ps: PopupInput[]) {

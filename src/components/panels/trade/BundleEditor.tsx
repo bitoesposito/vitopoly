@@ -9,7 +9,14 @@ import type { BundleDraft } from "./draft";
 // Un lato dell'offerta: contanti, atti a celle (l'ordine di tabellone tiene i set
 // adiacenti), carte prigione. I due lati stanno affiancati, quindi il contenuto è
 // impaginato in verticale su una colonna stretta.
-export function BundleEditor({ game, player, title, accent, draft, onChange }: {
+export function BundleEditor({
+  game,
+  player,
+  title,
+  accent,
+  draft,
+  onChange,
+}: {
   game: PublicState;
   player: Player;
   title: string;
@@ -35,7 +42,7 @@ export function BundleEditor({ game, player, title, accent, draft, onChange }: {
           onChange={(e) => onChange({ ...draft, cash: e.target.value })}
         />
       </div>
-      <div className="text-micro tabular-nums text-muted-foreground">/ €{player.cash}</div>
+      <div className="text-micro text-muted-foreground tabular-nums">/ €{player.cash}</div>
 
       {tiles.length === 0 ? (
         <div className="text-xs text-muted-foreground">{tr("trade.noProps")}</div>

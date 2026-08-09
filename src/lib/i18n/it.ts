@@ -164,7 +164,8 @@ export const IT = {
   "rules.favori": "Favori",
   "rules.favoriDesc": "Peschi una carta: qualcuno ti deve qualcosa, e prima o poi paga.",
   "rules.latitanza": "Latitanza",
-  "rules.latitanzaDesc": "Nessuno ti chiede niente, e chi ci atterra incassa il malloppo: tutto quello che tasse e mazzette hanno accumulato.",
+  "rules.latitanzaDesc":
+    "Nessuno ti chiede niente, e chi ci atterra incassa il malloppo: tutto quello che tasse e mazzette hanno accumulato.",
   "rules.maniPulite": "Mani Pulite",
   "rules.maniPuliteDesc": "Ti beccano: dritto in prigione, senza passare dal VIA.",
   "rules.prigione": "In Prigione",

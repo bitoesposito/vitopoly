@@ -38,8 +38,7 @@ function profile(s: GameState, pid: PlayerId, a: Extract<ClientAction, { type: "
   if (a.name !== undefined) {
     const name = a.name.trim().slice(0, MAX_NAME);
     if (!name) return err("il nome non può essere vuoto");
-    if (s.players.some((p) => p.id !== pid && p.name.trim().toLowerCase() === name.toLowerCase()))
-      return err("quel nome è già preso");
+    if (s.players.some((p) => p.id !== pid && p.name.trim().toLowerCase() === name.toLowerCase())) return err("quel nome è già preso");
     me.name = name;
   }
   if (a.token !== undefined) {

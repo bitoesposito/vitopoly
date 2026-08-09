@@ -7,6 +7,7 @@ on:
   pull_request:
 
 jobs:
+  # Controlli statici e test in memoria: veloci, girano su ogni push.
   verifica:
     runs-on: ubuntu-latest
     steps:
@@ -20,5 +21,48 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm typecheck
-      - run: pnpm test:coverage   # radice: motore + client, con soglia sul motore
+      - run: pnpm test:coverage # radice: motore + client, con soglia sul motore
       - run: pnpm build
+
+  # Le due prove che richiedono processi vivi. Job separato: gira in parallelo, così
+  # l'installazione dei browser non rallenta il ritorno dei controlli statici.
+  # Esistevano da tempo come script e non le eseguiva mai nessuno.
+  prove-vive:
+    runs-on: ubuntu-latest
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # Confine di fiducia del server, su un Durable Object vero: segreti di posto,
+      # impostore respinto, /debug chiuso, timer fermo a stanza vuota, tetto del tavolo.
+      - name: worker locale
+        run: pnpm --filter @tangentopoly/server exec wrangler dev --port 8787 &
+      - name: attendi il worker
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS -X POST http://localhost:8787/api/room >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "il worker non è mai salito"; exit 1
+      - run: node scripts/prova-server.mjs
+
+      # Le schermate si montano davvero in un browser: ordini di hook, portal mancanti e
+      # null al render non li vedono né tsc né i test in memoria.
+      - name: client locale
+        run: pnpm serve &
+      - name: attendi il client
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:5173/dev >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "il client non è mai salito"; exit 1
+      - run: node scripts/prova-schermate.mjs

@@ -1,10 +1,9 @@
 import { BAIL, BOARD, GO_SALARY } from "@tangentopoly/game";
 import { GROUP_COLOR, GROUP_LABEL } from "@/lib/palette";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 
 // L'unica spiegazione del gioco: le differenze dal Monopoly non si scoprono giocando.
 export function Rules() {
-  const t = useT();
   // le serie in ordine di prezzo
   const series = Object.keys(GROUP_LABEL).map((g) => {
     const tiles = BOARD.filter((x) => x.group === g);

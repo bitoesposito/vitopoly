@@ -13,7 +13,7 @@ import {
 } from "@tangentopoly/game";
 import type { ClientAction, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { euro } from "@/lib/format";
 
@@ -32,7 +32,6 @@ interface Row {
 }
 
 export function PropertyActions({ game, myId, tile }: { game: PublicState; myId: string; tile: number }) {
-  const t = useT();
   const own = game.props[tile];
   const def = BOARD[tile];
   if (!own || own.owner !== myId) return null;

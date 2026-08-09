@@ -5,7 +5,7 @@ import { PlayerList } from "@/components/panels/PlayerList";
 import { Rules } from "@/components/lobby/Rules";
 import { Identity } from "@/components/lobby/Identity";
 import { useGame } from "@/lib/store";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { shareInvite } from "@/lib/share";
 
@@ -16,7 +16,6 @@ const LABEL = "font-condensed text-micro tracking-widest text-muted-foreground u
 export function PreMatch({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const code = useGame((s) => s.code);
-  const t = useT();
   const isHost = game.players[0]?.id === myId;
   const alone = game.players.length < 2;
 

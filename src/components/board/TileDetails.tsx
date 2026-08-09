@@ -1,20 +1,18 @@
 import { Fragment } from "react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileDef } from "@tangentopoly/game";
-import { useT, useTileName } from "@/lib/i18n";
+import { translate as t, tileName as tn } from "@/lib/i18n";
 import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/palette";
 import { euro } from "@/lib/format";
 import { useGame } from "@/lib/store";
 import { PropertyActions } from "@/components/panels/PropertyActions";
-
-type T = ReturnType<typeof useT>;
 
 // Le sei righe della tabella affitti: base, 1-4 case, hotel. Tupla e non `info.rent${i}`,
 // così una chiave mancante è un errore di compilazione e non una riga vuota a schermo.
 const RENT_KEYS = ["info.rent0", "info.rent1", "info.rent2", "info.rent3", "info.rent4", "info.rent5"] as const;
 
 // short "what is it" line for the popover body
-function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
+function tileDesc(tile: TileDef, game: PublicState): string | null {
   switch (tile.kind) {
     case "go":
       return t("info.go", { amount: 200 });
@@ -44,8 +42,7 @@ function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
 export function TileDetails({ index, game }: { index: number; game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const tile = BOARD[index];
-  const t = useT();
-  const name = useTileName()(index);
+  const name = tn(index);
   const own = game.props[index];
   const proprietario = own ? game.players.find((p) => p.id === own.owner) : undefined;
 
@@ -100,7 +97,7 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
         </>
       ) : (
         <div className="space-y-2 text-muted-foreground">
-          <p>{tileDesc(t, tile, game)}</p>
+          <p>{tileDesc(tile, game)}</p>
           {tile.price != null && (
             <p>
               {t("info.price")}: <b className="font-mono text-foreground">{euro(tile.price)}</b>

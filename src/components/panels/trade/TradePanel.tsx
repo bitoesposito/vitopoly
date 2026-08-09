@@ -3,7 +3,7 @@ import { ArrowLeft, Handshake, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { PublicState, Trade } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
-import { useT } from "@/lib/i18n";
+import { translate as tr } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { useGame } from "@/lib/store";
 import { auctionLive, playerNames } from "@/lib/selectors";
@@ -14,7 +14,6 @@ import { TradeComposer } from "./TradeComposer";
 // Pannello navigabile: lista <-> dettaglio. Una proposta nuova apre da sola il dettaglio
 // e resta listata (con "Mostra") finché non si conclude.
 export function TradePanel({ game, myId }: { game: PublicState; myId: string }) {
-  const tr = useT();
   const tradeOpen = useGame((s) => s.tradeOpen);
   const hidden = useGame((s) => s.tradeHidden);
   useIncomingToast(game, myId);
@@ -83,7 +82,6 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
 
 // L'offerta di qualcun altro, letta dal MIO punto di vista: il suo `give` è ciò che ricevo.
 function IncomingTrade({ trade }: { trade: Trade }) {
-  const tr = useT();
   return (
     <>
       <div className="h-1.5 rounded-full bg-success/50" />
@@ -112,12 +110,11 @@ function IncomingTrade({ trade }: { trade: Trade }) {
 // Su mobile la proposta arriva sotto la piega, dentro un timer da 60s: il toast è
 // l'unico modo di accorgersene.
 function useIncomingToast(game: PublicState, myId: string): void {
-  const tr = useT();
   const seen = useRef<string[]>([]);
   useEffect(() => {
     const mine = game.trades.filter((t) => t.to === myId);
     const fresh = mine.filter((t) => !seen.current.includes(t.id));
     seen.current = mine.map((t) => t.id);
     for (const t of fresh) toast(tr("trade.incoming", { name: game.players.find((p) => p.id === t.from)?.name ?? "" }));
-  }, [game.trades, game.players, myId, tr]);
+  }, [game.trades, game.players, myId]);
 }

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { GROUP_COLOR, GROUP_LABEL } from "@/lib/palette";
-import { useT, useTileName } from "@/lib/i18n";
+import { translate as t, tileName as tn } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { useGame } from "@/lib/store";
 import { euro } from "@/lib/format";
@@ -36,8 +36,6 @@ function TimeBar({ deadline, total }: { deadline: number | undefined; total: num
 // quindi la Board resta bloccata (overlay in Board.tsx) e questa è l'unica sezione attiva.
 export function AuctionPanel({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
-  const t = useT();
-  const tn = useTileName();
   const [raise, setRaise] = useState("");
   const ref = useRef<HTMLDivElement>(null);
   const f = game.stack.at(-1);
@@ -56,7 +54,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   useEffect(() => {
     if (wasLeader.current && leader && leader !== myId) toast.warning(t("auction.outbid"));
     wasLeader.current = leader === myId;
-  }, [leader, myId, t]);
+  }, [leader, myId]);
 
   if (!a) return null;
   const tile = BOARD[a.tile];

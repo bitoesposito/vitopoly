@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { TokenStamp } from "@/components/TokenStamp";
-import { useT } from "@/lib/i18n";
+import { translate as tr } from "@/lib/i18n";
 import { useGame } from "@/lib/store";
 import { send } from "@/lib/net/client";
 import { BundleEditor } from "./BundleEditor";
@@ -11,7 +11,6 @@ import { emptyDraft, isEmpty, toBundle, type BundleDraft } from "./draft";
 // "Nuovo scambio": scelta del partner, poi i due lati affiancati. Le due colonne
 // esistono per essere lette a confronto — è l'unico modo di valutare un'offerta.
 export function TradeComposer({ game, myId }: { game: PublicState; myId: string }) {
-  const tr = useT();
   const others = game.players.filter((p) => p.id !== myId && !p.bankrupt);
   // in due non c'è niente da scegliere: il partner è già quello
   const [to, setTo] = useState(others.length === 1 ? others[0].id : "");

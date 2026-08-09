@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
 import { useGame } from "@/lib/store";
 import { sendChat } from "@/lib/net/client";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/palette";
 
 // La chat ha UNA casa sola a ogni misura: colonna destra da md in su, bottom-sheet
@@ -13,7 +13,6 @@ import { TOKEN_COLOR } from "@/lib/palette";
 export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: () => void; className?: string }) {
   const chat = useGame((s) => s.chat);
   const game = useGame((s) => s.game);
-  const t = useT();
   const [text, setText] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);

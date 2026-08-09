@@ -2,7 +2,7 @@ import { Dices, Ticket, type LucideIcon } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
-import { useT, useTileName } from "@/lib/i18n";
+import { translate as t, tileName as tn } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { euro } from "@/lib/format";
 import type { TurnView } from "./turn";
@@ -15,7 +15,7 @@ const AZIONE = "text-sm md:text-base lg:text-lg max-md:h-13 max-md:min-w-0 max-m
 type Primary = { label: string; icon: LucideIcon | null; run: () => void };
 
 /** Un'azione primaria alla volta: è la regola che tiene leggibile la zona pollice. */
-function primaryAction(view: TurnView, t: ReturnType<typeof useT>): Primary | null {
+function primaryAction(view: TurnView): Primary | null {
   const { node, legal, isMyTurn, again } = view;
   if (!isMyTurn || node.t === "auction" || node.t === "debt" || node.t === "buyPrompt") return null;
   const roll = () => send({ type: "roll" });
@@ -26,10 +26,8 @@ function primaryAction(view: TurnView, t: ReturnType<typeof useT>): Primary | nu
 }
 
 export function TurnActions({ game, view }: { game: PublicState; view: TurnView }) {
-  const t = useT();
-  const tn = useTileName();
   const { node, isMyTurn, me, buyTile, shortfall, debt, iOwe } = view;
-  const primary = primaryAction(view, t);
+  const primary = primaryAction(view);
 
   return (
     <>
@@ -77,7 +75,6 @@ export function TurnActions({ game, view }: { game: PublicState; view: TurnView 
 }
 
 function DebtActions({ payable }: { payable: boolean }) {
-  const t = useT();
   return (
     <>
       {/* stesso richiamo della pedina di turno, in giallo: il debito è l'unica azione

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { House } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { ownedTiles } from "@/lib/selectors";
 import { Panel } from "./Panel";
 import { PropertyCell } from "./PropertyCell";
@@ -10,7 +10,6 @@ import { PropertyActions } from "./PropertyActions";
 // Le mie proprietà: tocchi una cella e sotto compaiono le azioni per QUELLA proprietà,
 // a tutta larghezza invece che spalmate su ogni riga.
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
-  const t = useT();
   const [sel, setSel] = useState<number | null>(null);
   const mine = ownedTiles(game, myId);
   // quando si può fare cosa lo decide PropertyActions: qui basta sapere cosa è scelto

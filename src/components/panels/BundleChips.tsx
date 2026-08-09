@@ -1,7 +1,7 @@
 import { Ticket } from "lucide-react";
 import { BOARD } from "@tangentopoly/game";
 import type { Bundle } from "@tangentopoly/game";
-import { useT, useTileName } from "@/lib/i18n";
+import { translate as tr, tileName as tn } from "@/lib/i18n";
 import { GROUP_COLOR } from "@/lib/palette";
 import { euro } from "@/lib/format";
 
@@ -9,8 +9,6 @@ import { euro } from "@/lib/format";
  *  `fly` = variante animata per la carta evento: i chip volano nella direzione dello scambio.
  *  `paper` = inchiostri stampabili, per quando i chip stanno su carta chiara. */
 export function BundleChips({ b, fly, paper }: { b: Bundle; fly?: "r" | "l"; paper?: boolean }) {
-  const tr = useT();
-  const tn = useTileName();
   const chips: React.ReactNode[] = [];
 
   if (b.cash > 0) chips.push(<span key="€" className={`font-mono font-semibold ${paper ? "text-verde-carta" : "text-success"}`}>{euro(b.cash)}</span>);

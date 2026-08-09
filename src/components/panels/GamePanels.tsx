@@ -1,6 +1,6 @@
 import type { PublicState } from "@tangentopoly/game";
 import { ConfirmButton } from "@/components/ConfirmButton";
-import { useT } from "@/lib/i18n";
+import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { useGame } from "@/lib/store";
 import { auctionLive } from "@/lib/selectors";
@@ -14,7 +14,6 @@ import { TradePanel } from "./trade/TradePanel";
 // mobile (App.tsx), nella sidebar da md in su.
 export function GamePanels({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
-  const t = useT();
   const me = game.players.find((p) => p.id === myId);
   // il ritiro volontario è legale sempre — il motore lo blocca solo in asta
   const canQuit = game.status === "playing" && !!me && !me.bankrupt && !auctionLive(game);

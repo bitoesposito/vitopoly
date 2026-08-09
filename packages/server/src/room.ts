@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { activeNode, addPlayer, apply, auctionTimeout, createGame, redact, setConnected, timeoutAction, timeoutMs, violazioni } from "@tangentopoly/game";
+import { activeNode, addPlayer, apply, auctionTimeout, createGame, redact, setConnected, timeoutAction, timeoutMs, invariantViolations, TOKENS } from "@tangentopoly/game";
 import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@tangentopoly/game";
 import type { Env } from "./index";
 
@@ -8,7 +8,7 @@ function seed(): number {
 }
 
 // Una stanza morta viene cancellata dopo questo silenzio: fine partita, o nessuno collegato.
-const PULIZIA_MS = 24 * 60 * 60 * 1000;
+const CLEANUP_MS = 24 * 60 * 60 * 1000;
 
 // One room = one Durable Object. State is a single JSON blob under key "game".
 export class RoomDO extends DurableObject<Env> {
@@ -16,7 +16,7 @@ export class RoomDO extends DurableObject<Env> {
   private chat!: ChatMsg[];
   // pid -> segreto. Fuori dal blob del gioco: redact() non può perderlo per sbaglio.
   private seats!: Record<string, string>;
-  private ultimaChat: Record<string, number> = {};
+  private lastChatAt: Record<string, number> = {};
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -33,13 +33,24 @@ export class RoomDO extends DurableObject<Env> {
   // riceve il segreto; chi arriva con un pid già occupato e il segreto sbagliato non è
   // quel giocatore, e resta spettatore. (Le stanze aperte prima di questo controllo non
   // hanno segreti: il primo che si collega si prende il posto.)
+  //
+  // Il segreto si conia SOLO a chi può davvero sedersi. Prima lo riceveva ogni pid mai
+  // visto, spettatori compresi: una scrittura su storage e una riga di mappa per ogni
+  // curioso che apriva il link, senza limite.
   private async claimSeat(pid: string, token: string | null): Promise<string | null> {
-    const mio = this.seats[pid];
-    if (mio) return mio === token ? mio : null;
-    const nuovo = crypto.randomUUID();
-    this.seats = { ...this.seats, [pid]: nuovo };
+    const existing = this.seats[pid];
+    if (existing) return existing === token ? existing : null;
+    if (this.game.status !== "lobby" || this.game.players.length >= TOKENS) return null;
+    const minted = crypto.randomUUID();
+    this.seats = { ...this.seats, [pid]: minted };
     await this.ctx.storage.put("seats", this.seats);
-    return nuovo;
+    return minted;
+  }
+
+  private whySpectator(pid: string): string {
+    if (this.seats[pid]) return "questo posto è di un altro giocatore: puoi solo guardare";
+    if (this.game.status !== "lobby") return "la partita è già iniziata: puoi solo guardare";
+    return `il tavolo è al completo (${TOKENS} giocatori): puoi solo guardare`;
   }
 
   async fetch(req: Request): Promise<Response> {
@@ -64,15 +75,14 @@ export class RoomDO extends DurableObject<Env> {
     server.serializeAttachment({ pid: seat ? pid : `spettatore:${crypto.randomUUID()}`, name });
 
     this.send(server, { type: "chatHistory", msgs: this.chat });
-    // seat null = pid altrui senza segreto: guarda e basta
     const joined = seat ? addPlayer(this.game, pid, name) : null;
     if (seat && joined) {
       this.send(server, { type: "seat", token: seat });
       setConnected(this.game, pid, true);
       await this.persistAndBroadcast();
     } else {
-      // partita già iniziata, o posto di qualcun altro: spettatore, vede stato e chat
-      if (!seat) this.send(server, { type: "error", error: "questo posto è di un altro giocatore: puoi solo guardare" });
+      // spettatore: vede stato e chat. Dirgli PERCHÉ, o il banner "stai guardando" è un muro.
+      this.send(server, { type: "error", error: this.whySpectator(pid) });
       this.send(server, { type: "state", state: redact(this.game), events: [] });
     }
 
@@ -103,9 +113,9 @@ export class RoomDO extends DurableObject<Env> {
       const name = this.game.players.find((p) => p.id === pid)?.name ?? att.name ?? "?";
       if (!text) return;
       // ogni messaggio è una scrittura su storage: uno al secondo a testa basta e avanza
-      const ora = Date.now();
-      if (ora - (this.ultimaChat[pid] ?? 0) < 1000) return;
-      this.ultimaChat[pid] = ora;
+      const now = Date.now();
+      if (now - (this.lastChatAt[pid] ?? 0) < 1000) return;
+      this.lastChatAt[pid] = now;
       const m: ChatMsg = { pid, name, text, ts: Date.now() };
       this.chat = [...this.chat, m].slice(-100);
       await this.ctx.storage.put("chat", this.chat);
@@ -152,7 +162,7 @@ export class RoomDO extends DurableObject<Env> {
 
   private async handleAlarm(): Promise<void> {
     // stanza finita o abbandonata: l'unico alarm che resta è quello che la cancella
-    if (this.game.status === "ended" || !this.inLinea()) return void (await this.ctx.storage.deleteAll());
+    if (this.game.status === "ended" || !this.hasLivePlayers()) return void (await this.ctx.storage.deleteAll());
     if (this.game.status !== "playing" || !this.game.deadline) return;
     if (Date.now() < this.game.deadline - 1000) {
       // an action moved the deadline after this alarm was queued — re-arm
@@ -175,9 +185,9 @@ export class RoomDO extends DurableObject<Env> {
 
   // Single commit path: cap log, persist, broadcast, re-arm the timer.
   private async commit(r: Extract<Result, { ok: true }>, from?: WebSocket): Promise<void> {
-    const rotte = violazioni(r.state);
-    if (rotte.length) {
-      console.error("invarianti violate, stato non salvato:", rotte, JSON.stringify(r.events));
+    const broken = invariantViolations(r.state);
+    if (broken.length) {
+      console.error("invarianti violate, stato non salvato:", broken, JSON.stringify(r.events));
       if (from) this.send(from, { type: "error", error: "errore interno (stato non salvato)" });
       return;
     }
@@ -189,17 +199,17 @@ export class RoomDO extends DurableObject<Env> {
   // C'è ancora qualcuno che sta giocando davvero? Il timer del turno esiste per non far
   // aspettare gli altri: senza nessuno collegato non ha nessuno da sbloccare, e una
   // stanza abbandonata si giocherebbe da sola fino alla bancarotta di qualcuno.
-  private inLinea(): boolean {
+  private hasLivePlayers(): boolean {
     return this.game.players.some((p) => p.connected && !p.bankrupt);
   }
 
   private async persistAndBroadcast(events: GameEvent[] = []): Promise<void> {
-    if (this.game.status === "playing" && this.inLinea()) {
+    if (this.game.status === "playing" && this.hasLivePlayers()) {
       this.game.deadline = Date.now() + timeoutMs(this.game);
       await this.ctx.storage.setAlarm(this.game.deadline);
     } else {
       this.game.deadline = undefined;
-      await this.ctx.storage.setAlarm(Date.now() + PULIZIA_MS); // partita finita o stanza vuota: si cancella
+      await this.ctx.storage.setAlarm(Date.now() + CLEANUP_MS); // partita finita o stanza vuota: si cancella
     }
     await this.ctx.storage.put("game", this.game);
     const s = JSON.stringify({ type: "state", state: redact(this.game), events } satisfies ServerMsg);

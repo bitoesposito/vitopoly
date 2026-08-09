@@ -65,5 +65,18 @@ const dopo = await (await fetch(`${API}/api/room/${code}/debug?pid=pid-vito&toke
 assert.equal(dopo.players.every((p) => !p.connected), true);
 assert.equal(dopo.deadline, undefined, "senza nessuno collegato il turno non ha scadenza");
 
-console.log("tutto a posto: segreti di posto, impostore respinto, rientro, /debug chiuso, timer fermo a stanza vuota");
+// 5. il tavolo ha un tetto: oltre gli inchiostri disponibili si guarda e basta
+const pieno = await stanza();
+const seduti = [];
+for (let i = 0; i < 8; i++) seduti.push(await apri(pieno, `pid-${i}`, `G${i}`));
+await attesa(600);
+assert.equal(stato(seduti[0]).players.length, 8, "otto posti si occupano");
+const nono = await apri(pieno, "pid-nono", "Nono");
+await attesa(400);
+assert.equal(stato(nono).players.length, 8, "il nono non si siede");
+assert.ok(errori(nono).some((e) => e.includes("completo")), `al nono va detto perché: ${JSON.stringify(errori(nono))}`);
+assert.equal(new Set(stato(nono).players.map((p) => p.token)).size, 8, "otto inchiostri distinti, nessun doppione");
+for (const s of [...seduti, nono]) s.close();
+
+console.log("tutto a posto: segreti di posto, impostore respinto, rientro, /debug chiuso, timer fermo a stanza vuota, tavolo con tetto");
 process.exit(0);

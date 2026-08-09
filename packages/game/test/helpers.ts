@@ -6,7 +6,6 @@ import { apply } from "../src/engine";
 export function started(seed = 12345): GameState {
   const s = createGame(seed);
   s.settings.randomOrder = false; // tests rely on a,b order
-  s.settings.evenBuild = true; // even-build rules are tested explicitly
   addPlayer(s, "a", "Alice");
   addPlayer(s, "b", "Bob");
   const r = apply(s, "a", { type: "start" });

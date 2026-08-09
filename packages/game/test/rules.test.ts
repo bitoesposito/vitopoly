@@ -37,15 +37,20 @@ describe("rent math", () => {
 });
 
 describe("building", () => {
-  it("requires full unmortgaged group and even-build order", () => {
+  it("serve il gruppo intero, e non ipotecato", () => {
     const s = started();
     s.players[0].cash = 10000;
     s.props[1] = { owner: "a", mortgaged: false, houses: 0 };
     expect(build(s, "a", 1)).toBe("serve l'intero gruppo di colore");
     ownGroup(s, [1, 3], "a");
-    expect(build(s, "a", 1)).toBeNull(); // 1 -> house 1
-    expect(build(s, "a", 1)).toBe("costruisci in modo uniforme"); // must build on 3 first
-    expect(build(s, "a", 3)).toBeNull();
+    expect(build(s, "a", 1)).toBeNull();
+    s.props[3]!.mortgaged = true;
+    expect(build(s, "a", 1)).toBe("il gruppo ha strade ipotecate");
+    s.props[3]!.mortgaged = false;
+    // si può caricare una strada sola: la casa del regolamento non impone uniformità
+    expect(build(s, "a", 1)).toBeNull();
+    expect(s.props[1]!.houses).toBe(2);
+    expect(s.props[3]!.houses).toBe(0);
     expect(s.bank.houses).toBe(30);
   });
 

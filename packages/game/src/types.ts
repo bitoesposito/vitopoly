@@ -75,9 +75,7 @@ export interface GameSettings {
   doubleRentFullSet: boolean; // x2 base rent on full color group
   vacationCash: boolean; // taxes/bank fees accumulate on Free Parking, landing collects
   auction: boolean; // declined purchase -> auction (off: stays unowned)
-  noRentInPrison: boolean; // owner in jail -> no rent collected
   mortgageAllowed: boolean;
-  evenBuild: boolean; // enforce even build/sell within a group
   randomOrder: boolean; // shuffle turn order at start
 }
 

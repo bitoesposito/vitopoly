@@ -31,9 +31,8 @@ describe("game settings", () => {
     expect(addPlayer(g.state, "tardivo", "Tardivo")).toBeNull();
   });
 
-  it("evenBuild off allows lopsided building", () => {
+  it("si può costruire in modo disomogeneo", () => {
     const s = started();
-    s.settings.evenBuild = false;
     s.players[0].cash = 10000;
     s.props[1] = { owner: "a", mortgaged: false, houses: 0 };
     s.props[3] = { owner: "a", mortgaged: false, houses: 0 };
@@ -42,13 +41,11 @@ describe("game settings", () => {
     expect(s.props[1]!.houses).toBe(2);
   });
 
-  it("noRentInPrison waives rent while the owner is jailed", () => {
+  it("il proprietario in prigione incassa lo stesso", () => {
     const s = started();
     s.props[1] = { owner: "b", mortgaged: false, houses: 0 };
     s.players[1].inJail = true;
-    expect(rentFor(s, 1, 7)).toBe(2); // setting off: rent due
-    s.settings.noRentInPrison = true;
-    expect(rentFor(s, 1, 7)).toBe(0);
+    expect(rentFor(s, 1, 7)).toBe(2);
   });
 
   it("doubleRentFullSet off keeps base rent on monopolies", () => {

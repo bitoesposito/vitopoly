@@ -6,7 +6,6 @@ export function rentFor(s: GameState, tile: TileId, diceTotal: number): number {
   const def = BOARD[tile];
   const own = s.props[tile];
   if (!own || own.mortgaged) return 0;
-  if (s.settings.noRentInPrison && s.players.find((p) => p.id === own.owner)?.inJail) return 0;
 
   if (def.kind === "street") {
     if (own.houses > 0) return def.rent![own.houses];

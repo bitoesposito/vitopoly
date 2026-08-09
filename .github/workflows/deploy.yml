@@ -1,0 +1,65 @@
+# Prima non esisteva: il worker si deployava da una macchina qualunque, a mano, e
+# nessuno poteva sapere se ciò che girava in produzione fosse `main`. Con un motore che
+# cambia le regole (chiusura dell'asta, valore di svendita, tetto del tavolo) quella
+# incertezza è il difetto peggiore che il progetto possa avere.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # per rideployare senza dover fare un commit finto
+
+# Un deploy alla volta, e senza annullare quello in corso: interrompere wrangler a metà
+# lascia la migration del Durable Object in uno stato che nessuno ha voglia di indagare.
+concurrency:
+  group: deploy-produzione
+  cancel-in-progress: false
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    environment: produzione
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Il cancello: si deploya solo ciò che passa. La CI gira in parallelo sullo stesso
+      # commit, ma non è una dipendenza fra workflow — quindi qui si ricontrolla, invece
+      # di sperare che l'altro sia finito bene.
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      - name: manca il segreto?
+        run: |
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "CLOUDFLARE_API_TOKEN non è configurato fra i secret del repository."
+            echo "Serve un token con il permesso 'Edit Cloudflare Workers'."
+            exit 1
+          fi
+
+      - name: deploy del worker
+        run: pnpm --filter @tangentopoly/server exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Il worker deployato risponde davvero: senza questo, un deploy riuscito e un
+      # worker rotto sono indistinguibili finché non lo scopre un giocatore.
+      - name: il worker risponde
+        run: |
+          URL=$(grep VITE_SERVER_URL .env.production | cut -d= -f2)
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$URL/api/room")
+            [ "$code" = "200" ] && echo "$URL risponde" && exit 0
+            sleep 3
+          done
+          echo "$URL non risponde dopo il deploy"; exit 1
+# Il CLIENT non è qui perché il repository non dice dove sia ospitato: non c'è una
+# config di Pages, Netlify o Vercel, e PRODUCT.md elenca la deployment URL fra le cose
+# da non inventare. `pnpm build` produce dist/ e qualcuno lo pubblica a mano.
+# Per automatizzarlo serve sapere dove va: aggiungere un job qui è una decina di righe.

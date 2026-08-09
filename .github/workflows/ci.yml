@@ -20,5 +20,5 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm typecheck
-      - run: pnpm test   # radice: copre motore E client
+      - run: pnpm test:coverage   # radice: motore + client, con soglia sul motore
       - run: pnpm build

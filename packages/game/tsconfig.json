@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2023",
-    "lib": ["ES2023"],
+    // DOM serve per `structuredClone`, che è uno standard web presente in Node 17+, nei
+    // browser e in workerd, ma non sta in lib.ES2023. Fino a vitest 3 arrivava per caso
+    // dai @types/node che quello si trascinava dietro: qui è dichiarato invece che subito.
+    // Attenzione: apre anche `document` e `window`, che in questo pacchetto non vanno usati.
+    "lib": ["ES2023", "DOM"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,

@@ -15,8 +15,6 @@ export type CardPopup = PopupBody & { id: number; wait: number };
 export type PopupInput = PopupBody & { wait?: number };
 let popupSeq = 0;
 
-
-
 interface Store {
   myId: string;
   name: string;

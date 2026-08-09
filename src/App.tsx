@@ -54,7 +54,7 @@ export default function App() {
         </div>
       )}
       {/* panels render twice with responsive visibility: mobile below the board, desktop in the Sidebar */}
-      <main className="min-h-0 max-h-[100vh] flex-1 overflow-auto">
+      <main className="max-h-[100vh] min-h-0 flex-1 overflow-auto">
         {/* md:p-2 = stesso gutter dal bordo pagina delle sidebar; center-safe: se il
             contenuto supera l'altezza non taglia la parte alta, la lascia scrollabile */}
         <div className="flex flex-col items-center justify-center-safe gap-3 sm:h-full md:p-2">
@@ -69,9 +69,7 @@ export default function App() {
                 <span className="font-condensed text-sm font-bold tracking-tight uppercase">
                   Tangento<span className="text-warning">poly</span>
                 </span>
-                <span className="font-mono text-micro tracking-widest text-muted-foreground uppercase">
-                  {t("lobby.serie")}
-                </span>
+                <span className="font-mono text-micro tracking-widest text-muted-foreground uppercase">{t("lobby.serie")}</span>
               </header>
               <Board game={game} />
               {/* la barra pollice è fixed: le si lascia sotto la sua altezza piena */}

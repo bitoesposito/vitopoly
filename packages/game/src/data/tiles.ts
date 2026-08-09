@@ -1,16 +1,6 @@
 // The 40 tiles as static data. The ONE place tile semantics live.
 
-export type TileKind =
-  | "go"
-  | "street"
-  | "railroad"
-  | "utility"
-  | "tax"
-  | "chance"
-  | "chest"
-  | "jail"
-  | "gotojail"
-  | "parking";
+export type TileKind = "go" | "street" | "railroad" | "utility" | "tax" | "chance" | "chest" | "jail" | "gotojail" | "parking";
 
 export interface TileDef {
   name: string;

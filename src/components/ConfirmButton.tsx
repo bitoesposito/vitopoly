@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 
 const ARMED_MS = 4000;
 
-export function ConfirmButton({ label, armedLabel, armedAriaLabel, onConfirm, ...rest }: {
+export function ConfirmButton({
+  label,
+  armedLabel,
+  armedAriaLabel,
+  onConfirm,
+  ...rest
+}: {
   label: React.ReactNode;
   /** cosa mostra da armato: deve dire chiaramente che il prossimo tocco è quello vero */
   armedLabel: React.ReactNode;

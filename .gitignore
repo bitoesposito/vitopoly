@@ -27,3 +27,4 @@ dist-ssr
 
 # stato del plugin impeccable (critique, sidecar, cache): non è il gioco
 .impeccable
+coverage/

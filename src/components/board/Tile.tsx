@@ -89,9 +89,13 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           type="button"
           // transform-gpu: cella isolata sul proprio layer — evita il ghosting delle bande
           // (dipinte sfalsate rispetto al box) causato dal churn di layer del filter in hover
-          className="nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset focus-visible:outline-none"
+          className="nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
           // velatura decisa: sulla plancia il proprietario si legge a colpo d'occhio dal colore
-          style={owner ? { backgroundColor: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 14 : 30}%, var(--color-paper))` } : undefined}
+          style={
+            owner
+              ? { backgroundColor: `color-mix(in oklab, ${TOKEN_COLOR[owner.token % 8]} ${own!.mortgaged ? 14 : 30}%, var(--color-paper))` }
+              : undefined
+          }
         >
           {/* banda su TUTTE le celle del bordo: contenuti allineati anche senza set */}
           {!isCorner && (
@@ -120,7 +124,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           {/* tre slot ad altezza fissa: nome sopra (uguale per tutte le celle), stato al
               centro, prezzo sotto — le celle adiacenti restano allineate */}
           <div
-            className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none text-[min(2.1cqi,0.75rem)] ${isCorner ? "p-[min(0.5cqi,0.25rem)]" : `p-[min(0.3cqi,0.125rem)] ${PAD[side]}`}`}
+            className={`relative flex h-full w-full flex-col items-center justify-between text-center text-[min(2.1cqi,0.75rem)] leading-none ${isCorner ? "p-[min(0.5cqi,0.25rem)]" : `p-[min(0.3cqi,0.125rem)] ${PAD[side]}`}`}
           >
             <span className="flex w-full flex-col items-center">
               {region && (
@@ -138,15 +142,21 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
                   {own && own.houses === 5 ? (
                     <Hotel className="size-[min(3cqi,1rem)] text-paper-ink" />
                   ) : (
-                    Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-[min(2.1cqi,0.875rem)] text-paper-ink" />)
+                    Array.from({ length: own?.houses ?? 0 }, (_, h) => (
+                      <House key={h} className="size-[min(2.1cqi,0.875rem)] text-paper-ink" />
+                    ))
                   )}
                 </span>
-                <span className="flex items-center justify-center font-mono leading-none tabular-nums text-paper-ink/75">{euro(tile.price ?? 0)}</span>
+                <span className="flex items-center justify-center font-mono leading-none text-paper-ink/75 tabular-nums">
+                  {euro(tile.price ?? 0)}
+                </span>
               </>
             )}
             {/* tasse: importo da pagare in basso, come i prezzi delle proprietà */}
             {tile.kind === "tax" && (
-              <span className="flex items-center justify-center font-mono leading-none tabular-nums text-paper-ink/75">{euro(tile.taxAmount ?? 0)}</span>
+              <span className="flex items-center justify-center font-mono leading-none text-paper-ink/75 tabular-nums">
+                {euro(tile.taxAmount ?? 0)}
+              </span>
             )}
           </div>
         </button>

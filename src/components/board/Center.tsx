@@ -68,7 +68,7 @@ export function Center({ game }: { game: PublicState }) {
           </span>
           {/* la cifra sta accanto al nome, quindi è di CHI HA IL TURNO: prima mostrava
               sempre la mia e si leggeva come il contante dell'altro */}
-          {current && <span className="font-mono tabular-nums text-success">{euro(current.cash)}</span>}
+          {current && <span className="font-mono text-success tabular-nums">{euro(current.cash)}</span>}
           <Popover>
             <PopoverTrigger asChild>
               <Button size="icon-sm" variant="ghost" aria-label={t("rules.title")}>
@@ -87,7 +87,7 @@ export function Center({ game }: { game: PublicState }) {
             un'asta è il numero che decide quanto posso offrire */}
         {me && !isMyTurn && (
           <div className="text-2xs text-muted-foreground sm:text-xs">
-            {t("center.yourCash")} <span className="font-mono tabular-nums text-success">{euro(me.cash)}</span>
+            {t("center.yourCash")} <span className="font-mono text-success tabular-nums">{euro(me.cash)}</span>
           </div>
         )}
 
@@ -110,7 +110,9 @@ export function Center({ game }: { game: PublicState }) {
           {debt &&
             (iOwe ? (
               <div className="space-y-1 text-center">
-                <div className="text-sm font-semibold text-destructive lg:text-base">{t("debt.youOwe", { total: euro(owed), to: creditors })}</div>
+                <div className="text-sm font-semibold text-destructive lg:text-base">
+                  {t("debt.youOwe", { total: euro(owed), to: creditors })}
+                </div>
                 <div className="text-xs text-muted-foreground lg:text-sm">{t("debt.help")}</div>
               </div>
             ) : (

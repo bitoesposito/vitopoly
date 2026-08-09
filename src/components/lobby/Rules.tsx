@@ -25,7 +25,7 @@ export function Rules() {
             <li key={g} className="flex items-center gap-1.5">
               <span className="h-3 w-1 shrink-0" style={{ background: GROUP_COLOR[g] }} />
               <span className="min-w-0 truncate">{GROUP_LABEL[g]}</span>
-              <span className="ml-auto shrink-0 font-mono text-micro tabular-nums text-muted-foreground">
+              <span className="ml-auto shrink-0 font-mono text-micro text-muted-foreground tabular-nums">
                 {n}·€{da}–{a}
               </span>
             </li>

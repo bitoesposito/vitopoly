@@ -9,7 +9,9 @@ import { alive, byId, cur, nextPlayer } from "./players";
 
 /** Gli edifici si liquidano SEMPRE alla banca a metà prezzo. Ritorna le caselle del patrimonio. */
 export function liquidateBuildings(s: GameState, pid: PlayerId, ev: GameEvent[]): TileId[] {
-  const estate = Object.keys(s.props).map(Number).filter((t) => s.props[t]!.owner === pid);
+  const estate = Object.keys(s.props)
+    .map(Number)
+    .filter((t) => s.props[t]!.owner === pid);
   for (const t of estate) {
     const own = s.props[t]!;
     if (own.houses === 0) continue;

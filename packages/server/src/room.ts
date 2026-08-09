@@ -1,5 +1,17 @@
 import { DurableObject } from "cloudflare:workers";
-import { activeNode, addPlayer, apply, auctionTimeout, createGame, redact, setConnected, timeoutAction, timeoutMs, invariantViolations, TOKENS } from "@tangentopoly/game";
+import {
+  activeNode,
+  addPlayer,
+  apply,
+  auctionTimeout,
+  createGame,
+  redact,
+  setConnected,
+  timeoutAction,
+  timeoutMs,
+  invariantViolations,
+  TOKENS,
+} from "@tangentopoly/game";
 import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@tangentopoly/game";
 import type { Env } from "./index";
 
@@ -109,7 +121,9 @@ export class RoomDO extends DurableObject<Env> {
       return this.send(ws, { type: "error", error: "messaggio non valido" });
     }
     if (msg?.type === "chat") {
-      const text = String(msg.text ?? "").slice(0, 300).trim();
+      const text = String(msg.text ?? "")
+        .slice(0, 300)
+        .trim();
       const name = this.game.players.find((p) => p.id === pid)?.name ?? att.name ?? "?";
       if (!text) return;
       // ogni messaggio è una scrittura su storage: uno al secondo a testa basta e avanza

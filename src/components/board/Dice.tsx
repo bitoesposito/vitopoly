@@ -30,7 +30,12 @@ function Die3D({ value, spin, alt }: { value: number | null; spin: number; alt?:
 
 // Il vassoio è la scorciatoia per il puntatore: l'azione ha già il suo bottone, quindi
 // qui niente tab e niente etichetta — è decorazione operabile, non un controllo.
-export function DiceTray({ roll, enabled, onRoll, label }: {
+export function DiceTray({
+  roll,
+  enabled,
+  onRoll,
+  label,
+}: {
   roll: Extract<GameEvent, { e: "rolled" }> | null;
   enabled: boolean;
   onRoll: () => void;
@@ -54,7 +59,7 @@ export function DiceTray({ roll, enabled, onRoll, label }: {
       aria-hidden
       onClick={onRoll}
       title={enabled ? label : undefined}
-      className={`dice-tray flex items-center justify-center gap-2 sm:gap-3 [--die:3rem] sm:[--die:3.5rem] lg:[--die:4rem] ${enabled ? "" : "opacity-60"}`}
+      className={`dice-tray flex items-center justify-center gap-2 [--die:3rem] sm:gap-3 sm:[--die:3.5rem] lg:[--die:4rem] ${enabled ? "" : "opacity-60"}`}
     >
       <Die3D value={roll?.d1 ?? null} spin={spin} />
       <Die3D value={roll?.d2 ?? null} spin={spin} alt />

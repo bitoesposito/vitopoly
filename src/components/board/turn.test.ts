@@ -55,7 +55,14 @@ describe("turnView", () => {
 
   it("debito: chi deve lo vede come proprio, gli altri come altrui", () => {
     const g = game();
-    g.stack.push({ t: "debt", debtor: "a", claims: [{ creditor: "b", amount: 200 }, { creditor: "bank", amount: 50 }] });
+    g.stack.push({
+      t: "debt",
+      debtor: "a",
+      claims: [
+        { creditor: "b", amount: 200 },
+        { creditor: "bank", amount: 50 },
+      ],
+    });
 
     const debtor = turnView(g, "a");
     expect(debtor.iOwe).toBe(true);
@@ -69,7 +76,14 @@ describe("turnView", () => {
 
   it("creditori duplicati compaiono una volta sola", () => {
     const g = game();
-    g.stack.push({ t: "debt", debtor: "a", claims: [{ creditor: "bank", amount: 10 }, { creditor: "bank", amount: 20 }] });
+    g.stack.push({
+      t: "debt",
+      debtor: "a",
+      claims: [
+        { creditor: "bank", amount: 10 },
+        { creditor: "bank", amount: 20 },
+      ],
+    });
     expect(turnView(g, "a").creditors).toBe("banca");
     expect(turnView(g, "a").owed).toBe(30);
   });

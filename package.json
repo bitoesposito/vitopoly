@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "packageManager": "pnpm@11.7.0",
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
     "dev": "pnpm --parallel --include-workspace-root -r run serve",
     "serve": "vite",
@@ -12,7 +12,9 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc -b --noEmit && pnpm -r typecheck",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "format:check": "prettier --check \"**/*.{ts,tsx}\"",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@fontsource-variable/ibm-plex-sans": "^5.2.8",
@@ -36,6 +38,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
@@ -49,7 +52,7 @@
     "typescript": "~6",
     "typescript-eslint": "^8",
     "vite": "^8",
-    "vitest": "^3.2.6",
+    "vitest": "^4.1.10",
     "wrangler": "^4.107.0"
   }
 }

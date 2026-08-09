@@ -73,7 +73,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
 
   return (
     // max-md:order-first: su mobile l'asta è la prima cosa sotto la board
-    <Card ref={ref} size="sm" className="ring-2 ring-warning/60 duration-300 animate-in fade-in slide-in-from-top-2 max-md:order-first">
+    <Card ref={ref} size="sm" className="animate-in ring-2 ring-warning/60 duration-300 fade-in slide-in-from-top-2 max-md:order-first">
       <CardContent className="space-y-2">
         <div className="flex items-center gap-1.5 text-sm font-semibold">
           <Gavel className="size-3.5" />
@@ -89,9 +89,12 @@ export function AuctionPanel({ game }: { game: PublicState }) {
 
         <div className="flex items-end justify-between">
           <div>
-            <div className="text-2xs font-semibold tracking-wide uppercase text-muted-foreground">{t("auction.current")}</div>
+            <div className="text-2xs font-semibold tracking-wide text-muted-foreground uppercase">{t("auction.current")}</div>
             {/* key sul leader: la cifra rientra a ogni cambio di testa */}
-            <div key={a.leader ?? "none"} className="font-mono text-2xl font-bold tabular-nums text-warning duration-200 animate-in zoom-in-95">
+            <div
+              key={a.leader ?? "none"}
+              className="animate-in font-mono text-2xl font-bold text-warning tabular-nums duration-200 zoom-in-95"
+            >
               {euro(a.bid)}
             </div>
           </div>
@@ -102,7 +105,13 @@ export function AuctionPanel({ game }: { game: PublicState }) {
 
         <div className="flex gap-1">
           {QUICK_BIDS.map((d) => (
-            <Button key={d} className="flex-1 font-mono tabular-nums" size="sm" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
+            <Button
+              key={d}
+              className="flex-1 font-mono tabular-nums"
+              size="sm"
+              disabled={!canBid || a.bid + d > myCash}
+              onClick={() => send({ type: "bid", amount: d })}
+            >
               {euro(a.bid + d)}
             </Button>
           ))}
@@ -134,7 +143,12 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         )}
 
         {canBid && (
-          <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-destructive" onClick={() => send({ type: "fold" })}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-muted-foreground hover:text-destructive"
+            onClick={() => send({ type: "fold" })}
+          >
             {t("auction.fold")}
           </Button>
         )}
@@ -144,7 +158,7 @@ export function AuctionPanel({ game }: { game: PublicState }) {
           {[...a.bids].reverse().map((b, i) => (
             <div className="flex items-center gap-1 text-xs leading-none" key={a.bids.length - i}>
               <b className="text-foreground">{names[b.pid]}</b> -{" "}
-              <span className={`font-mono ${i === 0 ? "tabular-nums text-warning" : "text-muted-foreground"}`}>{euro(b.amount)}</span>
+              <span className={`font-mono ${i === 0 ? "text-warning tabular-nums" : "text-muted-foreground"}`}>{euro(b.amount)}</span>
             </div>
           ))}
         </div>

@@ -68,7 +68,10 @@ export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result 
 }
 
 /** Derivata dalla STESSA tabella (+ canRaiseCash). Alimenta i bottoni del client e il soak test. */
-export function legalActions(s: Pick<GameState, "status" | "phase" | "stack" | "players" | "current">, pid: PlayerId): ClientAction["type"][] {
+export function legalActions(
+  s: Pick<GameState, "status" | "phase" | "stack" | "players" | "current">,
+  pid: PlayerId
+): ClientAction["type"][] {
   if (s.status === "lobby") return ["start", "profile"];
   if (s.status === "ended") return [];
   const base = Object.keys(HANDLERS[activeNode(s).t]) as ClientAction["type"][];

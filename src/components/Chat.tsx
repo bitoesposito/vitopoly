@@ -72,9 +72,9 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
               {g[0].name}
             </div>
             {g.map((m, j) => (
-              <div key={j} className="flex items-baseline justify-between gap-2 break-words text-xs">
+              <div key={j} className="flex items-baseline justify-between gap-2 text-xs break-words">
                 <span>{m.text}</span>
-                <span className="shrink-0 tabular-nums text-xs text-muted-foreground">{time(m.ts)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{time(m.ts)}</span>
               </div>
             ))}
           </div>

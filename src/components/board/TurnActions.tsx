@@ -21,7 +21,8 @@ function primaryAction(view: TurnView): Primary | null {
   const roll = () => send({ type: "roll" });
   if (legal.has("roll") && node.t === "preRoll") return { label: t("center.roll"), icon: Dices, run: roll };
   if (again) return { label: t("center.rollAgain"), icon: Dices, run: roll };
-  if (legal.has("endTurn") && node.t === "postRoll") return { label: t("center.endTurn"), icon: null, run: () => send({ type: "endTurn" }) };
+  if (legal.has("endTurn") && node.t === "postRoll")
+    return { label: t("center.endTurn"), icon: null, run: () => send({ type: "endTurn" }) };
   return null;
 }
 

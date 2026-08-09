@@ -29,7 +29,9 @@ function randomAction(s: GameState, rng: { seed: number }): { pid: string; a: Cl
   const types = legalActions(s, pid);
   const type = types[nextInt(rng, types.length)];
   // le caselle si pescano fra le PROPRIE: un tile a caso su 40 era quasi sempre un rifiuto
-  const mine = Object.keys(s.props).map(Number).filter((t) => s.props[t]!.owner === pid);
+  const mine = Object.keys(s.props)
+    .map(Number)
+    .filter((t) => s.props[t]!.owner === pid);
   const tile = mine.length ? mine[nextInt(rng, mine.length)] : nextInt(rng, 40);
   switch (type) {
     case "bid":

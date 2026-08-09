@@ -31,7 +31,7 @@ export function AssetsPanel({ game, myId }: { game: PublicState; myId: string })
         </div>
       )}
       {selTile !== null && (
-        <div key={selTile} className="duration-200 animate-in fade-in">
+        <div key={selTile} className="animate-in duration-200 fade-in">
           <PropertyActions game={game} myId={myId} tile={selTile} />
         </div>
       )}

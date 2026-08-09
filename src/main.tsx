@@ -4,7 +4,6 @@ import { createRoot } from "react-dom/client"
 import "./index.css"
 import App from "./App.tsx"
 import { Toaster } from "@/components/ui/sonner"
-import { TooltipProvider } from "@/components/ui/tooltip"
 
 // sempre modalità scura
 document.documentElement.classList.add("dark")
@@ -14,14 +13,12 @@ const DevBar = import.meta.env.DEV && location.pathname === "/dev" ? lazy(() => 
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <TooltipProvider delayDuration={200}>
-      <App />
-      <Toaster />
-      {DevBar && (
-        <Suspense>
-          <DevBar />
-        </Suspense>
-      )}
-    </TooltipProvider>
+    <App />
+    <Toaster />
+    {DevBar && (
+      <Suspense>
+        <DevBar />
+      </Suspense>
+    )}
   </StrictMode>
 )

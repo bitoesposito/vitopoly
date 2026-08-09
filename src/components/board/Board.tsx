@@ -2,9 +2,9 @@ import { activeNode, BOARD } from "@tangentopoly/game";
 import type { PublicState } from "@tangentopoly/game";
 import { Tile } from "./Tile";
 import { Center } from "./Center";
-import { EventCardOverlay } from "./EventCard";
+import { EventCardOverlay } from "@/components/EventCard";
 import { Tokens } from "./Tokens";
-import { tileCell } from "@/lib/utils";
+import { tileCell } from "@/lib/board-layout";
 
 export function Board({ game }: { game: PublicState }) {
   // l'asta è un interrupt di gioco: board bloccata (niente blur), si agisce dal pannello asta
@@ -29,8 +29,7 @@ export function Board({ game }: { game: PublicState }) {
         return (
           // grid (non block): il button è un item stretchato, MAI su una baseline di testo —
           // l'inline-block dentro un div si sfalsa con le metriche del font caricato.
-          // inert: lo scrim è solo visivo, senza questo le celle restano operabili
-          <div key={i} className="grid min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }} inert={auctionLive}>
+          <div key={i} className="grid min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }}>
             <Tile index={i} game={game} />
           </div>
         );
@@ -40,7 +39,9 @@ export function Board({ game }: { game: PublicState }) {
       </div>
       <Tokens game={game} />
       <EventCardOverlay />
-      {auctionLive && <div className="absolute inset-0 z-40 bg-background/50" aria-hidden />}
+      {/* velo, non blocco: durante l'asta si deve poter ipotecare/svendere dalla casella
+          per fare cassa. Il centro non offre azioni in fase d'asta, quindi non serve inertizzarlo. */}
+      {auctionLive && <div className="pointer-events-none absolute inset-0 z-40 bg-background/50" aria-hidden />}
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
-import { Lobby } from "@/components/Lobby";
-import { PreMatch } from "@/components/PreMatch";
-import { Board } from "@/components/Board";
-import { GamePanels } from "@/components/Panels";
+import { Lobby } from "@/components/lobby/Lobby";
+import { PreMatch } from "@/components/lobby/PreMatch";
+import { Board } from "@/components/board/Board";
+import { GamePanels } from "@/components/panels/GamePanels";
 import { Sidebar } from "@/components/Sidebar";
 
 export default function App() {
@@ -75,7 +75,8 @@ export default function App() {
                 </span>
               </header>
               <Board game={game} />
-              <div className="w-full pb-20 md:hidden md:pb-0">
+              {/* la barra pollice è fixed: le si lascia sotto la sua altezza piena */}
+              <div className="w-full pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] md:hidden">
                 <GamePanels game={game} />
               </div>
             </>

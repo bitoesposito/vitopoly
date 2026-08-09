@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { myId } from "./seat";
 import type { Bundle, ChatMsg, GameEvent, PublicState, TileId } from "@tangentopoly/game";
 
 // Event card popup: an animated card for the notable moments (see EventCard.tsx).
@@ -14,14 +15,7 @@ export type CardPopup = PopupBody & { id: number; wait: number };
 export type PopupInput = PopupBody & { wait?: number };
 let popupSeq = 0;
 
-function getMyId(): string {
-  let id = localStorage.getItem("tangentopoly:pid");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("tangentopoly:pid", id);
-  }
-  return id;
-}
+
 
 interface Store {
   myId: string;
@@ -45,7 +39,7 @@ interface Store {
 }
 
 export const useGame = create<Store>((set) => ({
-  myId: getMyId(),
+  myId: myId(),
   name: localStorage.getItem("tangentopoly:name") || "",
   code: null,
   game: null,

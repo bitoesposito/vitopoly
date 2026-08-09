@@ -19,8 +19,8 @@ import {
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileKind } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
-import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/colors";
-import { euro } from "@/lib/utils";
+import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/palette";
+import { euro } from "@/lib/format";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TileDetails } from "./TileDetails";
 
@@ -81,7 +81,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
   const side = innerSide(index);
   const isCorner = index % 10 === 0;
   const buyable = tile.price != null;
-  const regione = tile.group ? GROUP_LABEL[tile.group] : undefined;
+  const region = tile.group ? GROUP_LABEL[tile.group] : undefined;
 
   return (
     <Popover>
@@ -98,7 +98,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           {!isCorner && (
             <div
               className={`absolute ${BAR[side]}`}
-              title={regione}
+              title={region}
               style={{ background: tile.group ? GROUP_COLOR[tile.group] : "var(--color-paper-line)" }}
             />
           )}
@@ -124,8 +124,8 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
             className={`relative flex h-full w-full flex-col items-center justify-between text-center leading-none text-[min(2.1cqi,0.75rem)] ${isCorner ? "p-[min(0.5cqi,0.25rem)]" : `p-[min(0.3cqi,0.125rem)] ${PAD[side]}`}`}
           >
             <span className="flex w-full flex-col items-center">
-              {regione && (
-                <span className="w-full truncate text-[min(1.5cqi,0.5625rem)] tracking-[0.06em] text-paper-ink/75 uppercase">{regione}</span>
+              {region && (
+                <span className="w-full truncate text-[min(1.5cqi,0.5625rem)] tracking-[0.06em] text-paper-ink/75 uppercase">{region}</span>
               )}
               {/* -0.02em di tracking: recupera i 2-3px che facevano sforare
                   "Tangente", "Autostrade" ed "Equitalia" senza rimpicciolire tutto */}

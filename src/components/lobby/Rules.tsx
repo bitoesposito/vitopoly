@@ -1,12 +1,12 @@
 import { BAIL, BOARD, GO_SALARY } from "@tangentopoly/game";
-import { GROUP_COLOR, GROUP_LABEL } from "@/lib/colors";
+import { GROUP_COLOR, GROUP_LABEL } from "@/lib/palette";
 import { useT } from "@/lib/i18n";
 
 // L'unica spiegazione del gioco: le differenze dal Monopoly non si scoprono giocando.
-export function Regole() {
+export function Rules() {
   const t = useT();
   // le serie in ordine di prezzo
-  const serie = Object.keys(GROUP_LABEL).map((g) => {
+  const series = Object.keys(GROUP_LABEL).map((g) => {
     const tiles = BOARD.filter((x) => x.group === g);
     return { g, da: tiles[0]?.price ?? 0, a: tiles.at(-1)?.price ?? 0, n: tiles.length };
   });
@@ -22,7 +22,7 @@ export function Regole() {
         <h3 className="font-condensed text-micro tracking-widest text-muted-foreground uppercase">{t("rules.series")}</h3>
         <p>{t("rules.seriesBody")}</p>
         <ul className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1">
-          {serie.map(({ g, da, a, n }) => (
+          {series.map(({ g, da, a, n }) => (
             <li key={g} className="flex items-center gap-1.5">
               <span className="h-3 w-1 shrink-0" style={{ background: GROUP_COLOR[g] }} />
               <span className="min-w-0 truncate">{GROUP_LABEL[g]}</span>

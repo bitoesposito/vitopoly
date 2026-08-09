@@ -30,4 +30,4 @@ export const TOKEN_COLOR = ["#d1674b", "#4fae78", "#5b7fc7", "#c99a3c", "#a86bb0
 
 // L'identità che non passa dal colore. Gli inchiostri si ripetono ogni 8, le
 // lettere no: dopo la Z arriva A2, quindi mai due giocatori uguali.
-export const serie = (i: number) => String.fromCharCode(65 + (i % 26)) + (i >= 26 ? Math.floor(i / 26) + 1 : "");
+export const tokenLetter = (i: number) => String.fromCharCode(65 + (i % 26)) + (i >= 26 ? Math.floor(i / 26) + 1 : "");

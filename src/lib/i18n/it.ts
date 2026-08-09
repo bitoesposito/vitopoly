@@ -1,11 +1,7 @@
-import { BOARD } from "@tangentopoly/game";
+// Il gioco è monolingua italiano: questa è la tabella, non un sistema di localizzazione.
+// I nomi delle caselle NON stanno qui: vivono in BOARD (già in italiano).
 
-// Gioco monolingua italiano. t(key, vars) sostituisce {var}; chiave mancante -> chiave.
-// I nomi delle caselle vivono in BOARD (già in italiano).
-
-type Vars = Record<string, string | number>;
-
-const IT: Record<string, string> = {
+export const IT = {
   "lobby.joining": "Ti stanno aspettando — scrivi il tuo nome",
   "lobby.creating": "Apri una stanza — scrivi il tuo nome",
   "lobby.name": "Il tuo nome",
@@ -35,6 +31,10 @@ const IT: Record<string, string> = {
   "players.title": "Giocatori ({n})",
   "players.you": "(tu)",
   "players.out": "fuori",
+  "seat.move": "Continua su un altro dispositivo",
+  "seat.copied": "Link personale copiato",
+  "seat.warning": "Vale come la tua identità: mandalo solo a te stesso, non nel gruppo.",
+  "seat.failed": "Non sono riuscito a copiare il link",
   "players.vacationPot": "Malloppo",
   "aria.host": "host",
   "aria.jail": "in prigione",
@@ -65,7 +65,7 @@ const IT: Record<string, string> = {
   "center.useJailCard": "Usa carta",
   "center.winner": "{name} si prende tutto!",
   "center.nobody": "Nessuno",
-  "end.worth": "Patrimonio finale: contante + titoli (ipotecati a metà)",
+  "end.worth": "Patrimonio finale: contante + quanto ti darebbe la banca per titoli ed edifici",
   "end.again": "Nuova partita",
   "aria.rolled": "Hai tirato {d1} e {d2}",
   // gli importi arrivano già formattati da euro() — niente € nei template
@@ -90,7 +90,7 @@ const IT: Record<string, string> = {
   "ev.unmortgage": "{name} riscatta {tile} per {amount}",
   "ev.sellProperty": "{name} vende {tile} alla banca per {amount}",
   "kick.vote": "Vota per espellere {name}",
-  "kick.confirm": "Votare per espellere {name}? Se anche gli altri votano, esce dalla partita.",
+  "kick.sure": "Confermi l'espulsione?",
 
   "buy.q": "Comprare {name} per",
   "buy.buy": "Compra",
@@ -119,7 +119,7 @@ const IT: Record<string, string> = {
   "debt.pay": "Paga",
   "debt.bankrupt": "Bancarotta",
   "debt.bankruptHint": "Esci dal giro e lasci tutto alla banca.",
-  "debt.confirmBankrupt": "Dichiarare bancarotta? Lo Stato si riprende tutto e tu esci dal giro.",
+  "debt.bankruptSure": "Sicuro? Tocca ancora",
   "assets.title": "Le tue proprietà ({n})",
   "assets.notNow": "Non in questo momento del turno.",
   "assets.mortgage": "Ipoteca +{amount}",
@@ -140,6 +140,7 @@ const IT: Record<string, string> = {
   "trade.pickPlayer": "Scegli un giocatore per vedere cosa può offrire",
   "trade.youGive": "Tu dai",
   "trade.youGet": "Tu ricevi",
+  "trade.jailCard": "carta prigione {n}",
   "trade.noProps": "Nessuna proprietà",
   "trade.send": "Invia",
   "bundle.nothing": "niente",
@@ -195,24 +196,4 @@ const IT: Record<string, string> = {
   "info.tax": "Qualcuno va pagato: €{amount} alla banca, senza fare domande.",
   "info.railroad": "Rendita in base alle partecipate possedute: €25 / €50 / €100 / €200.",
   "info.utility": "Pedaggio = tiro dei dadi ×4 (×10 con entrambe le concessioni in mano).",
-};
-
-export function translate(key: string, vars?: Vars): string {
-  let s = IT[key] ?? key;
-  if (vars) for (const k in vars) s = s.replaceAll(`{${k}}`, String(vars[k]));
-  return s;
-}
-
-// Monolingua: nessuna sottoscrizione, l'hook esiste solo per la firma t(key, vars).
-export function useT() {
-  return translate;
-}
-
-export function tileName(i: number): string {
-  return BOARD[i].name;
-}
-
-export function useTileName() {
-  return tileName;
-}
-
+} as const satisfies Record<string, string>;

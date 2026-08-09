@@ -6,16 +6,16 @@ import type { AuctionFrame, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { GROUP_COLOR, GROUP_LABEL } from "@/lib/colors";
+import { GROUP_COLOR, GROUP_LABEL } from "@/lib/palette";
 import { useT, useTileName } from "@/lib/i18n";
-import { send } from "@/lib/ws";
+import { send } from "@/lib/net/client";
 import { useGame } from "@/lib/store";
-import { euro } from "@/lib/utils";
-import { TileDetails } from "./TileDetails";
+import { euro } from "@/lib/format";
+import { TileDetails } from "@/components/board/TileDetails";
 
-// rilanci proporzionati al titolo, multipli di 5
-const step = (price: number, frac: number) => Math.max(5, Math.round((price * frac) / 5) * 5);
-const quickBids = (price: number) => [step(price, 0.05), step(price, 0.1), step(price, 0.25)];
+// Rilanci fissi: quelli proporzionati al prezzo collassavano (su un titolo da 60,
+// 5% e 10% arrotondati davano lo stesso bottone due volte).
+const QUICK_BIDS = [10, 25, 50];
 
 // drains toward the deadline: 10s to open, 6s after each bid
 function TimeBar({ deadline, total }: { deadline: number | undefined; total: number }) {
@@ -65,11 +65,11 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   const canBid = a.active.includes(myId) && a.leader !== myId;
 
   // Il campo è l'OFFERTA netta, non il rialzo; il motore ragiona in incrementi.
-  const offerta = Math.floor(Number(raise));
-  const raiseOk = canBid && offerta > a.bid && offerta <= myCash;
+  const offer = Math.floor(Number(raise));
+  const raiseOk = canBid && offer > a.bid && offer <= myCash;
   const doRaise = () => {
     if (!raiseOk) return;
-    send({ type: "bid", amount: offerta - a.bid });
+    send({ type: "bid", amount: offer - a.bid });
     setRaise("");
   };
 
@@ -103,14 +103,14 @@ export function AuctionPanel({ game }: { game: PublicState }) {
         <TimeBar deadline={game.deadline} total={a.bids.length ? AUCTION_MS.bid : AUCTION_MS.start} />
 
         <div className="flex gap-1">
-          {quickBids(tile.price ?? 0).map((d) => (
+          {QUICK_BIDS.map((d) => (
             <Button key={d} className="flex-1 font-mono tabular-nums" size="sm" disabled={!canBid || a.bid + d > myCash} onClick={() => send({ type: "bid", amount: d })}>
               {euro(a.bid + d)}
             </Button>
           ))}
         </div>
 
-        {/* rilancio personalizzato: incremento sull'offerta corrente, come i quick bid */}
+        {/* rilancio personalizzato: incremento sull'offer corrente, come i quick bid */}
         <div className="flex gap-1">
           <Input
             type="number"
@@ -129,9 +129,9 @@ export function AuctionPanel({ game }: { game: PublicState }) {
             {t("auction.raise")}
           </Button>
         </div>
-        {canBid && offerta > 0 && !raiseOk && (
+        {canBid && offer > 0 && !raiseOk && (
           <div className="text-2xs text-destructive">
-            {offerta <= a.bid ? t("auction.tooLow", { amount: euro(a.bid) }) : t("auction.max", { amount: euro(myCash) })}
+            {offer <= a.bid ? t("auction.tooLow", { amount: euro(a.bid) }) : t("auction.max", { amount: euro(myCash) })}
           </div>
         )}
 

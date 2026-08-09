@@ -1,11 +1,13 @@
-import { Briefcase, Crown, Lock, Ticket, UserX, WifiOff } from "lucide-react";
+import { Briefcase, Check, Crown, Lock, MonitorSmartphone, Ticket, UserX, WifiOff } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { useGame } from "@/lib/store";
 import { useT } from "@/lib/i18n";
-import { send } from "@/lib/ws";
-import { TOKEN_COLOR, serie } from "@/lib/colors";
-import { euro } from "@/lib/utils";
+import { send } from "@/lib/net/client";
+import { TOKEN_COLOR, tokenLetter } from "@/lib/palette";
+import { euro } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ConfirmButton";
+import { copySeatLink } from "@/lib/share";
 
 // la stessa marca che sta sulla pedina
 const stamp = (token: number) => (
@@ -13,7 +15,7 @@ const stamp = (token: number) => (
     className="flex size-4 shrink-0 items-center justify-center font-mono text-micro leading-none ring-1 ring-paper-ink/50"
     style={{ background: TOKEN_COLOR[token % 8], color: "var(--color-paper-ink)" }}
   >
-    {serie(token)}
+    {tokenLetter(token)}
   </span>
 );
 
@@ -25,7 +27,8 @@ const isTurn = (game: PublicState, pid: string) => game.status === "playing" && 
 export function PlayerList({ game }: { game: PublicState }) {
   const myId = useGame((s) => s.myId);
   const t = useT();
-  const canVote = game.players.some((p) => p.id === myId && !p.bankrupt); // spectators/bankrupt can't kick
+  const code = useGame((s) => s.code);
+  const canVote = game.players.some((p) => p.id === myId && !p.bankrupt); // spettatori e falliti non votano
   return (
     <div className="space-y-0.5">
       {game.players.map((p, i) => (
@@ -63,16 +66,32 @@ export function PlayerList({ game }: { game: PublicState }) {
             )}
             {game.status === "playing" && canVote && (
               !p.bankrupt && p.id !== myId ? (
-                <Button
+                // il voto può essere quello decisivo: due tocchi, non uno
+                <ConfirmButton
                   size="icon-sm"
                   variant="ghost"
                   className="size-8 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100 pointer-coarse:opacity-100"
                   title={t("kick.vote", { name: p.name })}
+                  aria-label={t("kick.vote", { name: p.name })}
                   disabled={(game.kickVotes[p.id] ?? []).includes(myId)}
-                  // il voto può essere quello decisivo
-                  onClick={() => confirm(t("kick.confirm", { name: p.name })) && send({ type: "votekick", target: p.id })}
+                  label={<UserX className="size-3.5" />}
+                  armedLabel={<Check className="size-3.5" />}
+                  armedAriaLabel={t("kick.sure")}
+                  onConfirm={() => send({ type: "votekick", target: p.id })}
+                />
+              ) : p.id === myId && code ? (
+                // La riga tua è l'unica senza espulsione: quello slot era vuoto, e il
+                // trasferimento del posto riguarda esattamente te. Un'icona sola in tutta
+                // la lista, sempre visibile: è la via d'uscita se cambi dispositivo.
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  className="size-8 shrink-0 text-muted-foreground hover:text-foreground"
+                  title={t("seat.move")}
+                  aria-label={t("seat.move")}
+                  onClick={() => copySeatLink(code, myId)}
                 >
-                  <UserX className="size-3.5" />
+                  <MonitorSmartphone className="size-3.5" />
                 </Button>
               ) : (
                 <span className="size-8 shrink-0" /> // slot riservato: cash allineata su tutte le righe

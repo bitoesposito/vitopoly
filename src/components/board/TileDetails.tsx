@@ -2,12 +2,16 @@ import { Fragment } from "react";
 import { BOARD } from "@tangentopoly/game";
 import type { PublicState, TileDef } from "@tangentopoly/game";
 import { useT, useTileName } from "@/lib/i18n";
-import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/colors";
-import { euro } from "@/lib/utils";
+import { GROUP_COLOR, GROUP_LABEL, TOKEN_COLOR } from "@/lib/palette";
+import { euro } from "@/lib/format";
 import { useGame } from "@/lib/store";
-import { AzioniProprieta } from "./AzioniProprieta";
+import { PropertyActions } from "@/components/panels/PropertyActions";
 
 type T = ReturnType<typeof useT>;
+
+// Le sei righe della tabella affitti: base, 1-4 case, hotel. Tupla e non `info.rent${i}`,
+// così una chiave mancante è un errore di compilazione e non una riga vuota a schermo.
+const RENT_KEYS = ["info.rent0", "info.rent1", "info.rent2", "info.rent3", "info.rent4", "info.rent5"] as const;
 
 // short "what is it" line for the popover body
 function tileDesc(t: T, tile: TileDef, game: PublicState): string | null {
@@ -75,16 +79,16 @@ export function TileDetails({ index, game }: { index: number; game: PublicState 
       </div>
 
       {/* azioni: compaiono solo su una proprietà tua e solo quando sono legali */}
-      <AzioniProprieta game={game} myId={myId} tile={index} />
+      <PropertyActions game={game} myId={myId} tile={index} />
 
       {tile.kind === "street" && tile.rent ? (
         <>
           <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("info.when")}</div>
             <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">{t("info.get")}</div>
-            {tile.rent.map((r, i) => (
+            {tile.rent.slice(0, RENT_KEYS.length).map((r, i) => (
               <Fragment key={i}>
-                <span>{t(`info.rent${i}`)}</span>
+                <span>{t(RENT_KEYS[i])}</span>
                 <span className="text-right font-mono tabular-nums text-success">{euro(r)}</span>
               </Fragment>
             ))}

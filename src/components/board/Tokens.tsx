@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { TILES, stepsTo } from "@tangentopoly/game";
 import type { PublicState } from "@tangentopoly/game";
-import { TOKEN_COLOR, serie } from "@/lib/colors";
-import { tileCell, walkMs } from "@/lib/utils";
+import { TOKEN_COLOR, tokenLetter } from "@/lib/palette";
+import { tileCell, walkMs } from "@/lib/board-layout";
 import { useGame } from "@/lib/store";
 
 // board grid tracks: 1.55fr corners, 1fr edges
@@ -24,8 +25,8 @@ function useEdgeWalk(target: number): readonly [number, number] {
     prev.current = target;
     if (from === target) return;
     // a new target mid-animation restarts from the old target, not from mid-path
-    const n = (target - from + 40) % 40;
-    const pts = Array.from({ length: n + 1 }, (_, i) => pct((from + i) % 40));
+    const n = stepsTo(from, target);
+    const pts = Array.from({ length: n + 1 }, (_, i) => pct((from + i) % TILES));
     const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
     const total = seg.reduce((a, b) => a + b, 0);
     const dur = walkMs(n); // scale with distance: ~245ms short hops, capped for long runs
@@ -69,7 +70,7 @@ function Token({ token, pos, current }: { token: number; pos: number; current: b
           }`}
           style={{ background: color, color: "var(--color-paper-ink)" }}
         >
-          {serie(token)}
+          {tokenLetter(token)}
         </span>
       </div>
     </div>

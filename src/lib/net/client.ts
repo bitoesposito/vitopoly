@@ -56,13 +56,22 @@ function receive(msg: ServerMsg, code: string): void {
     case "seat":
       rememberSeat(code, msg.token);
       return;
-    case "state":
+    case "state": {
+      // rivincita: la partita nuova non erediti dadi, carte e registro della vecchia
+      const restarted = store.game?.status === "ended" && msg.state.status === "lobby";
       useGame.setState({ game: msg.state, error: null }); // sostituzione integrale: niente merge, niente fold
+      if (restarted) {
+        useGame.setState({ feed: [], popups: [], tokenStep: {} });
+        // chi guardava ha un posto libero davanti, e il posto si prende alla stretta di mano
+        const { myId, name } = useGame.getState();
+        if (!msg.state.players.some((p) => p.id === myId)) return connect(code, name);
+      }
       // primo stato: si semina dal registro della stanza, o si entra a metà con un log muto
-      if (!store.game) store.pushFeed([...msg.state.log.map((ev) => ({ ev })), ...useGame.getState().chat.map((m) => ({ msg: m }))]);
+      else if (!store.game) store.pushFeed([...msg.state.log.map((ev) => ({ ev })), ...useGame.getState().chat.map((m) => ({ msg: m }))]);
       else store.pushFeed(msg.events.map((ev) => ({ ev })));
       choreograph(msg.state, msg.events);
       return;
+    }
     case "chat":
       store.pushChat(msg.msg);
       return;

@@ -66,7 +66,9 @@ export const IT = {
   "center.winner": "{name} si prende tutto!",
   "center.nobody": "Nessuno",
   "end.worth": "Patrimonio finale: contante + quanto ti darebbe la banca per titoli ed edifici",
-  "end.again": "Nuova partita",
+  "end.rematch": "Rigioca con questi giocatori",
+  "end.rematchHint": "La stanza torna alla schermata d'invito: stessi posti, tabellone azzerato.",
+  "end.home": "Chiudi e torna alla home",
   "aria.rolled": "Hai tirato {d1} e {d2}",
   // gli importi arrivano già formattati da euro() — niente € nei template
   "ev.paid": "{from} paga {amount} a {to}",

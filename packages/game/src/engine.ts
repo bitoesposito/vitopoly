@@ -4,7 +4,7 @@ import { clone, err, type Handler } from "./core/result";
 import { assetOp, spendingAction, type AssetOp } from "./actions/assets";
 import { bid, fold } from "./actions/auction";
 import { bankrupt, payDebt, quitGame } from "./actions/debt";
-import { lobby } from "./actions/lobby";
+import { lobby, rematch } from "./actions/lobby";
 import { buy, decline } from "./actions/purchase";
 import { handleTrade } from "./actions/trade";
 import { endTurn, payBail, roll, rollAgain, useJailCard } from "./actions/turn";
@@ -45,7 +45,7 @@ const CASH_RAISERS = {
 } satisfies Partial<Record<AssetOp, unknown>>;
 
 export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result {
-  if (state.status === "ended") return err("partita finita");
+  if (state.status === "ended") return a.type === "rematch" ? rematch(state, pid) : err("partita finita");
   if (state.status === "lobby") return lobby(clone(state), pid, a);
 
   // regioni ortogonali: vivono accanto al turno, non dentro un nodo
@@ -73,7 +73,7 @@ export function legalActions(
   pid: PlayerId
 ): ClientAction["type"][] {
   if (s.status === "lobby") return ["start", "profile"];
-  if (s.status === "ended") return [];
+  if (s.status === "ended") return ["rematch"];
   const base = Object.keys(HANDLERS[activeNode(s).t]) as ClientAction["type"][];
   return canRaiseCash(s, pid) ? [...base, ...(Object.keys(CASH_RAISERS) as ClientAction["type"][])] : base;
 }

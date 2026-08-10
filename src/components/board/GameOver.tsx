@@ -4,6 +4,7 @@ import { TokenStamp } from "@/components/TokenStamp";
 import { translate as t } from "@/lib/i18n";
 import { netWorth, playerNames } from "@/lib/selectors";
 import { euro } from "@/lib/format";
+import { send } from "@/lib/net/client";
 
 // Fine partita: la classifica per patrimonio, e una porta per rigiocare.
 export function GameOver({ game }: { game: PublicState }) {
@@ -27,10 +28,18 @@ export function GameOver({ game }: { game: PublicState }) {
           ))}
         </ol>
         <div className="mt-2 text-micro tracking-wide text-muted-foreground uppercase">{t("end.worth")}</div>
-        {/* il motore non riparte da "ended": la rivincita è una stanza nuova */}
-        <Button className="mt-4 w-full" onClick={() => (location.href = location.origin + location.pathname)}>
-          {t("end.again")}
-        </Button>
+        {/* Due uscite, non una: si resta al tavolo (la stanza torna in sala d'attesa con
+            questi giocatori, chiunque può farlo) o si smonta tutto e si torna alla home.
+            La rivincita è la strada normale, quindi è l'unica in evidenza. */}
+        <div className="mt-4 space-y-2">
+          <Button size="lg" className="w-full" onClick={() => send({ type: "rematch" })}>
+            {t("end.rematch")}
+          </Button>
+          <Button size="lg" variant="outline" className="w-full" onClick={() => (location.href = location.origin + location.pathname)}>
+            {t("end.home")}
+          </Button>
+          <p className="text-xs text-muted-foreground">{t("end.rematchHint")}</p>
+        </div>
       </div>
     </div>
   );

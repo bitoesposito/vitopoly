@@ -20,6 +20,45 @@ describe("lobby", () => {
   });
 });
 
+describe("rivincita", () => {
+  const ended = () => {
+    const s = started();
+    s.status = "ended";
+    s.winner = "a";
+    s.players[1].bankrupt = true;
+    s.players[0].cash = 4200;
+    s.players[0].pos = 24;
+    s.players[0].jailCards = 1;
+    s.props[1] = { owner: "a", mortgaged: true, houses: 0 };
+    s.vacationPot = 300;
+    return s;
+  };
+
+  it("riporta in lobby gli stessi giocatori, tabellone azzerato", () => {
+    const before = ended();
+    const r = apply(before, "a", { type: "rematch" });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const s = r.state;
+    expect(s.status).toBe("lobby");
+    expect(s.players.map((p) => [p.id, p.name, p.token])).toEqual(before.players.map((p) => [p.id, p.name, p.token]));
+    expect(s.players.every((p) => !p.bankrupt && p.pos === 0 && p.jailCards === 0)).toBe(true);
+    expect(s.props).toEqual({});
+    expect(s.vacationPot).toBe(0);
+    expect(s.winner).toBeUndefined();
+    expect(s.log).toEqual([]); // il registro della partita vecchia non si trascina
+    expect(s.bank).toEqual({ houses: 32, hotels: 12 });
+    // e la partita nuova riparte davvero: start è di nuovo legale
+    expect(apply(s, "a", { type: "start" }).ok).toBe(true);
+  });
+
+  it("solo chi era al tavolo, e solo a partita finita", () => {
+    expect(apply(ended(), "spettatore", { type: "rematch" }).ok).toBe(false);
+    expect(apply(ended(), "a", { type: "roll" }).ok).toBe(false); // niente altro passa
+    expect(apply(started(), "a", { type: "rematch" }).ok).toBe(false); // non a partita in corso
+  });
+});
+
 describe("roll -> postRoll", () => {
   it("moves the current player and advances rng", () => {
     const s = started();

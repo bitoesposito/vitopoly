@@ -2,7 +2,7 @@ import type { ClientAction, GameState, PlayerId, Result } from "../types";
 import { CHANCE, CHEST } from "../data/cards";
 import { err, info, ok } from "../core/result";
 import { nextInt } from "../rng";
-import { MAX_NAME, TOKENS } from "../setup";
+import { addPlayer, createGame, MAX_NAME, TOKENS } from "../setup";
 
 // Prima del fischio d'inizio: nome, inchiostro, avvio. Il regolamento è fisso —
 // updateSettings è stata tolta dal protocollo, non solo dalla UI.
@@ -30,6 +30,20 @@ export function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   s.phase = { t: "preRoll" };
   s.decks = { chance: shuffled(s, CHANCE.length), chest: shuffled(s, CHEST.length) };
   return ok(s, [info("partita iniziata")]);
+}
+
+/** Rivincita: si torna in sala d'attesa con gli stessi giocatori. Non un reset a mano dei
+ *  campi ma una partita nuova in cui si risiedono i posti, così un campo aggiunto domani a
+ *  GameState nasce pulito qui come alla prima apertura della stanza. */
+export function rematch(s: GameState, pid: PlayerId): Result {
+  if (!s.players.some((p) => p.id === pid)) return err("non sei in partita");
+  const fresh = createGame(s.seed); // stesso seed: la sequenza dei dadi continua, non si ripete
+  for (const old of s.players) {
+    const p = addPlayer(fresh, old.id, old.name)!; // c'entrava prima, c'entra adesso
+    p.token = old.token;
+    p.connected = old.connected;
+  }
+  return ok(fresh, [info("nuova partita: stessi giocatori")]);
 }
 
 function profile(s: GameState, pid: PlayerId, a: Extract<ClientAction, { type: "profile" }>): Result {

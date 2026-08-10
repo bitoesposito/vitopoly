@@ -99,7 +99,7 @@ function IncomingTrade({ trade }: { trade: Trade }) {
           <BundleChips b={trade.get} />
         </div>
       </div>
-      <div className="flex gap-1.5">
+      <div className="flex gap-2">
         <Button size="lg" className="flex-1" onClick={() => send({ type: "respondTrade", id: trade.id, accept: true })}>
           {tr("trade.accept")}
         </Button>

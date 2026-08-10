@@ -34,7 +34,7 @@ export function Identity({ game }: { game: PublicState }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="space-y-1">
         <label className="block font-condensed text-micro tracking-widest text-muted-foreground uppercase" htmlFor="my-name">
           {t("id.name")}

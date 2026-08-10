@@ -256,7 +256,9 @@ Tre colonne su desktop, una su mobile. Da 2xl (96rem) la chat prende una colonna
 
 **La plancia** è una griglia 11×11 sempre quadrata, con tracce `1.55fr` agli angoli e `1fr` sui bordi, larga `min(100%, 100dvh - 2.5rem)` da md in su, con `min-h-0` perché l'aspect-square vinca sul min-content delle celle. Il centro occupa il blocco 9×9 interno: dadi in alto, azione primaria subito sotto, log nella metà bassa. La metà alta è ancorata in alto (mai centrata) così che dadi e riga di turno non si spostino quando compaiono prompt e bottoni.
 
-**Ritmo di spaziatura**: passi da 1px (il filetto), 0.125rem, 0.25rem, 0.5rem, 0.75rem e 1rem. I pannelli usano una variabile propria (`--card-spacing`: 1rem, 0.75rem in taglia `sm`) invece di padding sparsi. Il gutter di pagina è 0.5rem da md in su, ed è lo stesso su tutte e tre le colonne.
+**Ritmo di spaziatura**: passi da 1px (il filetto), 0.125rem, 0.25rem, 0.5rem, 0.75rem, 1rem e 1.25rem. I pannelli usano una variabile propria (`--card-spacing`: 1rem, 0.75rem in taglia `sm`) invece di padding sparsi. Il gutter di pagina è 0.5rem da md in su, ed è lo stesso su tutte e tre le colonne.
+
+**Le colonne a lettura singola** (home e pre-partita: una colonna centrata, `max-w-md`) hanno UN ritmo solo, e non è negoziabile per schermata: gutter `1.25rem`, `1.25rem` fra le sezioni, `0.5rem` dentro una sezione, `0.75rem` dopo un filetto. La pre-partita aveva il suo (2rem fra le sezioni, 0.75 dentro) e le due schermate consecutive del percorso d'ingresso non si somigliavano. **Dentro un pannello** il ritmo è più stretto e discende dalla stessa scala: `0.5rem` fra i blocchi, `0.25rem` nelle liste dense, `0.375rem` solo per la coppia icona+etichetta in linea. Non esistono `0.625rem` né `1.5rem`.
 
 **Scala fluida**: la radice è `clamp(16px, 12px + 0.32vw, 19px)` e tutta l'UI è in rem — l'interfaccia cresce dolcemente sui viewport larghi senza che i breakpoint ne dipendano. Breakpoint usati: sm 40rem, md 48rem (lo switch di layout), lg 64rem, xl 80rem, 2xl 96rem (la colonna chat).
 

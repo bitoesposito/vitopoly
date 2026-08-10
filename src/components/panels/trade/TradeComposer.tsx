@@ -28,7 +28,7 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
   const getBundle = toBundle(get);
 
   return (
-    <div className="space-y-2.5 text-sm">
+    <div className="space-y-2 text-sm">
       {/* con un solo avversario il chip è già scelto: resta come conferma di CON CHI scambi */}
       <div className="flex flex-wrap gap-1">
         {others.map((p) => (
@@ -49,7 +49,7 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
         ))}
       </div>
 
-      <div className="grid grid-cols-2 items-start gap-1.5">
+      <div className="grid grid-cols-2 items-start gap-2">
         <BundleEditor game={game} player={me} title={tr("trade.youGive")} accent="text-destructive" draft={give} onChange={setGive} />
         {other ? (
           <BundleEditor game={game} player={other} title={tr("trade.youGet")} accent="text-success" draft={get} onChange={setGet} />

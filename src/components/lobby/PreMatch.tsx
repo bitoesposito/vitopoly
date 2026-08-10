@@ -20,14 +20,14 @@ export function PreMatch({ game }: { game: PublicState }) {
   const alone = game.players.length < 2;
 
   return (
-    // ritmo per contrasto: 32px fra le sezioni, 8px dentro
-    <div className="mx-auto flex w-full max-w-md flex-col gap-8 p-5">
-      <section className="space-y-3">
+    // stesso ritmo della home (Lobby): gutter 5, sezioni 5, dentro 2, dopo un filetto 3
+    <div className="mx-auto flex w-full max-w-md flex-col gap-5 p-5">
+      <section className="space-y-2">
         <h2 className={LABEL}>{t("id.title")}</h2>
         <Identity game={game} />
       </section>
 
-      <section className="space-y-3 border-t border-border pt-8">
+      <section className="space-y-2 border-t border-border pt-3">
         <h2 className={LABEL}>{t("players.title", { n: game.players.length })}</h2>
         <PlayerList game={game} />
         <button
@@ -53,12 +53,12 @@ export function PreMatch({ game }: { game: PublicState }) {
       </div>
 
       {/* consultazione, non un passo: in fondo e chiusa, come nella home */}
-      <details className="group border-t border-border pt-4">
+      <details className="group border-t border-border pt-3">
         <summary className={`flex cursor-pointer list-none items-center justify-between ${LABEL} [&::-webkit-details-marker]:hidden`}>
           {t("rules.title")}
           <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
         </summary>
-        <div className="pt-4">
+        <div className="pt-3">
           <Rules />
         </div>
       </details>

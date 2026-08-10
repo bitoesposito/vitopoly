@@ -29,7 +29,7 @@ export function BundleEditor({
     onChange({ ...draft, props: draft.props.includes(t) ? draft.props.filter((x) => x !== t) : [...draft.props, t] });
 
   return (
-    <div className="min-w-0 space-y-1.5 border border-border/60 bg-muted/20 p-2">
+    <div className="min-w-0 space-y-2 border border-border/60 bg-muted/20 p-2">
       <div className={`text-2xs font-semibold tracking-wide uppercase ${accent}`}>{title}</div>
       <div className="flex items-center gap-1 text-sm">
         <span className="text-muted-foreground">€</span>

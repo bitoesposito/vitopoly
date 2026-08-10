@@ -66,3 +66,18 @@ jobs:
           done
           echo "il client non è mai salito"; exit 1
       - run: node scripts/prova-schermate.mjs
+
+      # L'app installabile: manifest, icone servite davvero, worker che prende il controllo
+      # e apertura senza rete. Vuole il BUILD servito, non il dev server: il worker si
+      # registra solo in produzione.
+      - run: pnpm build
+      - name: build servito
+        run: pnpm exec vite preview --port 4173 --strictPort &
+      - name: attendi il build
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:4173 >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "il build non è mai salito"; exit 1
+      - run: node scripts/prova-pwa.mjs

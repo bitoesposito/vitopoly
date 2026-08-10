@@ -1,0 +1,19 @@
+{
+  "name": "Tangentopoly",
+  "short_name": "Tangentopoly",
+  "description": "Da Foggia alla Milano di Mani Pulite: compra, incassa, corrompi e finisci in galera. Per 2-8 amici, in tempo reale.",
+  "lang": "it",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#202e29",
+  "theme_color": "#202e29",
+  "categories": ["games"],
+  "icons": [
+    { "src": "/icona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icona-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

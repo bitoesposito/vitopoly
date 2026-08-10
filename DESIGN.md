@@ -185,6 +185,7 @@ Il mondo rifiuta due riferimenti in modo esplicito e verificabile nel codice: il
 Il registro è documentale. Ogni cifra è un numero di serie (mono, tabular), ogni nome di regione è microtesto legale in maiuscoletto spaziato, ogni stato di una nota è una sovrastampa obliqua e non un cambio di colore. L'app è dark-only per costruzione: `.dark` viene applicata in `main.tsx` e il tema light è stato rimosso dal foglio di stile.
 
 **Key Characteristics:**
+
 - Due substrati soli: inchiostro d'intaglio (scrivania) e carta valori (nota).
 - Spigolo vivo assoluto: `--radius: 0`.
 - Quattro inchiostri funzionali (verde-valore, bollo, sanguigna, indaco) + otto inchiostri di serie regionali.
@@ -197,29 +198,35 @@ Il registro è documentale. Ogni cifra è un numero di serie (mono, tabular), og
 Palette di inchiostri da stampa di sicurezza su due substrati opposti: un fondo verde-nero d'intaglio e una carta chiara. Nessun colore è decorativo.
 
 ### Primary
-- **Carta Piena** (`primary`): l'azione primaria è un rettangolo di carta piena stampato sull'inchiostro. È l'unico elemento dell'interfaccia che usa la carta come *superficie di comando*: tira i dadi, compra, paga, entra.
-- **Carta Valori** (`paper`): il substrato della nota. Applicato via `.nota` alle celle della plancia, alle celle dei titoli e ovunque ci sia un foglio fisico. Non è `--card` (vedi *La Regola dei Due Substrati*).
+
+- **Carta Piena** (`primary`): l'azione primaria è un rettangolo di carta piena stampato sull'inchiostro. È l'unico elemento dell'interfaccia che usa la carta come _superficie di comando_: tira i dadi, compra, paga, entra.
+- **Carta Valori** (`paper`): il substrato della nota. Applicato via `.nota` alle celle della plancia, alle celle dei titoli e ovunque ci sia un foglio fisico. Non è `--card` (vedi _La Regola dei Due Substrati_).
 - **Inchiostro d'Intaglio** (`paper-ink`): il testo inciso sulla carta, 13.2:1 sul substrato.
 
 ### Secondary
+
 - **Bollo** (`bollo`, esposto come `text-warning`, `ring`): l'ocra della marca da bollo. Aste, scadenze, avvisi, montepremi, e — deliberatamente — l'anello di focus, la selezione di testo e il caret. Il focus in questo mondo è un timbro.
 - **Verde Valore** (`verde-valore`, esposto come `text-success`): l'inchiostro dei tagli grossi. Solo denaro incassato ed esito positivo. Ogni cifra di contante del roster è in questo verde.
 
 ### Tertiary
+
 - **Sanguigna** (`sanguigna`, anche `destructive`): l'inchiostro d'annullo. Ipoteca, bancarotta, debito, sovrastampa. Mai usata per "importante": solo per "fuori corso".
 - **Indaco** (`indaco`): la controfirma. Scambi e informazioni; il mazzo Favori.
-- **Sanguigna su Carta** / **Indaco su Carta** (`sanguigna-carta`, `indaco-carta`): gli stessi due inchiostri stampati *sulla* carta chiara. Esistono perché le versioni da fondo scuro stanno sotto 4.5:1 sul substrato chiaro e lì servono a 9px in grassetto.
+- **Sanguigna su Carta** / **Indaco su Carta** (`sanguigna-carta`, `indaco-carta`): gli stessi due inchiostri stampati _sulla_ carta chiara. Esistono perché le versioni da fondo scuro stanno sotto 4.5:1 sul substrato chiaro e lì servono a 9px in grassetto.
 
 ### Neutral
+
 - **Verde-Nero d'Intaglio** (`background`): la scrivania. Il fondo di tutta la chrome.
 - **Nota in Controluce** (`card`, `popover`, `sidebar`): i pannelli. Una gradazione più chiara dello stesso verde-nero, non una tinta diversa.
 - **Filetto d'Incisione** (`border`, `paper-line`): la riga incisa. 16% di alpha su fondo scuro, tinta piena sulla carta.
 - **Carta Chiara** (`foreground`) e **Carta Spenta** (`muted-foreground`, 6.9:1 su `card`): la coppia di testo sulla scrivania.
 
 ### Serie di Taglio (otto inchiostri regionali)
+
 Un inchiostro per regione, in scalata di valore come una serie di banconote: Puglia terra d'ombra, Calabria azzurro slavato, Campania carminio spento, Sicilia ocra bruciata, Lazio sanguigna, Veneto oro bollo, Liguria verde valore, Lombardia indaco profondo. Usati come campo colore (banda sul lato interno della cella, filetto nei pannelli), **mai** come fondo di testo.
 
 ### Named Rules
+
 **La Regola dell'Inchiostro Unico.** Ogni inchiostro ha un solo mestiere: verde-valore = denaro incassato, bollo = attesa e scadenza, sanguigna = annullo, indaco = controfirma. Se un elemento nuovo non rientra in uno dei quattro mestieri, resta neutro. Non esistono accenti "per dare colore".
 
 **La Regola dei Due Substrati.** `--card` non è carta. La carta si applica solo dove un foglio esiste fisicamente (celle, talloncini, carte evento) tramite `.nota`; il resto dell'interfaccia è scrivania scura. Un inchiostro che deve vivere su entrambi i substrati esiste in due token (`--sanguigna` / `--sanguigna-carta`), mai in una tinta sola che funziona a metà su tutti e due.
@@ -235,6 +242,7 @@ Un inchiostro per regione, in scalata di valore come una serie di banconote: Pug
 **Character:** una sola superfamiglia industriale in tre tagli. La condensed dà la compressione dei moduli stampati, la mono dà l'autorità del numero progressivo, la sans regge la prosa. Nessuna famiglia display, nessuna serif: un foglio d'ufficio non ha voce lirica.
 
 ### Hierarchy
+
 - **Display** (mono 700, `text-2xl`, tabular): l'offerta corrente dell'asta e il patrimonio del vincitore. L'unico posto dove una cifra diventa grande.
 - **Headline** (condensed 700, `text-2xl`): il nome del vincitore a fine partita. Si porta da solo, senza etichetta sopra.
 - **Title** (condensed 700 uppercase, `text-sm`): titoli di card e sezione.
@@ -244,6 +252,7 @@ Un inchiostro per regione, in scalata di valore come una serie di banconote: Pug
 - **Serie** (mono, `text-micro`, leading 1): la lettera di serie sul timbro del giocatore e nell'angolo della cella posseduta.
 
 ### Named Rules
+
 **La Regola del Numero di Serie.** Ogni cifra dell'app — denaro, prezzi, offerte, timer, codici stanza, conteggi voti — è `font-mono tabular-nums`. Una cifra in sans è un bug: le colonne di importi devono restare allineate riga su riga.
 
 **La Regola del Microtesto.** Nomi di regione, diciture di stato e testo legale stanno a `text-micro` in maiuscolo con tracking, mai a una taglia "leggibile e basta". La scala piccola è il segnale: quel testo è stampato sulla nota, non scritto dall'interfaccia.
@@ -263,6 +272,7 @@ Tre colonne su desktop, una su mobile. Da 2xl (96rem) la chat prende una colonna
 **Scala fluida**: la radice è `clamp(16px, 12px + 0.32vw, 19px)` e tutta l'UI è in rem — l'interfaccia cresce dolcemente sui viewport larghi senza che i breakpoint ne dipendano. Breakpoint usati: sm 40rem, md 48rem (lo switch di layout), lg 64rem, xl 80rem, 2xl 96rem (la colonna chat).
 
 ### Named Rules
+
 **La Regola del Filetto.** Tra due note non c'è buio: c'è una riga incisa. Le griglie separano con `gap-px` su fondo `paper-line`, mai con uno spazio vuoto sul fondo scuro, e la cornice esterna è lo stesso filetto. 1px, mai una banda.
 
 **La Regola dell'Azione Singola.** Sotto i dadi c'è una sola zona d'azione: qualunque decisione (tira, compra, paga il debito, esci di prigione) compare lì e non altrove. Le azioni primarie sono in taglia `lg` (44px) perché il prodotto si gioca al telefono.
@@ -274,10 +284,12 @@ Il sistema è **piatto sul foglio**. La profondità sulla plancia non si fa con 
 L'ombra esiste **solo dove un oggetto è fisicamente staccato dal foglio**: il dado in aria e il bottom-sheet della chat che si solleva sopra la pagina su mobile.
 
 ### Shadow Vocabulary
+
 - **Ombra del dado** (`box-shadow: 0 .05em .1em rgb(0 0 0 / .38)` sulle singole facce): in em, quindi scala con il dado. È l'ombra di un oggetto tridimensionale, non un livello d'interfaccia. Sta sulle facce e **non** come `filter` sul contenitore: un filtro su un antenato appiattisce il contesto 3D dei discendenti, e durante il lancio le facce venivano proiettate schiacciate.
 - **Sollevamento del bottom-sheet** (`box-shadow: 0 -8px 20px -6px rgb(0 0 0 / .45)`): solo sul pannello chat mobile, che scorre sopra la plancia.
 
 ### Named Rules
+
 **La Regola della Sovrastampa.** Lo stato di una nota non si comunica cambiando colore al bordo o al fondo: si timbra sopra. IPOTECATO, ANNULLATO, il giocatore fuori — sempre un timbro obliquo (−11°) in sanguigna con doppia riga e fondo `color-mix(paper 62%)`, in microtesto condensed a tracking 0.14em, `pointer-events: none`.
 
 **La Regola del Piano Piatto.** Un elemento nuovo nasce senza ombra. Se ha bisogno di distinguersi, prende un filetto o un gradino tonale; l'ombra si aggiunge solo se l'oggetto è davvero sollevato dal piano.
@@ -293,50 +305,77 @@ La **texture** è materia, non ornamento, e vive in due token. `--grana` è un r
 L'unico raggio del progetto è `0.15em` sulle facce del dado: è la smussatura di un oggetto fisico, non un raggio d'interfaccia.
 
 ### Named Rules
+
 **La Regola della Materia.** Le texture non si disegnano, si sentono: se una texture si nota come motivo invece che come superficie, è troppo forte. Un rosone guilloche a piena opacità è stato rimosso proprio per questo — a schermo diventava l'elemento dominante.
 
 ## Components
 
 ### Buttons
+
 - **Shape:** rettangolo netto (0 raggio), bordo trasparente in `bg-clip-padding`, testo `text-xs` 500.
 - **Primary (`default`):** carta piena su inchiostro (`primary` / `primary-foreground`), altezza 36px, padding orizzontale 10px. Hover: carta all'80%.
-- **Taglie — tre altezze, una regola.** `lg` 44px = *l'azione* del momento (tira, compra, accetta uno scambio, inizia, rigioca); `default` 36px = ogni altra azione vera (rilanci d'asta, azioni su una proprietà, invio); `sm` 32px = contorno (intestazioni di pannello, azioni-collegamento in una riga di lista). `xs` 24px e le varianti icona 24/28/36px restano solo per i controlli inline nel testo e per la cromatura a sola icona. Su puntatore grosso (`pointer-coarse`) `default` sale a 44px: sul telefono nessuna azione vera scende sotto il minimo tattile.
+- **Taglie — tre altezze, una regola.** `lg` 44px = _l'azione_ del momento (tira, compra, accetta uno scambio, inizia, rigioca); `default` 36px = ogni altra azione vera (rilanci d'asta, azioni su una proprietà, invio); `sm` 32px = contorno (intestazioni di pannello, azioni-collegamento in una riga di lista). `xs` 24px e le varianti icona 24/28/36px restano solo per i controlli inline nel testo e per la cromatura a sola icona. Su puntatore grosso (`pointer-coarse`) `default` sale a 44px: sul telefono nessuna azione vera scende sotto il minimo tattile.
 - **Coppie campo+bottone:** `default` ha la STESSA altezza dell'Input, alle due misure. Un bottone affiancato a un campo si allinea da sé, senza altezze scritte a mano — se non è allineato, è la taglia che è sbagliata.
 - **Focus:** bordo + anello a 1px in `ring` (l'ocra del bollo). Mai anello ad alpha 50% su fondo scuro: sta sotto 3:1.
 - **Active:** `translateY(1px)` — la pressione di un timbro, non un rimbalzo.
 - **Secondary:** gradino tonale (`secondary`) con hover per `color-mix` verso il foreground. **Ghost:** trasparente, hover su `muted`. **Destructive:** sanguigna al 20% di fondo con testo sanguigna, mai un blocco rosso pieno.
 
+### Icona dell'app
+
+La marca da bollo del favicon alla misura dell'icona, non un marchio a parte: fondo
+d'intaglio `#111f1a` a tutto sangue, perforazione tratteggiata in carta `#e9e2d2`, campo
+carta pieno, T incisa in negativo, riga d'annullo in sanguigna `#9c3a26`. Tre inchiostri,
+zero gradienti, zero ombre — alla misura di 48px sopravvive solo questo.
+
+La variante **maskable** è la stessa marca al 72%, perché Android ci ritaglia dentro la
+forma che vuole (cerchio, goccia, squircle) e il cerchio sicuro è l'80% del lato: solo il
+fondo può permettersi di essere tagliato. La fonte è SVG (`public/icona.svg`,
+`public/icona-maskable.svg`); i PNG del manifest sono derivati con `scripts/icone.mjs`,
+perché iOS non guarda altro e su Android il supporto SVG è a chiazze.
+
+Il `theme_color` e il `background_color` del manifest sono il fondo dell'app (`#202e29`),
+non il fondo dell'icona: la schermata d'avvio e la barra di stato devono essere la stessa
+superficie su cui l'app si apre, o l'avvio lampeggia.
+
 ### Cards / Containers
+
 - **Corner Style:** nessuno (`rounded-none` esplicito).
 - **Background:** `card`, con anello `ring-1 ring-foreground/10` invece di un bordo pieno.
-- **Shadow Strategy:** nessuna (vedi *La Regola del Piano Piatto*).
+- **Shadow Strategy:** nessuna (vedi _La Regola del Piano Piatto_).
 - **Internal Padding:** `--card-spacing` = 1rem, 0.5rem in taglia `sm` (dichiarata sull'elemento in `card.tsx`, non nel tema).
 - **Title:** condensed, maiuscolo, bold, `text-sm`.
 
 ### Inputs / Fields
+
 - **Style:** altezza 36px (44px su `pointer-coarse`, come `Button` taglia `default`), fondo `input/30`, bordo 1px `input`, spigolo vivo, `text-xs`.
 - **Focus:** il bordo passa a `ring` più anello 1px a 50% — nessun glow.
 - **Numerici:** sempre `font-mono tabular-nums` con `inputMode="numeric"`.
 - **Error:** bordo e anello `destructive`; l'errore ha comunque una riga di testo (`text-2xs text-destructive`) che dice perché.
 
 ### Cella della Plancia (`.nota`)
+
 Il componente firma. Rettangolo di carta con tre slot ad altezza fissa — nome sopra, stato al centro, prezzo sotto — così le celle adiacenti restano allineate. Sul lato interno una banda da 4px: l'inchiostro della serie regionale dove c'è un set, il filetto neutro dove non c'è (mai una striscia vuota). Il possesso è una velatura d'inchiostro del proprietario sulla carta (16%, 8% se ipotecata), non un bordo colorato. Il marchio della casella è una filigrana centrale al 45% di `paper-line`, sotto il testo. L'angolo in alto a sinistra porta la lettera di serie del proprietario. Hover: anello interno `paper-line` a 1px.
 
 ### Timbro di Serie
+
 Quadro netto di 16–24px, fondo nell'inchiostro del giocatore, lettera mono in `paper-ink` in negativo, anello `paper-ink/50`. È la stessa marca sulla pedina, nel roster, in chat e nella classifica finale: l'identità che non passa dal colore. Il turno corrente ingrandisce il timbro, aggiunge un anello con offset e un `animate-ping` al 35%.
 
 ### Carta Evento
+
 Rettangolo `card` largo 12–18rem, bordo colorato con l'inchiostro del mazzo (sanguigna per il Blitz, indaco per i Favori, verde per l'acquisto, bollo per lo scambio) e barra da 4px in testa nello stesso inchiostro — o nell'inchiostro della serie regionale quando la carta riguarda un titolo. Titolo in `text-2xs` maiuscolo a tracking 0.18em con marchio. Le carte si impilano: le più vecchie salgono di 12px, ruotano di ±2° e scalano di 0.04 per livello. Durata di permanenza = tempo di lettura (1400ms + 28ms per carattere, max 3200ms).
 
 ### Vassoio dei Dadi
-Cubo a 6 facce con pip reali, geometria interamente in em (`--die` = lato: 3rem → 3.5rem → 4rem per breakpoint). Palette avorio classica indipendente dal tema, pip in inchiostro d'intaglio `#16241e`, l'uno in sanguigna `#9c3a26`. Nessuna `perspective` a riposo (proiezione ortografica: faccia frontale pulita, zero artefatti agli angoli); la prospettiva vive *dentro* i keyframe del lancio. Hover: inclinazione 3D opposta sui due dadi. Il vassoio è cliccabile ed è la scorciatoia per il puntatore, non un secondo stop di tastiera.
+
+Cubo a 6 facce con pip reali, geometria interamente in em (`--die` = lato: 3rem → 3.5rem → 4rem per breakpoint). Palette avorio classica indipendente dal tema, pip in inchiostro d'intaglio `#16241e`, l'uno in sanguigna `#9c3a26`. Nessuna `perspective` a riposo (proiezione ortografica: faccia frontale pulita, zero artefatti agli angoli); la prospettiva vive _dentro_ i keyframe del lancio. Hover: inclinazione 3D opposta sui due dadi. Il vassoio è cliccabile ed è la scorciatoia per il puntatore, non un secondo stop di tastiera.
 
 ### Motion
+
 Una sola curva d'ingresso per le carte e le chip (`cubic-bezier(0.22, 1, 0.36, 1)`, 450–550ms), uscita rapida in `ease-in` (240ms). Il tumble del dado dura 880ms/1000ms in `cubic-bezier(.35, .1, .3, .9)`; l'assestamento sulla faccia uscita usa `cubic-bezier(.2, .9, .3, 1.15)`, **un overshoot voluto**: è un dado che si posa, l'unico rimbalzo autorizzato del sistema. Le pedine camminano lungo la polilinea dei centri cella con ease-out cubica (~245ms per passo breve, con tetto sulle corse lunghe): seguono il bordo, non tagliano la plancia. `prefers-reduced-motion` comprime tutto a 150–200ms.
 
 ## Do's and Don'ts
 
 ### Do:
+
 - **Do** applicare la carta (`.nota`) solo dove un foglio esiste fisicamente; il resto dell'interfaccia è scrivania scura.
 - **Do** stampare ogni cifra in `font-mono tabular-nums`, sempre, anche una sola.
 - **Do** separare le celle con `gap-px` su fondo `paper-line` e incorniciare con lo stesso filetto.
@@ -346,6 +385,7 @@ Una sola curva d'ingresso per le carte e le chip (`cubic-bezier(0.22, 1, 0.36, 1
 - **Do** comunicare lo stato con una sovrastampa obliqua, in microtesto condensed a tracking largo.
 
 ### Don't:
+
 - **Don't** introdurre raggi: `--radius` è 0 e ogni `rounded-*` derivato è un no-op. L'unico raggio del progetto è la smussatura in em delle facce del dado.
 - **Don't** ripuntare `--card` sulla carta: un solo `muted-foreground` serve chrome scura e superfici chiare, e il ribaltamento renderebbe illeggibile ogni testo secondario del codebase.
 - **Don't** aggiungere un quinto inchiostro funzionale o riusare i quattro esistenti fuori dal loro mestiere (niente sanguigna per "importante", niente bollo per "primario").

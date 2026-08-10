@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tangentopoly">
+  <!-- La marca da bollo di bollo.svg alla misura dell'icona: stessi rapporti (×16), stessi
+       tre inchiostri. Fondo a tutto sangue perché un'icona non ha trasparenza da spendere. -->
+  <rect width="512" height="512" fill="#111f1a" />
+  <circle cx="256" cy="256" r="208" fill="none" stroke="#e9e2d2" stroke-width="22" stroke-dasharray="32 34.4" />
+  <circle cx="256" cy="256" r="160" fill="#e9e2d2" />
+  <path d="M136 168h240v50h-92v118h-56V218h-92z" fill="#111f1a" />
+  <rect x="72" y="358" width="368" height="27" fill="#9c3a26" />
+</svg>

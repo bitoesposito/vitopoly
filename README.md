@@ -25,11 +25,11 @@ Altri comandi: `pnpm build`, `pnpm typecheck`, `pnpm lint`, e `pnpm --filter
 
 ## Com'è fatto
 
-| Dove | Cosa |
-|---|---|
-| `src/` | il client React (Vite, Tailwind 4, shadcn/ui, zustand). È la radice del workspace. |
-| `packages/game/` | il motore: puro, senza I/O, RNG con seed e quindi rigiocabile nei test. È l'autorità sulle regole. |
-| `packages/server/` | Cloudflare Worker: una stanza = un Durable Object, stato in un solo blob JSON, WebSocket. |
+| Dove               | Cosa                                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| `src/`             | il client React (Vite, Tailwind 4, shadcn/ui, zustand). È la radice del workspace.                 |
+| `packages/game/`   | il motore: puro, senza I/O, RNG con seed e quindi rigiocabile nei test. È l'autorità sulle regole. |
+| `packages/server/` | Cloudflare Worker: una stanza = un Durable Object, stato in un solo blob JSON, WebSocket.          |
 
 Il motore decide, l'interfaccia racconta: il server manda stati interi e il client li
 riproduce come una linea temporale (`src/lib/net/choreography.ts`) — la pedina cammina, la carta
@@ -43,12 +43,12 @@ cambiarle.
 
 Il motore è diviso in quattro strati, e ognuno può importare solo quelli sopra di sé:
 
-| Strato | Cosa contiene | Esempio |
-|---|---|---|
-| `data/` | tabellone e mazzi come dati, zero logica | `tiles.ts`, `cards.ts` |
-| `rules/` | matematica e predicati puri, nessuna mutazione di fase | `rent.ts`, `landing.ts`, `property.ts` |
-| `core/` | la macchina condivisa che muta lo stato | `money.ts`, `movement.ts`, `estate.ts` |
-| `actions/` | un file per famiglia di `ClientAction` | `turn.ts`, `auction.ts`, `debt.ts` |
+| Strato     | Cosa contiene                                          | Esempio                                |
+| ---------- | ------------------------------------------------------ | -------------------------------------- |
+| `data/`    | tabellone e mazzi come dati, zero logica               | `tiles.ts`, `cards.ts`                 |
+| `rules/`   | matematica e predicati puri, nessuna mutazione di fase | `rent.ts`, `landing.ts`, `property.ts` |
+| `core/`    | la macchina condivisa che muta lo stato                | `money.ts`, `movement.ts`, `estate.ts` |
+| `actions/` | un file per famiglia di `ClientAction`                 | `turn.ts`, `auction.ts`, `debt.ts`     |
 
 `engine.ts` non contiene regole: contiene la **topologia** (`HANDLERS`), cioè quale azione
 è raggiungibile da quale nodo. Una regola nuova si aggiunge in `rules/`, l'azione che la
@@ -68,3 +68,12 @@ Lato client la stessa disciplina: `lib/selectors.ts` per le derivazioni pure sul
 - `scripts/prova-server.mjs` — il confine di fiducia del server contro un server vero:
   segreti di posto, impostore respinto, rientro, `/debug` chiuso, nessun timer a stanza
   vuota. Vuole `pnpm dev` acceso.
+- `scripts/prova-schermate.mjs` — le tredici schermate di `/dev` montate in un browser
+  vero, mobile e desktop: ordini di hook, portal mancanti e null al render non li vedono
+  né `tsc` né i test in memoria. Vuole `pnpm serve` acceso.
+- `scripts/prova-pwa.mjs` — l'app è installabile e si apre senza rete: manifest, icone
+  servite davvero, worker che prende il controllo, `#root` pieno da offline. Vuole il
+  BUILD servito (`pnpm build && pnpm preview --port 4173`), perché il service worker si
+  registra solo in produzione.
+- `scripts/icone.mjs` — rigenera i PNG delle icone dagli SVG in `public/`. La fonte è
+  vettoriale, i raster sono derivati: si modifica `icona.svg` e si rilancia.

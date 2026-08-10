@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tangentopoly">
+  <!-- Variante maskable: identica, ma la marca sta nel cerchio sicuro (80% del lato) perché
+       Android ci ritaglia dentro la forma che vuole — cerchio, goccia, squircle. Il fondo
+       resta a tutto sangue: è l'unica parte che si può permettere di essere tagliata. -->
+  <rect width="512" height="512" fill="#111f1a" />
+  <g transform="translate(256 256) scale(0.72) translate(-256 -256)">
+    <circle cx="256" cy="256" r="208" fill="none" stroke="#e9e2d2" stroke-width="22" stroke-dasharray="32 34.4" />
+    <circle cx="256" cy="256" r="160" fill="#e9e2d2" />
+    <path d="M136 168h240v50h-92v118h-56V218h-92z" fill="#111f1a" />
+    <rect x="72" y="358" width="368" height="27" fill="#9c3a26" />
+  </g>
+</svg>

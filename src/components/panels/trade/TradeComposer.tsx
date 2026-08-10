@@ -29,7 +29,7 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
   const getBundle = toBundle(get);
 
   return (
-    <div className="space-y-2 text-sm">
+    <div className="space-y-3 text-sm">
       {/* con un solo avversario il chip è già scelto: resta come conferma di CON CHI scambi */}
       <div className="flex flex-wrap gap-1">
         {others.map((p) => (

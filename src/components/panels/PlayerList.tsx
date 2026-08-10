@@ -34,7 +34,7 @@ export function PlayerList({ game }: { game: PublicState }) {
       {game.players.map((p, i) => (
         <div
           key={p.id}
-          className={`group flex items-center gap-1.5 px-2 py-1 text-xs transition-colors ${
+          className={`group flex h-8 items-center gap-1.5 px-2 py-1 text-xs transition-colors ${
             isTurn(game, p.id) ? "bg-accent text-accent-foreground ring-1 ring-ring" : ""
           } ${p.bankrupt ? "opacity-60" : ""}`}
         >

@@ -62,7 +62,8 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
         )}
       </div>
 
-      <div className={`min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm ${open ? "" : "md:hidden"}`}>
+      {/* 8px come la cornice qui sopra e come ogni pannello: una colonna, un padding */}
+      <div className={`min-h-0 flex-1 space-y-2 overflow-y-auto p-2 text-sm ${open ? "" : "md:hidden"}`}>
         {chat.length === 0 && <div className="text-xs text-muted-foreground">{t("chat.empty")}</div>}
         {groups.map((g, i) => (
           <div key={i} className="border border-border px-2 py-1">

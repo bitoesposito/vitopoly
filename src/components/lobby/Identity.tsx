@@ -54,7 +54,8 @@ export function Identity({ game }: { game: PublicState }) {
             }}
             onKeyDown={(e) => e.key === "Enter" && (setTouched(true), save(), input.current?.blur())}
           />
-          <Button size="lg" variant="secondary" className="shrink-0" disabled={!!error || !changed} onClick={save}>
+          {/* taglia `default`: affiancato al campo, ne condivide l'altezza */}
+          <Button variant="secondary" className="shrink-0" disabled={!!error || !changed} onClick={save}>
             <Pencil className="size-3.5" />
             {t("id.rename")}
           </Button>

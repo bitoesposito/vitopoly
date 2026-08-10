@@ -108,7 +108,6 @@ export function AuctionPanel({ game }: { game: PublicState }) {
             <Button
               key={d}
               className="flex-1 font-mono tabular-nums"
-              size="sm"
               disabled={!canBid || a.bid + d > myCash}
               onClick={() => send({ type: "bid", amount: d })}
             >
@@ -126,13 +125,13 @@ export function AuctionPanel({ game }: { game: PublicState }) {
             step={1}
             inputMode="numeric"
             placeholder={t("auction.custom")}
-            className="h-9 flex-1 font-mono tabular-nums"
+            className="flex-1 font-mono tabular-nums"
             value={raise}
             disabled={!canBid}
             onChange={(e) => setRaise(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && doRaise()}
           />
-          <Button size="sm" disabled={!raiseOk} onClick={doRaise}>
+          <Button disabled={!raiseOk} onClick={doRaise}>
             {t("auction.raise")}
           </Button>
         </div>

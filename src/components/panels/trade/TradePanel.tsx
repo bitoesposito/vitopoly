@@ -43,7 +43,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
           {compose ? tr("trade.propose") : detail ? tr("trade.incoming", { name: names[detail.from] }) : tr("trade.title")}
         </span>
         {!compose && !detail && (
-          <Button size="xs" disabled={inAuction || !me || me.bankrupt} onClick={() => useGame.setState({ tradeOpen: true })}>
+          <Button disabled={inAuction || !me || me.bankrupt} onClick={() => useGame.setState({ tradeOpen: true })}>
             <Plus className="size-3.5" />
             {tr("trade.create")}
           </Button>
@@ -60,7 +60,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
             {incoming.map((t) => (
               <div key={t.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                 {tr("trade.incomingRow", { name: names[t.from] })}
-                <Button size="xs" variant="ghost" disabled={inAuction} onClick={() => setHidden(t.id, false)}>
+                <Button size="sm" variant="ghost" disabled={inAuction} onClick={() => setHidden(t.id, false)}>
                   {tr("trade.show")}
                 </Button>
               </div>
@@ -68,7 +68,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
             {outgoing.map((t) => (
               <div key={t.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                 {tr("trade.waiting", { name: names[t.to] })}
-                <Button size="xs" variant="ghost" onClick={() => send({ type: "cancelTrade", id: t.id })}>
+                <Button size="sm" variant="ghost" onClick={() => send({ type: "cancelTrade", id: t.id })}>
                   {tr("trade.cancel")}
                 </Button>
               </div>
@@ -96,11 +96,11 @@ function IncomingTrade({ trade }: { trade: Trade }) {
         </div>
       </div>
       <div className="flex gap-1.5">
-        <Button size="sm" className="flex-1" onClick={() => send({ type: "respondTrade", id: trade.id, accept: true })}>
+        <Button size="lg" className="flex-1" onClick={() => send({ type: "respondTrade", id: trade.id, accept: true })}>
           {tr("trade.accept")}
         </Button>
         <Button
-          size="sm"
+          size="lg"
           variant="secondary"
           className="flex-1"
           onClick={() => send({ type: "respondTrade", id: trade.id, accept: false })}

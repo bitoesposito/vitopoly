@@ -297,8 +297,9 @@ L'unico raggio del progetto è `0.15em` sulle facce del dado: è la smussatura d
 
 ### Buttons
 - **Shape:** rettangolo netto (0 raggio), bordo trasparente in `bg-clip-padding`, testo `text-xs` 500.
-- **Primary (`default`):** carta piena su inchiostro (`primary` / `primary-foreground`), altezza 32px, padding orizzontale 10px. Hover: carta all'80%.
-- **Taglie:** `xs` 24px, `sm` 28px, `default` 32px, `lg` 44px, più le varianti icona 24/28/32/36px. Le azioni primarie di gioco usano sempre `lg`: 36px stava sotto il minimo tattile.
+- **Primary (`default`):** carta piena su inchiostro (`primary` / `primary-foreground`), altezza 36px, padding orizzontale 10px. Hover: carta all'80%.
+- **Taglie — tre altezze, una regola.** `lg` 44px = *l'azione* del momento (tira, compra, accetta uno scambio, inizia, rigioca); `default` 36px = ogni altra azione vera (rilanci d'asta, azioni su una proprietà, invio); `sm` 32px = contorno (intestazioni di pannello, azioni-collegamento in una riga di lista). `xs` 24px e le varianti icona 24/28/36px restano solo per i controlli inline nel testo e per la cromatura a sola icona. Su puntatore grosso (`pointer-coarse`) `default` sale a 44px: sul telefono nessuna azione vera scende sotto il minimo tattile.
+- **Coppie campo+bottone:** `default` ha la STESSA altezza dell'Input, alle due misure. Un bottone affiancato a un campo si allinea da sé, senza altezze scritte a mano — se non è allineato, è la taglia che è sbagliata.
 - **Focus:** bordo + anello a 1px in `ring` (l'ocra del bollo). Mai anello ad alpha 50% su fondo scuro: sta sotto 3:1.
 - **Active:** `translateY(1px)` — la pressione di un timbro, non un rimbalzo.
 - **Secondary:** gradino tonale (`secondary`) con hover per `color-mix` verso il foreground. **Ghost:** trasparente, hover su `muted`. **Destructive:** sanguigna al 20% di fondo con testo sanguigna, mai un blocco rosso pieno.
@@ -311,7 +312,7 @@ L'unico raggio del progetto è `0.15em` sulle facce del dado: è la smussatura d
 - **Title:** condensed, maiuscolo, bold, `text-sm`.
 
 ### Inputs / Fields
-- **Style:** altezza 32px, fondo `input/30`, bordo 1px `input`, spigolo vivo, `text-xs`.
+- **Style:** altezza 36px (44px su `pointer-coarse`, come `Button` taglia `default`), fondo `input/30`, bordo 1px `input`, spigolo vivo, `text-xs`.
 - **Focus:** il bordo passa a `ring` più anello 1px a 50% — nessun glow.
 - **Numerici:** sempre `font-mono tabular-nums` con `inputMode="numeric"`.
 - **Error:** bordo e anello `destructive`; l'errore ha comunque una riga di testo (`text-2xs text-destructive`) che dice perché.

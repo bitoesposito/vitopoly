@@ -97,9 +97,8 @@ export function PropertyActions({ game, myId, tile }: { game: PublicState; myId:
         return (
           <Button
             key={type}
-            size="sm"
             variant="secondary"
-            className={`flex-1 pointer-coarse:min-h-11 ${blocked ? "opacity-50" : ""}`}
+            className={`flex-1 ${blocked ? "opacity-50" : ""}`}
             aria-disabled={!!blocked}
             title={blocked ?? undefined}
             // non `disabled`: su touch il tooltip non esiste, e un bottone spento e muto

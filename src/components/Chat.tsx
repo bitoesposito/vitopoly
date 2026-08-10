@@ -85,7 +85,7 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
       <div className={`flex gap-2 border-t border-border p-2 ${open ? "" : "md:hidden"}`}>
         <Input
           ref={inputRef}
-          className="h-8 flex-1"
+          className="flex-1"
           placeholder={t("chat.placeholder")}
           value={text}
           maxLength={300}

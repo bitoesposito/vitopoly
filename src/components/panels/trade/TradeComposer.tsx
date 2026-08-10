@@ -60,7 +60,7 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
 
       <Button
         className="w-full"
-        size="sm"
+        size="lg"
         disabled={!to || (isEmpty(giveBundle) && isEmpty(getBundle))}
         onClick={() => {
           send({ type: "proposeTrade", to, give: giveBundle, get: getBundle });

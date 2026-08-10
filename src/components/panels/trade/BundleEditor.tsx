@@ -34,7 +34,7 @@ export function BundleEditor({
       <div className="flex items-center gap-1 text-sm">
         <span className="text-muted-foreground">€</span>
         <Input
-          className="h-7 w-full min-w-0 flex-1 tabular-nums"
+          className="w-full min-w-0 flex-1 tabular-nums"
           type="number"
           min={0}
           max={player.cash}

@@ -8,27 +8,44 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
+const RADICE = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PUBLIC = join(RADICE, "public");
+
+/** I font come data URI: la pagina che rasterizza non ha una base a cui risolvere un url(),
+ *  e la carta social ha del testo — senza questo uscirebbe in un sans di sistema. Sono gli
+ *  stessi file che carica l'app, presi da node_modules: il testo dell'anteprima è composto
+ *  con la voce del gioco, non con quella del sistema di chi rasterizza. */
+const font = (pacchetto, file, famiglia, peso) =>
+  `@font-face{font-family:"${famiglia}";font-weight:${peso};src:url(data:font/woff2;base64,${readFileSync(
+    join(RADICE, "node_modules", pacchetto, "files", file)
+  ).toString("base64")})format("woff2")}`;
+const FONT =
+  font("@fontsource/ibm-plex-sans-condensed", "ibm-plex-sans-condensed-latin-600-normal.woff2", "IBM Plex Sans Condensed", 600) +
+  font("@fontsource/ibm-plex-sans-condensed", "ibm-plex-sans-condensed-latin-700-normal.woff2", "IBM Plex Sans Condensed", 700) +
+  font("@fontsource-variable/ibm-plex-sans", "ibm-plex-sans-latin-wght-normal.woff2", "IBM Plex Sans", 400);
 
 // [sorgente, misura, uscita] — 192 e 512 sono i due gradini che Android chiede, il
 // maskable è la variante col margine di sicurezza, 180 è l'icona di iOS.
 const ICONE = [
-  ["icona.svg", 192, "icona-192.png"],
-  ["icona.svg", 512, "icona-512.png"],
-  ["icona-maskable.svg", 512, "icona-maskable-512.png"],
-  ["icona.svg", 180, "apple-touch-icon.png"],
+  ["icona.svg", 192, 192, "icona-192.png"],
+  ["icona.svg", 512, 512, "icona-512.png"],
+  ["icona-maskable.svg", 512, 512, "icona-maskable-512.png"],
+  ["icona.svg", 180, 180, "apple-touch-icon.png"],
+  // la carta che i social mostrano al posto del link: 1200×630 è il rapporto che ritagliano tutti
+  ["social.svg", 1200, 630, "social.png"],
 ];
 
 const browser = await chromium.launch();
-for (const [src, size, out] of ICONE) {
-  const page = await browser.newPage({ viewport: { width: size, height: size } });
+for (const [src, w, h, out] of ICONE) {
+  const page = await browser.newPage({ viewport: { width: w, height: h } });
   // l'SVG inline a tutta pagina: niente margini del documento, niente fondo del browser
   await page.setContent(
-    `<style>html,body{margin:0;width:${size}px;height:${size}px}svg{display:block;width:100%;height:100%}</style>` +
+    `<style>${FONT}html,body{margin:0;width:${w}px;height:${h}px}svg{display:block;width:100%;height:100%}</style>` +
       readFileSync(join(PUBLIC, src), "utf8")
   );
+  await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: join(PUBLIC, out), omitBackground: true });
   await page.close();
-  console.log(`${out} ${size}×${size} ← ${src}`);
+  console.log(`${out} ${w}×${h} ← ${src}`);
 }
 await browser.close();

@@ -5,6 +5,7 @@ import { translate as t } from "@/lib/i18n";
 import { netWorth, playerNames } from "@/lib/selectors";
 import { euro } from "@/lib/format";
 import { send } from "@/lib/net/client";
+import { dimenticaStanza } from "@/lib/seat";
 
 // Fine partita: la classifica per patrimonio, e una porta per rigiocare.
 export function GameOver({ game }: { game: PublicState }) {
@@ -42,7 +43,14 @@ export function GameOver({ game }: { game: PublicState }) {
           <Button size="lg" className="w-full" onClick={() => send({ type: "rematch" })}>
             {t("end.rematch")}
           </Button>
-          <Button variant="ghost" className="w-full" onClick={() => (location.href = location.origin + location.pathname)}>
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() => {
+              dimenticaStanza(); // "chiudi" vuol dire chiudi: l'icona non deve riportare qui
+              location.href = location.origin + location.pathname;
+            }}
+          >
             {t("end.home")}
           </Button>
         </div>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Tangentopoly — il gioco della Prima Repubblica">
+  <!-- La carta che si vede quando qualcuno incolla il link: la marca da bollo a sinistra, il
+       filetto d'incisione al posto del gap, la denominazione a destra. Il font arriva a chi
+       rasterizza (scripts/icone.mjs lo incorpora): aperto in un browser senza IBM Plex
+       Condensed questo file ripiega su un sans qualunque, ed è accettabile — la fonte serve
+       al PNG, non al crawler. -->
+  <rect width="1200" height="630" fill="#111f1a" />
+
+  <g transform="translate(255 315) scale(0.56) translate(-256 -256)">
+    <circle cx="256" cy="256" r="208" fill="none" stroke="#e9e2d2" stroke-width="22" stroke-dasharray="32 34.4" />
+    <circle cx="256" cy="256" r="160" fill="#e9e2d2" />
+    <path d="M136 168h240v50h-92v118h-56V218h-92z" fill="#111f1a" />
+    <rect x="72" y="358" width="368" height="27" fill="#9c3a26" />
+  </g>
+
+  <rect x="430" y="160" width="2" height="310" fill="#75847c" />
+
+  <g font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700">
+    <text x="500" y="228" font-size="28" font-weight="600" letter-spacing="7" fill="#75847c">SERIE 1992</text>
+    <text x="500" y="318" font-size="92" letter-spacing="-3" fill="#e9e2d2">
+      TANGENTO<tspan fill="#dca03e">POLY</tspan>
+    </text>
+    <text x="500" y="372" font-size="32" font-weight="400" fill="#b9c3bb" font-family="IBM Plex Sans, sans-serif">
+      Il gioco della Prima Repubblica
+    </text>
+    <text x="500" y="443" font-size="25" font-weight="400" fill="#75847c" font-family="IBM Plex Sans, sans-serif">
+      Da Foggia alla Milano di Mani Pulite. Per 2-8 amici,
+    </text>
+    <text x="500" y="478" font-size="25" font-weight="400" fill="#75847c" font-family="IBM Plex Sans, sans-serif">
+      in tempo reale. Serve solo un link.
+    </text>
+  </g>
+</svg>

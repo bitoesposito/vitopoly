@@ -1,0 +1,11 @@
+# Cloudflare Pages e Netlify leggono questo file. Serve una cosa sola: il worker NON va
+# messo in cache dai proxy. Il browser lo ricontrolla comunque al massimo ogni 24h, ma con
+# un max-age lungo davanti un aggiornamento può restare fermo un giorno intero.
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+# I nomi sotto /assets/ portano l'hash del contenuto: sono immutabili per definizione.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

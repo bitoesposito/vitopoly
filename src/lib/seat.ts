@@ -8,10 +8,19 @@
 // cancella dalla barra degli indirizzi appena consumata.
 
 const PID_KEY = "tangentopoly:pid";
+const STANZA_KEY = "tangentopoly:stanza";
 const seatKey = (code: string) => `tangentopoly:token:${code}`;
 
 export const seatSecret = (code: string) => localStorage.getItem(seatKey(code)) ?? "";
 export const rememberSeat = (code: string, secret: string) => localStorage.setItem(seatKey(code), secret);
+
+/** L'ultima stanza in cui si è entrati. L'app installata parte da "/" — senza questa
+ *  memoria, aprire l'icona significherebbe sempre una stanza nuova, e la partita in corso
+ *  resterebbe raggiungibile solo dal link. Il segreto del posto è già salvato per codice,
+ *  quindi rientrare qui è rientrare come sé stessi. */
+export const ultimaStanza = () => localStorage.getItem(STANZA_KEY);
+export const ricordaStanza = (code: string) => localStorage.setItem(STANZA_KEY, code);
+export const dimenticaStanza = () => localStorage.removeItem(STANZA_KEY);
 
 /** Il link che sposta QUESTO posto su un altro dispositivo. Non è il link d'invito. */
 export const transferLink = (code: string, pid: string) =>

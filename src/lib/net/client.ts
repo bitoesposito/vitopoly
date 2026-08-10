@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import type { ClientAction, ServerMsg } from "@tangentopoly/game";
 import { useGame } from "../store";
-import { rememberSeat, seatSecret } from "../seat";
+import { rememberSeat, ricordaStanza, seatSecret } from "../seat";
 import { choreograph } from "./choreography";
 
 // Il trasporto e basta: apri la stanza, tieni viva la socket, versa i messaggi nello
@@ -35,6 +35,7 @@ export function connect(code: string, name: string): void {
 
   socket.onopen = () => {
     useGame.setState({ connected: true, code, name, retries: 0 });
+    ricordaStanza(code); // l'icona sulla home riporta qui, non in una stanza vuota
     history.replaceState(null, "", `?room=${code}`); // senza questo l'host che ricarica perde la stanza
   };
   socket.onclose = (e) => {

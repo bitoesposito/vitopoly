@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PlayerList } from "@/components/panels/PlayerList";
 import { Rules } from "@/components/lobby/Rules";
 import { Identity } from "@/components/lobby/Identity";
+import { InstallaApp } from "@/components/InstallaApp";
 import { useGame } from "@/lib/store";
 import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
@@ -51,6 +52,9 @@ export function PreMatch({ game }: { game: PublicState }) {
           <p className="text-center text-xs text-muted-foreground">{t("settings.hostStarts", { name: game.players[0]?.name ?? "" })}</p>
         )}
       </div>
+
+      {/* qui si aspetta: è il solo momento in cui proporre l'installazione non interrompe niente */}
+      <InstallaApp />
 
       {/* consultazione, non un passo: in fondo e chiusa, come nella home */}
       <details className="group border-t border-border pt-3">

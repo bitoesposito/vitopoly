@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useGame } from "@/lib/store";
 import { translate as t } from "@/lib/i18n";
 import { connect, createRoom } from "@/lib/net/client";
+import { ultimaStanza } from "@/lib/seat";
 import { Rules } from "@/components/lobby/Rules";
 
 export function Lobby() {
@@ -14,6 +15,8 @@ export function Lobby() {
   const [busy, setBusy] = useState(false);
   const room = new URLSearchParams(location.search).get("room"); // join via friend's link
   const stuck = busy && !error;
+  // con ?room nell'indirizzo la stanza è quella del link: due porte confonderebbero
+  const ultima = room ? null : ultimaStanza();
 
   const go = async () => {
     setBusy(true);
@@ -51,6 +54,12 @@ export function Lobby() {
         <Button className="w-full" size="lg" disabled={stuck || !name.trim()} onClick={go}>
           {room ? t("lobby.enter") : t("lobby.create")}
         </Button>
+        {/* l'app installata apre qui: se una partita è in corso, la sua porta è questa */}
+        {ultima && (
+          <Button variant="outline" className="w-full" disabled={stuck} onClick={() => connect(ultima, name.trim() || "Giocatore")}>
+            {t("lobby.reenter", { code: ultima })}
+          </Button>
+        )}
         {error && <p className="text-center text-xs text-destructive">{error}</p>}
         <p className="text-center text-2xs text-muted-foreground">{t("lobby.noAccount")}</p>
       </div>

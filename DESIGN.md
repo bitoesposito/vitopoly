@@ -337,6 +337,13 @@ Il `theme_color` e il `background_color` del manifest sono il fondo dell'app (`#
 non il fondo dell'icona: la schermata d'avvio e la barra di stato devono essere la stessa
 superficie su cui l'app si apre, o l'avvio lampeggia.
 
+**L'anteprima del link** (1200×630, `public/social.svg`) è la stessa marca a sinistra e la
+denominazione a destra, divise dal filetto d'incisione invece che da uno spazio. È l'unico
+posto dove esiste un logotipo: TANGENTO in carta, POLY in oro bollo, condensed 700 a 92px —
+misurato, non stimato, perché a 108 sfora la carta. Sotto, il microtesto di serie e due
+righe di prosa. Il link è la distribuzione di questo gioco: quella carta è la prima cosa
+che vede chi lo riceve, e un'icona ingrandita non è una carta.
+
 ### Cards / Containers
 
 - **Corner Style:** nessuno (`rounded-none` esplicito).

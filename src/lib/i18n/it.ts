@@ -11,7 +11,7 @@ export const IT = {
   "lobby.newIssue": "Nuova emissione",
   "lobby.pitch":
     "Da Foggia alla Milano di Mani Pulite: compri, incassi, corrompi e prima o poi finisci dentro. Quanti amici vuoi, in tempo reale.",
-  "lobby.noAccount": "Niente account, niente installazione: serve solo il link.",
+  "lobby.noAccount": "Niente account, niente app store: serve solo il link.",
 
   "id.title": "Chi sei",
   "id.name": "Il tuo nome",
@@ -22,6 +22,7 @@ export const IT = {
   "id.inkTaken": "{ink} — già di {name}",
   "id.inkHint": "Sei {ink}. Sulla plancia le tue proprietà si tingono di questo colore.",
   "settings.hostStarts": "Tocca a {name} far partire la partita.",
+  "lobby.reenter": "Rientra nella stanza N. {code}",
   "settings.invite": "Invita giocatori",
   "settings.inviteAlone": "Sei solo — il giro non si fa da soli, condividi il link. Non c'è un tetto di posti.",
   "settings.inviteDesc": "Condividi il link della stanza",
@@ -47,6 +48,9 @@ export const IT = {
   "chat.placeholder": "Messaggio… (scrivi e basta)",
   "chat.send": "Invia",
 
+  "pwa.desc": "Aggiungila alla schermata Home: si apre come un'app, senza barra del browser.",
+  "pwa.install": "Installa",
+  "pwa.ios": "Su iPhone: Condividi → «Aggiungi alla schermata Home».",
   "share.copied": "Link copiato negli appunti",
   "share.failed": "Non sono riuscito a copiare il link",
   "share.inviteText": "Entra nel giro!",

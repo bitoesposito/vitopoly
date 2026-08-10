@@ -78,6 +78,47 @@ for (const [w, h, mobile] of [
   await ctx.close();
 }
 
+// L'invito a installare ha tre stati e due sono invisibili in un browser da test: il browser
+// non manda `beforeinstallprompt` a localhost senza installabilità, e "già installata" non si
+// emula. Si simulano entrambi, perché la regola da verificare è proprio quando NON compare.
+{
+  const { page, ctx } = await apri(390, 844, true);
+  await page.getByRole("button", { name: "Impostazioni", exact: true }).click();
+  await page.waitForTimeout(250);
+  const riga = page.getByRole("button", { name: /Installa/ });
+
+  assert.equal(await riga.count(), 0, "l'invito compare senza che il browser l'abbia offerto");
+
+  await page.evaluate(() => {
+    window.__chiesto = 0;
+    const e = new Event("beforeinstallprompt");
+    e.prompt = () => void window.__chiesto++;
+    dispatchEvent(e);
+  });
+  await page.waitForTimeout(200);
+  assert.equal(await riga.count(), 1, "il browser ha offerto l'installazione e l'invito non c'è");
+  await riga.click();
+  assert.equal(await page.evaluate(() => window.__chiesto), 1, "il bottone non ha aperto il dialogo del sistema");
+  await page.waitForTimeout(200);
+  assert.equal(await riga.count(), 0, "l'invito resta dopo essere stato speso");
+
+  // ad app installata non deve esistere, nemmeno se il browser lo offrisse
+  await page.evaluate(() => {
+    const vero = matchMedia;
+    window.matchMedia = (q) => (q.includes("standalone") ? { matches: true, addEventListener() {}, removeEventListener() {} } : vero(q));
+  });
+  await page.getByRole("button", { name: "preRoll (io)", exact: true }).click();
+  await page.getByRole("button", { name: "Impostazioni", exact: true }).click();
+  await page.evaluate(() => {
+    const e = new Event("beforeinstallprompt");
+    e.prompt = () => {};
+    dispatchEvent(e);
+  });
+  await page.waitForTimeout(200);
+  assert.equal(await riga.count(), 0, "app installata: l'invito a installarla non deve esistere");
+  await ctx.close();
+}
+
 await browser.close();
 
 if (problemi.length) {
@@ -85,4 +126,6 @@ if (problemi.length) {
   for (const p of problemi) console.error("  -", p);
   process.exit(1);
 }
-console.log(`tutto a posto: ${SCENARI.length} scenari e ${CARTE.length + 1} carte, su mobile e desktop, senza errori a runtime`);
+console.log(
+  `tutto a posto: ${SCENARI.length} scenari e ${CARTE.length + 1} carte su mobile e desktop, l'invito a installare nei suoi tre stati, senza errori a runtime`
+);

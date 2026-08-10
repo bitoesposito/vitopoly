@@ -8,12 +8,20 @@
 
 ## Platform
 
-web
+web, installable. A web app manifest and a service worker make it an installable PWA
+(`public/manifest.webmanifest`, `public/sw.js`): it runs standalone from the home screen, with its
+own icon and splash. **Offline play does not exist and cannot** — the engine is authoritative on the
+server and every action travels over a WebSocket; the worker only guarantees the app _opens_ without
+network, where it shows its reconnection banner instead of the browser's error page
+(`scripts/prova-pwa.mjs` verifies this against a served build).
 
 ## Users
 
-Groups of friends playing one match together in real time. **There is no seat cap**: anyone who
-arrives before the host starts the match sits down (`packages/game/src/setup.ts:36`). One player
+Groups of friends playing one match together in real time. **The table caps at 8 seats**, and the cap
+is the number of inks: a ninth player would be indistinguishable on the board — same colour, same
+series letter, same offset — so `addPlayer` refuses the seat and the room answers "il tavolo è al
+completo" (`packages/game/src/setup.ts:52-66`, `packages/server/src/room.ts:55`). Anyone who arrives
+before the host starts the match and finds a free seat sits down. One player
 creates a room and shares a link; the others join by opening it and typing a display name — no
 account, no signup anywhere in the codebase. Anyone arriving after the match starts becomes a
 spectator with chat and full state but no seat.
@@ -81,9 +89,13 @@ Currency is € throughout.
 - Full action vocabulary the client may send is fixed and enumerated in `ClientAction`
   (`packages/game/src/types.ts`). `fold` is now exposed in the auction panel; `updateSettings` no
   longer exists.
+- **A rematch path exists**: at `ended` the only legal action is `rematch`, which returns the room to
+  the waiting screen with the same players and a cleared board — a new `createGame` with the seats
+  re-taken, not a hand-written reset (`packages/game/src/actions/lobby.ts`). Anyone who was at the
+  table can ask for it, bankrupt players included.
 - Undecided product facts: no persistence of results across matches, no accounts, no matchmaking, no
-  spectator-to-player promotion, no rematch path. None of these exist in the codebase and none should
-  be presented as if they did.
+  spectator-to-player promotion. None of these exist in the codebase and none should be presented as
+  if they did.
 
 ## Brand Commitments
 
@@ -94,7 +106,12 @@ Currency is € throughout.
   comedy and never as an accusation against a living named person: every institution on the board is
   an entity, and no real individual is named anywhere in `data/tiles.ts` or `data/cards.ts`. Future work
   must not break that.
-- No logo, wordmark, or brand asset exists. `public/` is empty and the favicon is still Vite's.
+- The brand asset is one mark: a **marca da bollo** — engraved ground, dashed perforation, paper
+  field, incised T, cancellation rule — in three inks and no gradients. It is the favicon
+  (`public/bollo.svg`), the app icon at 512 with a maskable variant at 72% for Android's crop
+  (`public/icona.svg`, `public/icona-maskable.svg`), and the left half of the 1200×630 link preview,
+  whose right half carries the only wordmark that exists: TANGENTO in paper, POLY in bollo ocra
+  (`public/social.svg`). Rasters are derived, never redrawn (`scripts/icone.mjs`).
 
 ## Evidence on Hand
 

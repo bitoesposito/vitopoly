@@ -7,6 +7,7 @@ import { translate as tr } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { useGame } from "@/lib/store";
 import { auctionLive, playerNames } from "@/lib/selectors";
+import { buzz, NUDGE } from "@/lib/haptics";
 import { Panel } from "../Panel";
 import { BundleChips } from "../BundleChips";
 import { TradeComposer } from "./TradeComposer";
@@ -43,7 +44,10 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
           {compose ? tr("trade.propose") : detail ? tr("trade.incoming", { name: names[detail.from] }) : tr("trade.title")}
         </span>
         {!compose && !detail && (
-          <Button disabled={inAuction || !me || me.bankrupt} onClick={() => useGame.setState({ tradeOpen: true })}>
+          <Button
+            disabled={game.status !== "playing" || inAuction || !me || me.bankrupt}
+            onClick={() => useGame.setState({ tradeOpen: true })}
+          >
             <Plus className="size-3.5" />
             {tr("trade.create")}
           </Button>
@@ -120,6 +124,7 @@ function useIncomingToast(game: PublicState, myId: string): void {
     const mine = game.trades.filter((t) => t.to === myId);
     const fresh = mine.filter((t) => !seen.current.includes(t.id));
     seen.current = mine.map((t) => t.id);
+    if (fresh.length) buzz(NUDGE);
     for (const t of fresh) toast(tr("trade.incoming", { name: game.players.find((p) => p.id === t.from)?.name ?? "" }));
   }, [game.trades, game.players, myId]);
 }

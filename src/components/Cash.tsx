@@ -25,7 +25,9 @@ export function Cash({ value, delta, className }: { value: number; delta?: boole
         <span
           key={`d${value}`}
           aria-hidden
-          className={`cifra-delta pointer-events-none absolute -top-3 right-0 font-mono text-2xs ${diff > 0 ? "text-success" : "text-destructive"}`}
+          className={`cifra-delta pointer-events-none absolute -top-3 right-0 font-mono text-2xs whitespace-nowrap ${
+            diff > 0 ? "text-success" : "text-destructive"
+          }`}
         >
           {diff > 0 ? "+" : "−"}
           {euro(Math.abs(diff))}

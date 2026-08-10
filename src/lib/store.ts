@@ -15,6 +15,12 @@ export type CardPopup = PopupBody & { id: number; wait: number };
 export type PopupInput = PopupBody & { wait?: number };
 let popupSeq = 0;
 
+/** La posizione MOSTRATA di una pedina, col verso in cui ci è arrivata. */
+export interface TokenStep {
+  pos: TileId;
+  back?: boolean;
+}
+
 interface Store {
   myId: string;
   name: string;
@@ -28,12 +34,12 @@ interface Store {
   tradeOpen: boolean; // composer scambi aperto (sezione sotto gli scambi, non blocca nulla)
   tradeHidden: Record<string, boolean>; // proposte in arrivo nascoste (restano listate negli scambi)
   popups: CardPopup[];
-  tokenPos: Partial<Record<string, TileId>>; // display positions, choreographed by ws.ts; fallback = game pos
+  tokenStep: Partial<Record<string, TokenStep>>; // display positions, choreographed by ws.ts; fallback = game pos
   pushEvents: (e: GameEvent[]) => void;
   pushChat: (m: ChatMsg) => void;
   pushPopups: (p: PopupInput[]) => void;
   removePopup: (id: number) => void;
-  setTokenPos: (pid: string, pos: TileId) => void;
+  setTokenStep: (pid: string, step: TokenStep) => void;
 }
 
 export const useGame = create<Store>((set) => ({
@@ -49,7 +55,7 @@ export const useGame = create<Store>((set) => ({
   tradeOpen: false,
   tradeHidden: {},
   popups: [],
-  tokenPos: {},
+  tokenStep: {},
   pushEvents: (e) => set((s) => ({ events: [...s.events, ...e].slice(-100) })),
   pushChat: (m) => set((s) => ({ chat: [...s.chat, m].slice(-100) })),
   // same-batch pushes get a built-in stagger so they enter one after the other, stacked
@@ -58,5 +64,5 @@ export const useGame = create<Store>((set) => ({
       popups: [...s.popups, ...p.map((x, i) => ({ ...x, wait: x.wait ?? i * 700, id: ++popupSeq }) as CardPopup)].slice(-8),
     })),
   removePopup: (id) => set((s) => ({ popups: s.popups.filter((x) => x.id !== id) })),
-  setTokenPos: (pid, pos) => set((s) => ({ tokenPos: { ...s.tokenPos, [pid]: pos } })),
+  setTokenStep: (pid, step) => set((s) => ({ tokenStep: { ...s.tokenStep, [pid]: step } })),
 }));

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { drawCard } from "../src/core/movement";
 import { CHANCE, CHEST } from "../src/data/cards";
+import { walkTiles } from "../src/data/tiles";
 import { byId } from "../src/core/players";
 import { started } from "./helpers";
 import { checkInvariants } from "./invariants";
@@ -71,6 +72,16 @@ describe("effetti delle carte", () => {
     draw(s, "chance", cardWith(CHANCE, "back"));
     expect(s.players[0].pos).toBe(38);
     expect(cash(s, "a")).toBe(1500 - 100); // tassa pagata, nessuno stipendio
+  });
+
+  it("back: l'evento dice che si cammina a ritroso, e sono 3 passi non 37", () => {
+    const s = started();
+    s.players[0].pos = 1;
+    const { ev } = draw(s, "chance", cardWith(CHANCE, "back"));
+    const moved = ev.find((e) => e.e === "moved") as Extract<GameEvent, { e: "moved" }>;
+    expect(moved.back).toBe(true);
+    expect(walkTiles(moved.from, moved.to, moved.back)).toEqual([1, 0, 39, 38]);
+    expect(walkTiles(moved.from, moved.to)).toHaveLength(38);
   });
 
   it("collect / pay: cassa contro banca", () => {

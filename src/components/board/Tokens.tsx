@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TILES, stepsTo } from "@tangentopoly/game";
+import { walkTiles } from "@tangentopoly/game";
 import type { PublicState } from "@tangentopoly/game";
 import { TOKEN_COLOR, tokenLetter } from "@/lib/palette";
 import { tileCell, walkMs } from "@/lib/board-layout";
@@ -15,8 +15,9 @@ const pct = (i: number): readonly [number, number] => {
   return [centerPct(col), centerPct(row)];
 };
 
-// rAF along the tile-center polyline: follows the board edge, global ease-out, 200ms
-function useEdgeWalk(target: number): readonly [number, number] {
+// rAF along the tile-center polyline: follows the board edge, global ease-out, 200ms.
+// `back` = si cammina a ritroso, invece del giro lungo nell'unico verso del gioco.
+function useEdgeWalk(target: number, back?: boolean): readonly [number, number] {
   const [xy, setXy] = useState(() => pct(target));
   const prev = useRef(target);
   useEffect(() => {
@@ -24,8 +25,9 @@ function useEdgeWalk(target: number): readonly [number, number] {
     prev.current = target;
     if (from === target) return;
     // a new target mid-animation restarts from the old target, not from mid-path
-    const n = stepsTo(from, target);
-    const pts = Array.from({ length: n + 1 }, (_, i) => pct((from + i) % TILES));
+    const path = walkTiles(from, target, back);
+    const n = path.length - 1;
+    const pts = path.map(pct);
     const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
     const total = seg.reduce((a, b) => a + b, 0);
     const dur = walkMs(n); // scale with distance: ~245ms short hops, capped for long runs
@@ -42,7 +44,7 @@ function useEdgeWalk(target: number): readonly [number, number] {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [target]);
+  }, [target, back]);
   return xy;
 }
 
@@ -58,8 +60,8 @@ const SPREAD = [
   [15, 0],
 ];
 
-function Token({ token, pos, current }: { token: number; pos: number; current: boolean }) {
-  const [x, y] = useEdgeWalk(pos);
+function Token({ token, pos, back, current }: { token: number; pos: number; back?: boolean; current: boolean }) {
+  const [x, y] = useEdgeWalk(pos, back);
   const color = TOKEN_COLOR[token % 8];
   const [dx, dy] = current ? [0, 0] : SPREAD[token % 8];
   return (
@@ -88,13 +90,19 @@ function Token({ token, pos, current }: { token: number; pos: number; current: b
 // overlay above the board; clicks fall through to the tiles
 export function Tokens({ game }: { game: PublicState }) {
   const currentId = game.players[game.current]?.id;
-  const tokenPos = useGame((s) => s.tokenPos); // choreographed display pos (ws.ts); state pos is the fallback
+  const tokenStep = useGame((s) => s.tokenStep); // choreographed display pos (ws.ts); state pos is the fallback
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
       {game.players
         .filter((p) => !p.bankrupt)
         .map((p) => (
-          <Token key={p.id} token={p.token} pos={tokenPos[p.id] ?? p.pos} current={game.status === "playing" && p.id === currentId} />
+          <Token
+            key={p.id}
+            token={p.token}
+            pos={tokenStep[p.id]?.pos ?? p.pos}
+            back={tokenStep[p.id]?.back}
+            current={game.status === "playing" && p.id === currentId}
+          />
         ))}
     </div>
   );

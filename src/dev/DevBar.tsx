@@ -28,22 +28,23 @@ function base(mut?: (g: GameState) => void): GameState {
   return g;
 }
 
+const CHAT = [
+  { pid: "p2", name: "Anna", text: "ciao!", ts: 0 },
+  { pid: "p2", name: "Anna", text: "pronti?", ts: 0 },
+  { pid: ME, name: "Tu", text: "pronti", ts: 0 },
+];
+
 function show(g: GameState | null) {
+  const chat = g ? CHAT : [];
   useGame.setState({
     game: g,
     connected: g !== null,
     code: "dev",
     error: null,
-    tokenPos: {},
+    tokenStep: {},
     popups: [],
     events: g?.log ?? [],
-    chat: g
-      ? [
-          { pid: "p2", name: "Anna", text: "ciao!", ts: 0 },
-          { pid: "p2", name: "Anna", text: "pronti?", ts: 0 },
-          { pid: ME, name: "Tu", text: "pronti", ts: 0 },
-        ]
-      : [],
+    chat,
   });
 }
 
@@ -182,12 +183,25 @@ function jailTrip() {
   if (!useGame.getState().game) show(base());
   const g = useGame.getState().game!;
   const me = g.players[0].id;
-  useGame.getState().setTokenPos(me, 15); // punto di partenza della camminata
+  useGame.getState().setTokenStep(me, { pos: 15 }); // punto di partenza della camminata
   g.players[0].pos = 10; // posizione finale autoritativa: il sync di fine timeline vi allinea
   choreograph(g, [
     { e: "moved", pid: me, from: 15, to: 22 },
     { e: "card", pid: me, deck: "chance", cardId: 8 },
     { e: "jailed", pid: me },
+  ]);
+}
+
+// "torna indietro di 3": tre passi a ritroso, non 37 in avanti
+function backTrip() {
+  if (!useGame.getState().game) show(base());
+  const g = useGame.getState().game!;
+  const me = g.players[0].id;
+  useGame.getState().setTokenStep(me, { pos: 1 });
+  g.players[0].pos = 38; // indietro di 3 dalla casella 1 = scavalca il VIA a ritroso
+  choreograph(g, [
+    { e: "card", pid: me, deck: "chance", cardId: CHANCE.findIndex((c) => c.fx.k === "back") },
+    { e: "moved", pid: me, from: 1, to: 38, back: true },
   ]);
 }
 
@@ -213,6 +227,9 @@ export default function DevBar() {
           ))}
           <Button size="xs" variant="outline" onClick={jailTrip}>
             🎴 Pedina→carta→prigione
+          </Button>
+          <Button size="xs" variant="outline" onClick={backTrip}>
+            ↩ 3 passi indietro
           </Button>
         </div>
       )}

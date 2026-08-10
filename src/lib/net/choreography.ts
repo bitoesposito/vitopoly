@@ -1,4 +1,4 @@
-import { BOARD, CHANCE, CHEST, JAIL, stepsTo } from "@tangentopoly/game";
+import { BOARD, CHANCE, CHEST, JAIL, walkTiles } from "@tangentopoly/game";
 import type { GameEvent, PublicState } from "@tangentopoly/game";
 import { walkMs } from "../board-layout";
 import { useGame, type PopupInput } from "../store";
@@ -14,7 +14,7 @@ let pending: ReturnType<typeof setTimeout>[] = [];
 
 function syncTokens(): void {
   const g = useGame.getState();
-  for (const p of g.game?.players ?? []) g.setTokenPos(p.id, p.pos);
+  for (const p of g.game?.players ?? []) g.setTokenStep(p.id, { pos: p.pos });
 }
 
 function flush(): void {
@@ -38,8 +38,9 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
   for (const e of events) {
     switch (e.e) {
       case "moved":
-        at(t, () => useGame.getState().setTokenPos(e.pid, e.to));
-        t += walkMs(stepsTo(e.from, e.to)) + 250; // arriva, respira, poi la casella fa il suo
+        at(t, () => useGame.getState().setTokenStep(e.pid, { pos: e.to, back: e.back }));
+        // stessa camminata della pedina, o l'attesa non copre l'animazione
+        t += walkMs(walkTiles(e.from, e.to, e.back).length - 1) + 250; // arriva, respira, poi la casella fa il suo
         break;
       case "card":
         pop(t, { kind: e.deck, name: name(e.pid), text: (e.deck === "chance" ? CHANCE : CHEST)[e.cardId].text });
@@ -47,7 +48,7 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
         break;
       case "jailed":
         pop(t, { kind: "jailed", name: name(e.pid), you: e.pid === useGame.getState().myId });
-        at(t + 350, () => useGame.getState().setTokenPos(e.pid, JAIL));
+        at(t + 350, () => useGame.getState().setTokenStep(e.pid, { pos: JAIL }));
         t += 800;
         break;
       case "auctionWon":

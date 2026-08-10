@@ -75,3 +75,10 @@ export const stepsTo = (from: number, to: number): number => (to - from + TILES)
 
 /** La casella `n` passi indietro rispetto a `from`. */
 export const stepsBack = (from: number, n: number): number => (from - n + TILES) % TILES;
+
+/** Le caselle toccate da `from` a `to`, estremi inclusi, nel verso indicato. L'unico posto
+ *  che sa come si cammina sull'anello: durata e traiettoria chiedono la strada qui. */
+export const walkTiles = (from: number, to: number, back = false): number[] => {
+  const n = back ? stepsTo(to, from) : stepsTo(from, to);
+  return Array.from({ length: n + 1 }, (_, i) => (from + (back ? -i : i) + TILES) % TILES);
+};

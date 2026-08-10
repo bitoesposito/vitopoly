@@ -86,7 +86,7 @@ export function drawCard(s: GameState, p: Player, deck: "chance" | "chest", agai
     case "back": {
       const from = p.pos;
       p.pos = stepsBack(from, fx.n); // indietro non paga il VIA
-      ev.push({ e: "moved", pid: p.id, from, to: p.pos });
+      ev.push({ e: "moved", pid: p.id, from, to: p.pos, back: true });
       resolveLanding(s, p, fx.n, again, ev); // dado fittizio per il caso raro "concessione"
       return;
     }

@@ -4,6 +4,7 @@ import { rentFor } from "../src/rules/rent";
 import { build, whyNotBuild, whyNotMortgage, whyNotSellProperty, whyNotUnmortgage, sellHouse } from "../src/rules/property";
 import { started } from "./helpers";
 import type { GameState } from "../src/types";
+import { walkTiles } from "../src/data/tiles";
 
 function ownGroup(s: GameState, tiles: number[], owner: string) {
   for (const t of tiles) s.props[t] = { owner, mortgaged: false, houses: 0 };
@@ -240,5 +241,17 @@ describe("predicati delle regole (usati anche dalla UI)", () => {
     s.props[6] = { owner: "a", mortgaged: true, houses: 0 };
     s.players[0].cash = 0;
     expect(whyNotUnmortgage(s, "a", 6)).toBe("non te lo puoi permettere");
+  });
+});
+
+describe("walkTiles", () => {
+  it("in avanti, all'indietro, e il giro che si riavvolge", () => {
+    expect(walkTiles(0, 3)).toEqual([0, 1, 2, 3]);
+    expect(walkTiles(1, 38, true)).toEqual([1, 0, 39, 38]); // indietro di 3 scavalcando il VIA
+    expect(walkTiles(38, 1)).toEqual([38, 39, 0, 1]); // avanti di 3, stessa coppia di caselle
+    expect(walkTiles(5, 5)).toEqual([5]); // fermo = un solo punto, nessun giro completo
+    expect(walkTiles(5, 5, true)).toEqual([5]);
+    expect(walkTiles(0, 39)).toHaveLength(40); // 39 passi in avanti
+    expect(walkTiles(0, 39, true)).toEqual([0, 39]); // ...oppure uno indietro
   });
 });

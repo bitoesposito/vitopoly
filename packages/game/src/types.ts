@@ -123,7 +123,9 @@ export type ClientAction =
 
 export type GameEvent =
   | { e: "rolled"; pid: PlayerId; d1: number; d2: number }
-  | { e: "moved"; pid: PlayerId; from: TileId; to: TileId }
+  // `back`: senza il flag il verso non è ricostruibile — su un anello 3 passi indietro
+  // sono indistinguibili da 37 in avanti.
+  | { e: "moved"; pid: PlayerId; from: TileId; to: TileId; back?: boolean }
   | { e: "paid"; from: PlayerId | "bank"; to: PlayerId | "bank"; amount: number; why: string }
   | { e: "card"; pid: PlayerId; deck: "chance" | "chest"; cardId: number }
   | { e: "auctionWon"; pid: PlayerId; tile: TileId; price: number }

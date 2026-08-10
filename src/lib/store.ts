@@ -15,6 +15,15 @@ export type CardPopup = PopupBody & { id: number; wait: number };
 export type PopupInput = PopupBody & { wait?: number };
 let popupSeq = 0;
 
+// Eventi di gioco e chat in un registro solo. Gli eventi del motore non hanno un orario:
+// l'unico ordine comune è quello d'arrivo, con un contatore che non torna indietro quando
+// la lista si accorcia. Solo la cronologia caricata all'ingresso è approssimata (prima il
+// registro, poi la chat).
+export type FeedInput = { ev: GameEvent } | { msg: ChatMsg };
+export type FeedItem = FeedInput & { seq: number };
+let feedSeq = 0;
+const stamp = (i: FeedInput): FeedItem => ({ ...i, seq: ++feedSeq });
+
 /** La posizione MOSTRATA di una pedina, col verso in cui ci è arrivata. */
 export interface TokenStep {
   pos: TileId;
@@ -26,8 +35,8 @@ interface Store {
   name: string;
   code: string | null;
   game: PublicState | null;
-  events: GameEvent[];
-  chat: ChatMsg[];
+  feed: FeedItem[]; // registro del tabellone: eventi + chat, in ordine d'arrivo
+  chat: ChatMsg[]; // la trascrizione, come la manda il server (la rimanda intera a ogni rientro)
   connected: boolean;
   retries: number; // riconnessioni consecutive: oltre la soglia il banner offre di ricaricare
   error: string | null;
@@ -35,7 +44,7 @@ interface Store {
   tradeHidden: Record<string, boolean>; // proposte in arrivo nascoste (restano listate negli scambi)
   popups: CardPopup[];
   tokenStep: Partial<Record<string, TokenStep>>; // display positions, choreographed by ws.ts; fallback = game pos
-  pushEvents: (e: GameEvent[]) => void;
+  pushFeed: (items: FeedInput[]) => void;
   pushChat: (m: ChatMsg) => void;
   pushPopups: (p: PopupInput[]) => void;
   removePopup: (id: number) => void;
@@ -47,7 +56,7 @@ export const useGame = create<Store>((set) => ({
   name: localStorage.getItem("tangentopoly:name") || "",
   code: null,
   game: null,
-  events: [],
+  feed: [],
   chat: [],
   connected: false,
   retries: 0,
@@ -56,8 +65,9 @@ export const useGame = create<Store>((set) => ({
   tradeHidden: {},
   popups: [],
   tokenStep: {},
-  pushEvents: (e) => set((s) => ({ events: [...s.events, ...e].slice(-100) })),
-  pushChat: (m) => set((s) => ({ chat: [...s.chat, m].slice(-100) })),
+  pushFeed: (items) => set((s) => ({ feed: [...s.feed, ...items.map(stamp)].slice(-120) })),
+  // un messaggio va in due liste: la trascrizione della chat e il registro del tabellone
+  pushChat: (m) => set((s) => ({ chat: [...s.chat, m].slice(-100), feed: [...s.feed, stamp({ msg: m })].slice(-120) })),
   // same-batch pushes get a built-in stagger so they enter one after the other, stacked
   pushPopups: (p) =>
     set((s) => ({

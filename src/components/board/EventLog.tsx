@@ -3,6 +3,8 @@ import type { GameEvent, PublicState } from "@tangentopoly/game";
 import { translate, tileName, type MsgKey } from "@/lib/i18n";
 import { playerNames } from "@/lib/selectors";
 import { euro } from "@/lib/format";
+import { useGame } from "@/lib/store";
+import { TOKEN_COLOR } from "@/lib/palette";
 
 // Dado, spostamenti e pagamenti d'asta NON finiscono nel log: li raccontano già dadi,
 // pedine e pannello asta. Tutto il resto diventa una riga di prosa.
@@ -52,13 +54,20 @@ function line(e: GameEvent, names: Record<string, string>, myId: string): string
   }
 }
 
-// Il più recente in alto. È l'unico posto dove si leggono espulsioni e timeout.
+// Il più recente in alto. Porta anche la chat: chiusa in un foglio sotto la piega nessuno
+// si accorgeva che qualcuno stava scrivendo. Un messaggio si distingue per il segno
+// d'inchiostro del mittente, mai per il colore del testo (sotto il contrasto minimo).
 export function EventLog({ game, myId }: { game: PublicState; myId: string }) {
+  const feed = useGame((s) => s.feed);
   const names = playerNames(game);
-  const rows = game.log
-    .flatMap((e, i) => {
-      const text = line(e, names, myId);
-      return text ? [{ text, i }] : [];
+  const token = (pid: string) => game.players.find((p) => p.id === pid)?.token ?? 0;
+
+  type Row = { key: number; text: string; from: string | null; ink: string | null };
+  const rows = feed
+    .flatMap<Row>((f) => {
+      if ("msg" in f) return [{ key: f.seq, text: f.msg.text, from: f.msg.name, ink: TOKEN_COLOR[token(f.msg.pid) % 8] }];
+      const text = line(f.ev, names, myId);
+      return text ? [{ key: f.seq, text, from: null, ink: null }] : [];
     })
     .slice(-30)
     .reverse();
@@ -66,9 +75,14 @@ export function EventLog({ game, myId }: { game: PublicState; myId: string }) {
   return (
     <div className="min-h-16 w-full flex-1 basis-0 overflow-y-auto rounded-md p-2 text-2xs leading-relaxed text-muted-foreground sm:text-xs lg:text-sm">
       <div className="flex flex-col text-center">
-        {rows.map(({ text, i }, j) => (
-          <div key={i} className={j === 0 ? "font-semibold text-foreground" : ""}>
-            {text}
+        {rows.map(({ key, text, from, ink }, j) => (
+          <div
+            key={key}
+            className={`${j === 0 ? "font-semibold text-foreground" : ""} ${ink ? "flex items-center justify-center gap-1.5" : ""}`}
+          >
+            {ink && <span className="h-3 w-1 shrink-0" style={{ background: ink }} aria-hidden />}
+            {from && <b className="text-foreground">{from}</b>}
+            <span className={ink ? "min-w-0 text-foreground" : ""}>{text}</span>
           </div>
         ))}
       </div>

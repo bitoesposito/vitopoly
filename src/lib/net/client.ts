@@ -58,7 +58,9 @@ function receive(msg: ServerMsg, code: string): void {
       return;
     case "state":
       useGame.setState({ game: msg.state, error: null }); // sostituzione integrale: niente merge, niente fold
-      store.pushEvents(msg.events);
+      // primo stato: si semina dal registro della stanza, o si entra a metà con un log muto
+      if (!store.game) store.pushFeed([...msg.state.log.map((ev) => ({ ev })), ...useGame.getState().chat.map((m) => ({ msg: m }))]);
+      else store.pushFeed(msg.events.map((ev) => ({ ev })));
       choreograph(msg.state, msg.events);
       return;
     case "chat":

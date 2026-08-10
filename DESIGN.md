@@ -252,7 +252,7 @@ Un inchiostro per regione, in scalata di valore come una serie di banconote: Pug
 
 ## Layout
 
-Tre colonne su desktop, una su mobile. Da 2xl (96rem) la chat prende una colonna propria a sinistra (20rem); al centro la plancia; a destra la sidebar a larghezza fissa (20rem) con roster, pannelli e chat collassabile. Sotto md (48rem) tutto si impila: plancia in alto, pannelli sotto, chat come bottom-sheet.
+Tre colonne su desktop, una su mobile. Da 2xl (96rem) la chat prende una colonna propria a sinistra (20rem); al centro la plancia; a destra la sidebar a larghezza fissa (20rem) con roster, pannelli e chat collassabile. Sotto md (48rem) tutto si impila: plancia in alto, pannelli sotto, chat come bottom-sheet. **Il registro nel centro della plancia porta anche i messaggi di chat**, marcati col timbro d'inchiostro del mittente: la conversazione dentro un foglio chiuso non si vedeva, e il registro è l'unica superficie sempre in vista. Si scrive dal bottom-sheet, si legge lì.
 
 **La plancia** è una griglia 11×11 sempre quadrata, con tracce `1.55fr` agli angoli e `1fr` sui bordi, larga `min(100%, 100dvh - 2.5rem)` da md in su, con `min-h-0` perché l'aspect-square vinca sul min-content delle celle. Il centro occupa il blocco 9×9 interno: dadi in alto, azione primaria subito sotto, log nella metà bassa. La metà alta è ancorata in alto (mai centrata) così che dadi e riga di turno non si spostino quando compaiono prompt e bottoni.
 

@@ -43,7 +43,8 @@ function show(g: GameState | null) {
     error: null,
     tokenStep: {},
     popups: [],
-    events: g?.log ?? [],
+    // come all'ingresso in una stanza: registro della partita, poi la chat
+    feed: [...(g?.log ?? []).map((ev, i) => ({ seq: i, ev })), ...chat.map((msg, i) => ({ seq: 1000 + i, msg }))],
     chat,
   });
 }

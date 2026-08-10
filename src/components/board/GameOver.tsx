@@ -14,12 +14,19 @@ export function GameOver({ game }: { game: PublicState }) {
   return (
     <div className="tratteggio grid h-full place-items-center overflow-y-auto bg-card p-3 font-condensed">
       <div className="w-full max-w-xs text-center">
-        <h2 className="text-2xl font-bold text-warning">
+        <h2 className="animate-in text-2xl font-bold text-warning duration-300 zoom-in-95 fade-in">
           {t("center.winner", { name: game.winner ? names[game.winner] : t("center.nobody") })}
         </h2>
         <ol className="mt-4 space-y-1 text-left text-xs">
           {standings.map((p, i) => (
-            <li key={p.id} className="flex items-center gap-2 border-b border-border pb-1">
+            // a cascata dall'alto: la classifica si legge in ordine, non tutta insieme.
+            // fill-mode-both perché `animate-in` da solo non tiene lo stato iniziale
+            // durante il ritardo, e le righe lampeggerebbero prima di partire.
+            <li
+              key={p.id}
+              style={{ animationDelay: `${i * 60}ms` }}
+              className="flex animate-in items-center gap-2 border-b border-border pb-1 duration-300 fill-mode-both fade-in slide-in-from-top-1"
+            >
               <span className="w-4 font-mono text-muted-foreground tabular-nums">{i + 1}</span>
               <TokenStamp token={p.token} />
               <span className={`min-w-0 truncate ${p.bankrupt ? "text-muted-foreground line-through" : ""}`}>{p.name}</span>
@@ -28,17 +35,16 @@ export function GameOver({ game }: { game: PublicState }) {
           ))}
         </ol>
         <div className="mt-2 text-micro tracking-wide text-muted-foreground uppercase">{t("end.worth")}</div>
-        {/* Due uscite, non una: si resta al tavolo (la stanza torna in sala d'attesa con
-            questi giocatori, chiunque può farlo) o si smonta tutto e si torna alla home.
-            La rivincita è la strada normale, quindi è l'unica in evidenza. */}
-        <div className="mt-4 space-y-2">
+        {/* Due uscite: si resta al tavolo o si smonta tutto. La rivincita è la strada
+            normale, quindi è l'unica in evidenza — l'altra è secondaria anche in altezza,
+            perché qui lo spazio è il quadrato della plancia. */}
+        <div className="mt-4 space-y-1.5">
           <Button size="lg" className="w-full" onClick={() => send({ type: "rematch" })}>
             {t("end.rematch")}
           </Button>
-          <Button size="lg" variant="outline" className="w-full" onClick={() => (location.href = location.origin + location.pathname)}>
+          <Button variant="ghost" className="w-full" onClick={() => (location.href = location.origin + location.pathname)}>
             {t("end.home")}
           </Button>
-          <p className="text-xs text-muted-foreground">{t("end.rematchHint")}</p>
         </div>
       </div>
     </div>

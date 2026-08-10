@@ -1,6 +1,7 @@
 import { BOARD, CHANCE, CHEST, JAIL, walkTiles } from "@tangentopoly/game";
 import type { GameEvent, PublicState } from "@tangentopoly/game";
 import { walkMs } from "../board-layout";
+import { buzz, KNOCK, NUDGE } from "../haptics";
 import { useGame, type PopupInput } from "../store";
 
 // Lo stato arriva con le posizioni FINALI; sono gli eventi a raccontare la storia.
@@ -15,6 +16,21 @@ let pending: ReturnType<typeof setTimeout>[] = [];
 function syncTokens(): void {
   const g = useGame.getState();
   for (const p of g.game?.players ?? []) g.setTokenStep(p.id, { pos: p.pos });
+  g.setLanded(null);
+}
+
+// Le due sensazioni che non nascono da un evento ma da un cambio di stato: sono i momenti
+// in cui il gioco aspetta TE, e il telefono può essere in tasca.
+let lastTurn: string | undefined;
+let lastDebt = false;
+function feel(state: PublicState): void {
+  const me = useGame.getState().myId;
+  const turn = state.status === "playing" ? state.players[state.current]?.id : undefined;
+  if (turn === me && lastTurn !== me) buzz(NUDGE);
+  lastTurn = turn;
+  const debt = state.stack.some((f) => f.t === "debt" && f.debtor === me);
+  if (debt && !lastDebt) buzz(KNOCK);
+  lastDebt = debt;
 }
 
 function flush(): void {
@@ -34,14 +50,20 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
   const at = (ms: number, fn: () => void) => (ms <= 0 || skip ? fn() : void pending.push(setTimeout(fn, ms)));
   const pop = (ms: number, p: PopupInput) => at(ms, () => useGame.getState().pushPopups([p]));
 
+  feel(state);
+
   let t = 0;
   for (const e of events) {
     switch (e.e) {
-      case "moved":
+      case "moved": {
         at(t, () => useGame.getState().setTokenStep(e.pid, { pos: e.to, back: e.back }));
         // stessa camminata della pedina, o l'attesa non copre l'animazione
-        t += walkMs(walkTiles(e.from, e.to, e.back).length - 1) + 250; // arriva, respira, poi la casella fa il suo
+        const arrivo = t + walkMs(walkTiles(e.from, e.to, e.back).length - 1);
+        at(arrivo, () => useGame.getState().setLanded(e.to)); // la casella accusa il colpo
+        at(arrivo + 600, () => useGame.getState().setLanded(null));
+        t = arrivo + 250; // arriva, respira, poi la casella fa il suo
         break;
+      }
       case "card":
         pop(t, { kind: e.deck, name: name(e.pid), text: (e.deck === "chance" ? CHANCE : CHEST)[e.cardId].text });
         t += 1100; // la carta atterra prima del battito successivo (es. "vai in prigione")

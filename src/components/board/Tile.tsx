@@ -71,7 +71,7 @@ const PAD: Record<string, string> = {
 };
 
 // click = popover with costs and actions
-export function Tile({ index, game }: { index: number; game: PublicState }) {
+export function Tile({ index, game, landed }: { index: number; game: PublicState; landed?: boolean }) {
   const tile = BOARD[index];
   const name = tn(index);
   const Icon = ENTE_ICON[tile.name] ?? KIND_ICON[tile.kind];
@@ -89,7 +89,7 @@ export function Tile({ index, game }: { index: number; game: PublicState }) {
           type="button"
           // transform-gpu: cella isolata sul proprio layer — evita il ghosting delle bande
           // (dipinte sfalsate rispetto al box) causato dal churn di layer del filter in hover
-          className="nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
+          className={`nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit ${landed ? "casella-arrivo" : ""} hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset`}
           // velatura decisa: sulla plancia il proprietario si legge a colpo d'occhio dal colore
           style={
             owner

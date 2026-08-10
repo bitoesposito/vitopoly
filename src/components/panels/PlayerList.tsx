@@ -5,6 +5,7 @@ import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { TOKEN_COLOR, tokenLetter } from "@/lib/palette";
 import { euro } from "@/lib/format";
+import { Cash } from "@/components/Cash";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { copySeatLink } from "@/lib/share";
@@ -96,7 +97,7 @@ export function PlayerList({ game }: { game: PublicState }) {
               ) : (
                 <span className="size-8 shrink-0" /> // slot riservato: cash allineata su tutte le righe
               ))}
-            {game.status !== "lobby" && <span className="font-mono text-success tabular-nums">{euro(p.cash)}</span>}
+            {game.status !== "lobby" && <Cash value={p.cash} className="text-success" />}
           </span>
         </div>
       ))}

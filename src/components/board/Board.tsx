@@ -5,8 +5,10 @@ import { Center } from "./Center";
 import { EventCardOverlay } from "@/components/EventCard";
 import { Tokens } from "./Tokens";
 import { tileCell } from "@/lib/board-layout";
+import { useGame } from "@/lib/store";
 
 export function Board({ game }: { game: PublicState }) {
+  const landed = useGame((s) => s.landed);
   // l'asta è un interrupt di gioco: board bloccata (niente blur), si agisce dal pannello asta
   const auctionLive = game.status === "playing" && activeNode(game).t === "auction";
   return (
@@ -30,7 +32,7 @@ export function Board({ game }: { game: PublicState }) {
           // grid (non block): il button è un item stretchato, MAI su una baseline di testo —
           // l'inline-block dentro un div si sfalsa con le metriche del font caricato.
           <div key={i} className="grid min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }}>
-            <Tile index={i} game={game} />
+            <Tile index={i} game={game} landed={landed === i} />
           </div>
         );
       })}

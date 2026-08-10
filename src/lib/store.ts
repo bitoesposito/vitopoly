@@ -44,11 +44,13 @@ interface Store {
   tradeHidden: Record<string, boolean>; // proposte in arrivo nascoste (restano listate negli scambi)
   popups: CardPopup[];
   tokenStep: Partial<Record<string, TokenStep>>; // display positions, choreographed by ws.ts; fallback = game pos
+  landed: TileId | null; // casella su cui una pedina si è appena posata, per mezzo secondo
   pushFeed: (items: FeedInput[]) => void;
   pushChat: (m: ChatMsg) => void;
   pushPopups: (p: PopupInput[]) => void;
   removePopup: (id: number) => void;
   setTokenStep: (pid: string, step: TokenStep) => void;
+  setLanded: (tile: TileId | null) => void;
 }
 
 export const useGame = create<Store>((set) => ({
@@ -65,6 +67,7 @@ export const useGame = create<Store>((set) => ({
   tradeHidden: {},
   popups: [],
   tokenStep: {},
+  landed: null,
   pushFeed: (items) => set((s) => ({ feed: [...s.feed, ...items.map(stamp)].slice(-120) })),
   // un messaggio va in due liste: la trascrizione della chat e il registro del tabellone
   pushChat: (m) => set((s) => ({ chat: [...s.chat, m].slice(-100), feed: [...s.feed, stamp({ msg: m })].slice(-120) })),
@@ -75,4 +78,5 @@ export const useGame = create<Store>((set) => ({
     })),
   removePopup: (id) => set((s) => ({ popups: s.popups.filter((x) => x.id !== id) })),
   setTokenStep: (pid, step) => set((s) => ({ tokenStep: { ...s.tokenStep, [pid]: step } })),
+  setLanded: (tile) => set({ landed: tile }),
 }));

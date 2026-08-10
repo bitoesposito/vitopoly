@@ -11,6 +11,7 @@ import { translate as t, tileName as tn } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { useGame } from "@/lib/store";
 import { euro } from "@/lib/format";
+import { buzz, NUDGE } from "@/lib/haptics";
 import { TileDetails } from "@/components/board/TileDetails";
 
 // Rilanci fissi: quelli proporzionati al prezzo collassavano (su un titolo da 60,
@@ -52,7 +53,10 @@ export function AuctionPanel({ game }: { game: PublicState }) {
   // sorpasso: 6 secondi per accorgersene, serve un segnale
   const wasLeader = useRef(false);
   useEffect(() => {
-    if (wasLeader.current && leader && leader !== myId) toast.warning(t("auction.outbid"));
+    if (wasLeader.current && leader && leader !== myId) {
+      buzz(NUDGE); // sei stato superato e hai 6 secondi per accorgertene
+      toast.warning(t("auction.outbid"));
+    }
     wasLeader.current = leader === myId;
   }, [leader, myId]);
 

@@ -11,6 +11,7 @@ import { translate as t, tileName as tn } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
 import { euro } from "@/lib/format";
 import { lastRoll } from "@/lib/selectors";
+import { Cash } from "@/components/Cash";
 import { Countdown } from "./Countdown";
 import { DiceTray } from "./Dice";
 import { EventLog } from "./EventLog";
@@ -57,18 +58,24 @@ export function Center({ game }: { game: PublicState }) {
       <div className="flex flex-1 basis-0 flex-col items-center gap-2 pt-1 sm:gap-3 sm:pt-2">
         <div className="flex items-center justify-center gap-1 text-center text-xs text-muted-foreground sm:text-sm lg:text-base">
           <span>
-            {isMyTurn ? (
-              <b className="text-foreground">{t("center.yourTurn")}</b>
-            ) : (
-              <>
-                {t("center.turnOf")} <b className="text-foreground">{names[current?.id ?? ""]}</b>
-              </>
-            )}
+            {/* key sul giocatore: il passaggio di turno entra invece di sostituirsi. Il
+                countdown resta fuori, o si rimonterebbe muto a ogni cambio. */}
+            <span key={current?.id ?? "-"} className="inline-block animate-in duration-200 fade-in slide-in-from-top-1">
+              {isMyTurn ? (
+                <b className="text-foreground">{t("center.yourTurn")}</b>
+              ) : (
+                <>
+                  {t("center.turnOf")} <b className="text-foreground">{names[current?.id ?? ""]}</b>
+                </>
+              )}
+            </span>
             <Countdown deadline={game.deadline} />
           </span>
           {/* la cifra sta accanto al nome, quindi è di CHI HA IL TURNO: prima mostrava
               sempre la mia e si leggeva come il contante dell'altro */}
-          {current && <span className="font-mono text-success tabular-nums">{euro(current.cash)}</span>}
+          {/* key sul giocatore: al passaggio di turno la cifra è di un'ALTRA persona, e senza
+              rimontare il delta mostrerebbe una differenza che nessuno ha pagato */}
+          {current && <Cash key={current.id} value={current.cash} delta className="text-success" />}
           <Popover>
             <PopoverTrigger asChild>
               <Button size="icon-sm" variant="ghost" aria-label={t("rules.title")}>
@@ -81,13 +88,13 @@ export function Center({ game }: { game: PublicState }) {
           </Popover>
         </div>
 
-        <DiceTray roll={dice} enabled={canRoll} onRoll={() => send({ type: "roll" })} label={t("center.roll")} />
+        <DiceTray roll={dice} enabled={canRoll} onRoll={() => send({ type: "roll" })} label={t("center.roll")} mine={isMyTurn} />
 
         {/* quando in alto c'è il contante di un altro, il mio resta visibile qui: durante
             un'asta è il numero che decide quanto posso offrire */}
         {me && !isMyTurn && (
           <div className="text-2xs text-muted-foreground sm:text-xs">
-            {t("center.yourCash")} <span className="font-mono text-success tabular-nums">{euro(me.cash)}</span>
+            {t("center.yourCash")} <Cash value={me.cash} delta className="text-success" />
           </div>
         )}
 

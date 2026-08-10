@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameEvent } from "@tangentopoly/game";
+import { buzz, DICE } from "@/lib/haptics";
 
 // Rotazione del cubo che porta davanti la faccia col valore uscito (vedi .die-* in index.css).
 const DIE_FACE: Record<number, string> = {
@@ -14,10 +15,16 @@ const DIE_FACE: Record<number, string> = {
 // Dado 3D senza stato: key={spin} rimonta il cubo a ogni tiro e l'animazione CSS
 // one-shot riparte; quando finisce, la transition lo accompagna sulla faccia uscita.
 // `alt` varia verso e giri del tumble.
-function Die3D({ value, spin, alt }: { value: number | null; spin: number; alt?: boolean }) {
+function Die3D({ value, spin, alt, onLand }: { value: number | null; spin: number; alt?: boolean; onLand?: () => void }) {
   return (
     // key sulla scena e sul cubo: al tiro rimontano insieme, così arco e rotazione partono in fase
-    <div key={spin} className="die-scene die-tossing">
+    <div
+      key={spin}
+      className="die-scene die-tossing"
+      // l'arco finisce quando il dado tocca il tavolo: lo dice il DOM, non un timer da
+      // tenere allineato a --roll. Il guardia scarta l'animationend del cubo, che risale.
+      onAnimationEnd={(e) => e.target === e.currentTarget && onLand?.()}
+    >
       {/* la faccia va in --face (non in transform): così l'hover può comporre il tilt 3D */}
       <div className={`die ${alt ? "die-rolling-alt" : "die-rolling"}`} style={{ "--face": DIE_FACE[value ?? 1] } as React.CSSProperties}>
         {(["front", "back", "top", "bottom", "right", "left"] as const).map((f) => (
@@ -35,11 +42,14 @@ export function DiceTray({
   enabled,
   onRoll,
   label,
+  mine,
 }: {
   roll: Extract<GameEvent, { e: "rolled" }> | null;
   enabled: boolean;
   onRoll: () => void;
   label: string;
+  /** il tiro è tuo: vibrano solo i tuoi dadi, o il telefono ronza a ogni turno di chiunque */
+  mine?: boolean;
 }) {
   // nuovo evento rolled (per identità) -> nuovo tumble
   const [spin, setSpin] = useState(0);
@@ -61,7 +71,7 @@ export function DiceTray({
       title={enabled ? label : undefined}
       className={`dice-tray flex items-center justify-center gap-2 [--die:3rem] sm:gap-3 sm:[--die:3.5rem] lg:[--die:4rem] ${enabled ? "" : "opacity-60"}`}
     >
-      <Die3D value={roll?.d1 ?? null} spin={spin} />
+      <Die3D value={roll?.d1 ?? null} spin={spin} onLand={() => spin > 0 && mine && buzz(DICE)} />
       <Die3D value={roll?.d2 ?? null} spin={spin} alt />
     </button>
   );

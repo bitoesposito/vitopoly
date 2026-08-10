@@ -209,6 +209,24 @@
 .chip-fly-r { animation: chip-r 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .chip-fly-l { animation: chip-l 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* Cash.tsx: la differenza sale e svanisce sopra la cifra. `both` la lascia a opacità 0
+   invece di rimetterla visibile a fine corsa. */
+@keyframes cifra-delta {
+    0% { opacity: 0; transform: translateY(4px); }
+    25% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-8px); }
+}
+.cifra-delta { animation: cifra-delta 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Tile.tsx: la casella accusa il colpo quando la pedina si posa — è il filo tra la
+   camminata e la sua conseguenza. Un anello interno che si spegne, niente movimento:
+   la plancia è la superficie che si deve leggere. */
+@keyframes arrivo {
+    from { box-shadow: inset 0 0 0 2px var(--ring); }
+    to { box-shadow: inset 0 0 0 2px transparent; }
+}
+.casella-arrivo { animation: arrivo 0.5s ease-out both; }
+
 /* Dadi 3D (Center.tsx): cubo a 6 facce, geometria in em (1em = lato, misura via --die).
    Il lancio è diviso in due: la SCENA porta l'arco, il CUBO la rotazione. Durata uguale
    per entrambi i dadi — la varietà sta nei giri — e si posano decelerando, non rimbalzando. */
@@ -296,6 +314,9 @@
 @media (prefers-reduced-motion: reduce) {
     .card-pop-in, .card-pop-out, .trade-pop-in, .chip-fly-r, .chip-fly-l { animation-duration: 0.15s; }
     .die-rolling, .die-rolling-alt, .die-tossing { animation-duration: 0.2s; }
+    /* la cifra resta leggibile e la casella lampeggia comunque: si accorcia, non si spegne */
+    .cifra-delta { animation-duration: 0.3s; }
+    .casella-arrivo { animation-duration: 0.25s; }
 }
 
 @layer base {

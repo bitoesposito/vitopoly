@@ -24,7 +24,7 @@ export const IT = {
   "settings.hostStarts": "Tocca a {name} far partire la partita.",
   "settings.invite": "Invita giocatori",
   "settings.inviteAlone": "Sei solo — il giro non si fa da soli, condividi il link. Non c'è un tetto di posti.",
-  "settings.inviteDesc": "Copia e condividi il link della stanza",
+  "settings.inviteDesc": "Condividi il link della stanza",
   "settings.waiting": "In attesa di giocatori…",
   "settings.start": "Inizia partita",
 
@@ -48,6 +48,7 @@ export const IT = {
   "chat.send": "Invia",
 
   "share.copied": "Link copiato negli appunti",
+  "share.failed": "Non sono riuscito a copiare il link",
   "share.inviteText": "Entra nel giro!",
   "net.reconnecting": "Connessione persa — riconnessione…",
   "net.stuck": "Non riusciamo a riconnetterci. La partita è salva sul server.",

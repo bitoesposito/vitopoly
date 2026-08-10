@@ -8,7 +8,9 @@ import type { BundleDraft } from "./draft";
 
 // Un lato dell'offerta: contanti, atti a celle (l'ordine di tabellone tiene i set
 // adiacenti), carte prigione. I due lati stanno affiancati, quindi il contenuto è
-// impaginato in verticale su una colonna stretta.
+// impaginato in verticale su una colonna stretta. Non è una card: due riquadri dentro un
+// pannello erano una cornice di troppo — a dividere le colonne basta un filetto, e dove
+// cade lo decide chi le mette una accanto all'altra.
 export function BundleEditor({
   game,
   player,
@@ -16,6 +18,7 @@ export function BundleEditor({
   accent,
   draft,
   onChange,
+  className,
 }: {
   game: PublicState;
   player: Player;
@@ -23,13 +26,14 @@ export function BundleEditor({
   accent: string;
   draft: BundleDraft;
   onChange: (d: BundleDraft) => void;
+  className?: string;
 }) {
   const tiles = ownedTiles(game, player.id);
   const toggle = (t: number) =>
     onChange({ ...draft, props: draft.props.includes(t) ? draft.props.filter((x) => x !== t) : [...draft.props, t] });
 
   return (
-    <div className="min-w-0 space-y-2 border border-border/60 bg-muted/20 p-2">
+    <div className={`min-w-0 space-y-1 ${className ?? ""}`}>
       <div className={`text-2xs font-semibold tracking-wide uppercase ${accent}`}>{title}</div>
       <div className="flex items-center gap-1 text-sm">
         <span className="text-muted-foreground">€</span>

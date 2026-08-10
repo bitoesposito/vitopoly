@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { PublicState } from "@tangentopoly/game";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { TokenStamp } from "@/components/TokenStamp";
 import { translate as tr } from "@/lib/i18n";
 import { useGame } from "@/lib/store";
@@ -37,11 +38,13 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
             type="button"
             onClick={() => pick(p.id)}
             aria-pressed={to === p.id}
-            className={`flex items-center gap-1.5 border px-2 py-1 text-xs transition-colors ${
-              to === p.id
-                ? "border-success bg-success/25 font-semibold ring-2 ring-success"
-                : "border-border opacity-70 hover:bg-muted hover:opacity-100"
-            }`}
+            // la scala dei bottoni vale anche per un chip: scegliere con chi scambi è
+            // un'azione, e a 24px di alto non lo era
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "gap-1.5",
+              to === p.id && "border-success bg-success/25 font-semibold ring-2 ring-success"
+            )}
           >
             <TokenStamp token={p.token} />
             {p.name}
@@ -49,18 +52,35 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
         ))}
       </div>
 
-      <div className="grid grid-cols-2 items-start gap-2">
-        <BundleEditor game={game} player={me} title={tr("trade.youGive")} accent="text-destructive" draft={give} onChange={setGive} />
+      {/* il filetto fra le due colonne è l'unica separazione: stesso bordo dei pannelli */}
+      {/* niente items-start: le colonne si pareggiano e il filetto le divide per intero */}
+      <div className="grid grid-cols-2">
+        <BundleEditor
+          game={game}
+          player={me}
+          title={tr("trade.youGive")}
+          accent="text-destructive"
+          draft={give}
+          onChange={setGive}
+          className="pr-2"
+        />
         {other ? (
-          <BundleEditor game={game} player={other} title={tr("trade.youGet")} accent="text-success" draft={get} onChange={setGet} />
+          <BundleEditor
+            game={game}
+            player={other}
+            title={tr("trade.youGet")}
+            accent="text-success"
+            draft={get}
+            onChange={setGet}
+            className="border-l border-border pl-2"
+          />
         ) : (
-          <div className="border border-dashed border-border/60 p-2 text-xs text-muted-foreground">{tr("trade.pickPlayer")}</div>
+          <div className="border-l border-border pl-2 text-xs text-muted-foreground">{tr("trade.pickPlayer")}</div>
         )}
       </div>
 
       <Button
         className="w-full"
-        size="lg"
         disabled={!to || (isEmpty(giveBundle) && isEmpty(getBundle))}
         onClick={() => {
           send({ type: "proposeTrade", to, give: giveBundle, get: getBundle });

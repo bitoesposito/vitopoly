@@ -32,7 +32,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
 
   return (
     <Panel ring={compose || detail ? "ring-2 ring-success/50" : undefined}>
-      <div className="flex items-center justify-between">
+      <div className="mb-0 flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-sm font-semibold">
           {compose || detail ? (
             <Button size="icon-xs" variant="ghost" aria-label={tr("trade.back")} onClick={back}>

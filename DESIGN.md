@@ -243,6 +243,7 @@ Un inchiostro per regione, in scalata di valore come una serie di banconote: Pug
 
 ### Hierarchy
 
+- **Logotipo** (condensed 700 uppercase, `14.5cqw`): il marchio in cima alla home. Si misura sulla COLONNA che deve riempire, non sul viewport — con un clamp in `vw` sforava di 14-17px da 1024px in su, perché il corpo e la colonna crescevano con lo stesso root e il rapporto restava fisso. Il numero non è a occhio: "TANGENTOPOLY" in questo taglio è larga 6.70 volte il corpo nel caso peggiore, quindi 14.5cqw sta dentro a ogni misura e resta il corpo che il telefono aveva già. La stessa disciplina della carta social: si misura, non si stima.
 - **Display** (mono 700, `text-2xl`, tabular): l'offerta corrente dell'asta e il patrimonio del vincitore. L'unico posto dove una cifra diventa grande.
 - **Headline** (condensed 700, `text-2xl`): il nome del vincitore a fine partita. Si porta da solo, senza etichetta sopra.
 - **Title** (condensed 700 uppercase, `text-sm`): titoli di card e sezione.

@@ -24,10 +24,18 @@ export function Lobby() {
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-5 p-5">
+    // @container: il logotipo si misura sulla COLONNA, non sul viewport (sotto)
+    <div className="@container mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-5 p-5">
       <header className="space-y-2">
         <div className="border-y border-border py-3">
-          <h1 className="font-condensed text-[clamp(2.5rem,13vw,4rem)] leading-[0.85] font-bold tracking-tight uppercase">
+          {/* Riempie la colonna e non la sfora, per costruzione. Con un clamp sul viewport
+              sforava di 14-17px da 1024px in su: il corpo cresceva col root (fino a 4rem) e
+              la colonna cresceva con lo STESSO root, quindi il rapporto era fisso e l'errore
+              non dipendeva dalla finestra. In cqw la misura viene dalla scatola che deve
+              contenerlo: "TANGENTOPOLY" in condensed 700 tracking-tight è larga 6.70 volte il
+              corpo nel caso peggiore, quindi 14.5cqw sta sempre dentro — ed è lo stesso corpo
+              che dava 13vw sul telefono. */}
+          <h1 className="font-condensed text-[14.5cqw] leading-[0.85] font-bold tracking-tight uppercase">
             Tangento<span className="text-warning">poly</span>
           </h1>
           <div className="mt-1.5 flex items-baseline justify-between font-mono text-micro tracking-widest text-muted-foreground uppercase">

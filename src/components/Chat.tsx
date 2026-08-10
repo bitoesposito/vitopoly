@@ -83,7 +83,11 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
         <div ref={bottom} />
       </div>
 
-      <div className={`flex gap-2 border-t border-border p-2 ${open ? "" : "md:hidden"}`}>
+      {/* il foglio mobile arriva al bordo del viewport: senza l'inset il campo finisce
+          sotto la tacca dello swipe (la barra pollice usa lo stesso calcolo) */}
+      <div
+        className={`flex gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-2 ${open ? "" : "md:hidden"}`}
+      >
         <Input
           ref={inputRef}
           className="flex-1"

@@ -36,7 +36,7 @@ export function Sidebar({ game }: { game: PublicState }) {
       {chatOpen ? null : game.status === "playing" && thumbBar ? (
         createPortal(<div className="absolute right-2 md:hidden">{toggle}</div>, thumbBar)
       ) : (
-        <div className="fixed right-3 bottom-3 z-50 md:hidden">{toggle}</div>
+        <div className="fixed right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 md:hidden">{toggle}</div>
       )}
 
       <aside

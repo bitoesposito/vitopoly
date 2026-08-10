@@ -61,7 +61,7 @@ function receive(msg: ServerMsg, code: string): void {
       const restarted = store.game?.status === "ended" && msg.state.status === "lobby";
       useGame.setState({ game: msg.state, error: null }); // sostituzione integrale: niente merge, niente fold
       if (restarted) {
-        useGame.setState({ feed: [], popups: [], tokenStep: {} });
+        useGame.setState({ feed: [], popups: [], tokenStep: {}, landed: null });
         // chi guardava ha un posto libero davanti, e il posto si prende alla stretta di mano
         const { myId, name } = useGame.getState();
         if (!msg.state.players.some((p) => p.id === myId)) return connect(code, name);

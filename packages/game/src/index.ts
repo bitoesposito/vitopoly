@@ -5,7 +5,9 @@ export * from "./types";
 export * from "./protocol";
 
 // tabellone e mazzi, come dati
-export { BOARD, JAIL, GO_SALARY, BAIL, TILES, groupTiles, stepsTo, stepsBack, walkTiles } from "./data/tiles";
+// walkTiles ha reso inutili i primitivi che esportava: chi cammina sull'anello chiede a
+// lei, e il conto delle caselle non serve fuori dal motore (c'è BOARD.length).
+export { BOARD, JAIL, GO_SALARY, BAIL, walkTiles } from "./data/tiles";
 export type { TileDef, TileKind } from "./data/tiles";
 export { CHANCE, CHEST } from "./data/cards";
 export type { CardDef, CardFx } from "./data/cards";

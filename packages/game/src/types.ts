@@ -116,6 +116,7 @@ export type ClientAction =
   | { type: "endTurn" }
   | { type: "start" }
   | { type: "rematch" } // a partita finita: torna in lobby, stesso tavolo
+  | { type: "leave" } // lascio la stanza: in lobby libero il posto, in partita è il ritiro
   | { type: "profile"; name?: string; token?: number } // lobby: nome e inchiostro, solo i propri
   | { type: "proposeTrade"; to: PlayerId; give: Bundle; get: Bundle }
   | { type: "respondTrade"; id: string; accept: boolean }

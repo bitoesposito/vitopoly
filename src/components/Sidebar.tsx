@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { translate as t } from "@/lib/i18n";
 import { Chat } from "@/components/Chat";
 import { GamePanels } from "@/components/panels/GamePanels";
+import { Stanza } from "@/components/Stanza";
 
 // La colonna destra. Desktop: pannelli a tutta altezza + chat collassabile in fondo.
 // Mobile: bottom-sheet con la sola chat (i pannelli stanno sotto la plancia, App.tsx).
@@ -55,6 +56,9 @@ export function Sidebar({ game }: { game: PublicState }) {
         >
           <ChevronDown />
         </Button>
+
+        {/* da md la colonna è l'unico posto con una cornice: il codice e l'uscita stanno qui */}
+        <Stanza game={game} className="hidden self-end md:flex" />
 
         {/* desktop-only: su mobile i pannelli stanno sotto la plancia */}
         {game.status !== "lobby" && (

@@ -4,7 +4,7 @@ import { clone, err, type Handler } from "./core/result";
 import { assetOp, spendingAction, type AssetOp } from "./actions/assets";
 import { bid, fold } from "./actions/auction";
 import { bankrupt, payDebt, quitGame } from "./actions/debt";
-import { lobby, rematch } from "./actions/lobby";
+import { leaveLobby, lobby, rematch } from "./actions/lobby";
 import { buy, decline } from "./actions/purchase";
 import { handleTrade } from "./actions/trade";
 import { endTurn, payBail, roll, rollAgain, useJailCard } from "./actions/turn";
@@ -47,6 +47,8 @@ const CASH_RAISERS = {
 
 export function apply(state: GameState, pid: PlayerId, a: ClientAction): Result {
   if (state.status === "ended") return a.type === "rematch" ? rematch(state, pid) : err("partita finita");
+  // uscire dalla stanza: in lobby è liberare il posto, in partita è il ritiro volontario
+  if (a.type === "leave") return state.status === "lobby" ? leaveLobby(clone(state), pid) : quitGame(clone(state), pid);
   if (state.status === "lobby") return lobby(clone(state), pid, a);
 
   // regioni ortogonali: vivono accanto al turno, non dentro un nodo

@@ -12,6 +12,7 @@ export function Lobby() {
   const savedName = useGame((s) => s.name);
   const error = useGame((s) => s.error); // e.g. "stanza piena" — show it, allow retry
   const [name, setName] = useState(savedName);
+  const [codice, setCodice] = useState("");
   const [busy, setBusy] = useState(false);
   const room = new URLSearchParams(location.search).get("room"); // join via friend's link
   const stuck = busy && !error;
@@ -68,6 +69,32 @@ export function Lobby() {
             {t("lobby.reenter", { code: ultima })}
           </Button>
         )}
+        {/* con un codice si entra in una stanza precisa: prima esisteva solo il link altrui.
+            Minuscolo perché è la forma con cui il codice vive nell'URL e nei segreti del posto. */}
+        <label className="block pt-1 font-condensed text-micro tracking-widest text-muted-foreground uppercase" htmlFor="codice">
+          {t("lobby.withCode")}
+        </label>
+        <div className="flex gap-2">
+          <Input
+            id="codice"
+            placeholder={t("lobby.code")}
+            value={codice}
+            maxLength={8}
+            autoCapitalize="none"
+            spellCheck={false}
+            className="font-mono tracking-widest"
+            onChange={(e) => setCodice(e.target.value.trim().toLowerCase())}
+            onKeyDown={(e) => e.key === "Enter" && codice && name.trim() && connect(codice, name.trim())}
+          />
+          <Button
+            variant="outline"
+            className="shrink-0"
+            disabled={stuck || !codice || !name.trim()}
+            onClick={() => connect(codice, name.trim())}
+          >
+            {t("lobby.codeEnter")}
+          </Button>
+        </div>
         {error && <p className="text-center text-xs text-destructive">{error}</p>}
         <p className="text-center text-2xs text-muted-foreground">{t("lobby.noAccount")}</p>
       </div>

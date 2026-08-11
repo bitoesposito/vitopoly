@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import type { ClientAction, ServerMsg } from "@tangentopoly/game";
 import { useGame } from "../store";
-import { rememberSeat, ricordaStanza, seatSecret } from "../seat";
+import { dimenticaStanza, rememberSeat, ricordaStanza, seatSecret } from "../seat";
 import { choreograph } from "./choreography";
 
 // Il trasporto e basta: apri la stanza, tieni viva la socket, versa i messaggi nello
@@ -90,6 +90,13 @@ function receive(msg: ServerMsg, code: string): void {
 export function send(action: ClientAction): void {
   useGame.setState({ error: null }); // l'errore muore all'azione dell'utente, non al prossimo stato
   socket?.send(JSON.stringify({ type: "action", action }));
+}
+
+/** Fuori dalla stanza. Il posto lo lascia il motore (leave); qui si torna alla home
+ *  ricaricando, che è più sicuro di azzerare a mano sette pezzi di store. */
+export function torna(): void {
+  dimenticaStanza();
+  location.href = location.origin + location.pathname;
 }
 
 export function sendChat(text: string): void {

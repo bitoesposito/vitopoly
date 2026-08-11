@@ -5,6 +5,7 @@ import { PreMatch } from "@/components/lobby/PreMatch";
 import { Board } from "@/components/board/Board";
 import { GamePanels } from "@/components/panels/GamePanels";
 import { Sidebar } from "@/components/Sidebar";
+import { Stanza } from "@/components/Stanza";
 
 export default function App() {
   const game = useGame((s) => s.game);
@@ -69,7 +70,9 @@ export default function App() {
                 <span className="font-condensed text-sm font-bold tracking-tight uppercase">
                   Tangento<span className="text-warning">poly</span>
                 </span>
-                <span className="font-mono text-micro tracking-widest text-muted-foreground uppercase">{t("lobby.serie")}</span>
+                {/* dove "SERIE 1992" era decorazione, ora c'è il codice della stanza e la via
+                    d'uscita: in standalone non esistono barra degli indirizzi né tasto indietro */}
+                <Stanza game={game} />
               </header>
               <Board game={game} />
               {/* la barra pollice è fixed: le si lascia sotto la sua altezza piena */}

@@ -20,6 +20,27 @@ describe("lobby", () => {
   });
 });
 
+describe("uscire dalla stanza", () => {
+  it("in lobby il posto torna libero: nessun fantasma a occupare un inchiostro", () => {
+    const s = createGame(1);
+    addPlayer(s, "a", "Alice");
+    addPlayer(s, "b", "Bob");
+    const r = apply(s, "b", { type: "leave" });
+    expect(r.ok && r.state.players.map((p) => p.id)).toEqual(["a"]);
+    expect(apply(s, "spettatore", { type: "leave" }).ok).toBe(false);
+  });
+
+  it("in partita è il ritiro volontario, non un'uscita silenziosa", () => {
+    const s = started();
+    s.props[1] = { owner: "b", mortgaged: false, houses: 0 };
+    const r = apply(s, "b", { type: "leave" });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.state.players.find((p) => p.id === "b")!.bankrupt).toBe(true);
+    expect(r.state.players).toHaveLength(2); // il posto resta nel roster: la partita lo racconta
+  });
+});
+
 describe("rivincita", () => {
   const ended = () => {
     const s = started();

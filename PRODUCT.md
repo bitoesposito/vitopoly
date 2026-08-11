@@ -70,6 +70,10 @@ Currency is € throughout.
   it (1h once the match has ended, 24h while it is in progress or waiting, because "let's finish it
   tomorrow" is why seat secrets exist). Codes are 6 characters over a 32-letter alphabet and are never
   reserved: uniqueness is probabilistic by design.
+- **Leaving is an action, not a closed tab.** `leave` frees the seat in the waiting room and _is_ the
+  voluntary withdrawal once the match has started (`packages/game/src/engine.ts`). It has to exist in
+  the interface because the installed app has no address bar and no back button — the room code and the
+  way out live in the header (`src/components/Stanza.tsx`), and the home takes a room code directly.
 - Invite by link with a room code; a native share sheet is used where available (`src/lib/share.ts`).
 - **The rules are fixed and identical in every match.** `DEFAULT_SETTINGS`
   (`packages/game/src/setup.ts`) is the house rulebook: €1500 starting cash, auctions on decline,

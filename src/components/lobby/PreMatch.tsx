@@ -5,6 +5,7 @@ import { PlayerList } from "@/components/panels/PlayerList";
 import { Rules } from "@/components/lobby/Rules";
 import { Identity } from "@/components/lobby/Identity";
 import { InstallaApp } from "@/components/InstallaApp";
+import { Stanza } from "@/components/Stanza";
 import { useGame } from "@/lib/store";
 import { translate as t } from "@/lib/i18n";
 import { send } from "@/lib/net/client";
@@ -23,6 +24,9 @@ export function PreMatch({ game }: { game: PublicState }) {
   return (
     // stesso ritmo della home (Lobby): gutter 5, sezioni 5, dentro 2, dopo un filetto 3
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 p-5">
+      {/* la sala d'attesa è una stanza come le altre: da qui si vede quale, e si esce */}
+      <Stanza game={game} className="self-end" />
+
       <section className="space-y-2">
         <h2 className={LABEL}>{t("id.title")}</h2>
         <Identity game={game} />

@@ -32,6 +32,16 @@ export function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   return ok(s, [info("partita iniziata")]);
 }
 
+/** Lascio il tavolo prima che inizi: il posto torna libero davvero, altrimenti resterebbe
+ *  un giocatore fantasma a occupare un inchiostro e a contare per l'avvio. In partita non
+ *  passa da qui — lì lasciare è il ritiro volontario, che ha le sue conseguenze. */
+export function leaveLobby(s: GameState, pid: PlayerId): Result {
+  const i = s.players.findIndex((p) => p.id === pid);
+  if (i < 0) return err("non sei in partita");
+  const [via] = s.players.splice(i, 1);
+  return ok(s, [info(`${via.name} lascia il tavolo`)]);
+}
+
 /** Rivincita: si torna in sala d'attesa con gli stessi giocatori. Non un reset a mano dei
  *  campi ma una partita nuova in cui si risiedono i posti, così un campo aggiunto domani a
  *  GameState nasce pulito qui come alla prima apertura della stanza. */

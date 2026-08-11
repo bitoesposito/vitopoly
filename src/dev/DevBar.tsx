@@ -81,6 +81,10 @@ const SCENARIOS: [string, () => GameState | null][] = [
           3: { owner: ME, mortgaged: true, houses: 0 },
           5: { owner: ME, mortgaged: false, houses: 0 },
           6: { owner: "p2", mortgaged: false, houses: 0 },
+          // celle dei LATI, dove l'altezza è 31px: 4 case e un hotel, i due casi stretti
+          13: { owner: ME, mortgaged: false, houses: 4 },
+          32: { owner: ME, mortgaged: false, houses: 5 },
+          34: { owner: "p2", mortgaged: false, houses: 1 },
         };
       }),
   ],

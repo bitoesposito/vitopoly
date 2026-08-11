@@ -81,6 +81,17 @@ export function Tile({ index, game, landed }: { index: number; game: PublicState
   const isCorner = index % 10 === 0;
   const buyable = tile.price != null;
   const region = tile.group ? GROUP_LABEL[tile.group] : undefined;
+  // le celle dei lati sono 48×31: per una riga di edifici restano 5.7px e le icone ne
+  // vogliono 8. Lì gli edifici vanno sulla riga del prezzo, contati come nel pannello.
+  const bassa = side === "left" || side === "right";
+  const edifici = !own?.houses ? null : own.houses === 5 ? (
+    <Hotel className="size-[min(3cqi,1rem)] shrink-0" />
+  ) : (
+    <>
+      <House className="size-[min(2.1cqi,0.875rem)] shrink-0" />
+      {own.houses > 1 && <span>×{own.houses}</span>}
+    </>
+  );
 
   return (
     <Popover>
@@ -138,17 +149,18 @@ export function Tile({ index, game, landed }: { index: number; game: PublicState
             </span>
             {buyable && (
               <>
-                <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-[min(0.3cqi,0.125rem)] overflow-hidden">
-                  {own && own.houses === 5 ? (
-                    <Hotel className="size-[min(3cqi,1rem)] text-paper-ink" />
-                  ) : (
-                    Array.from({ length: own?.houses ?? 0 }, (_, h) => (
-                      <House key={h} className="size-[min(2.1cqi,0.875rem)] text-paper-ink" />
-                    ))
-                  )}
-                </span>
-                <span className="flex items-center justify-center font-mono leading-none text-paper-ink/75 tabular-nums">
+                {!bassa && (
+                  <span className="flex min-h-0 w-full flex-1 flex-wrap items-center justify-center gap-[min(0.3cqi,0.125rem)] overflow-hidden text-paper-ink">
+                    {own && own.houses === 5 ? (
+                      <Hotel className="size-[min(3cqi,1rem)]" />
+                    ) : (
+                      Array.from({ length: own?.houses ?? 0 }, (_, h) => <House key={h} className="size-[min(2.1cqi,0.875rem)]" />)
+                    )}
+                  </span>
+                )}
+                <span className="flex shrink-0 items-center justify-center gap-[min(0.5cqi,0.19rem)] font-mono leading-none text-paper-ink/75 tabular-nums">
                   {euro(tile.price ?? 0)}
+                  {bassa && edifici}
                 </span>
               </>
             )}

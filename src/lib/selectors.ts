@@ -18,10 +18,9 @@ export const isMyTurn = (game: PublicState, pid: string): boolean => game.player
  *  guardia, la UI per spegnere i bottoni prima che l'utente ci provi. */
 export const auctionLive = (game: PublicState): boolean => game.stack.some((f) => f.t === "auction");
 
-/** Quanto vali DAVVERO: contante più tutto quello che la banca ti darebbe se liquidassi
- *  adesso — edifici a metà del costo, titoli al prezzo di svendita. Contava i titoli a
- *  prezzo pieno, cioè un patrimonio che nessuno può realizzare: su Milano diceva 400 dove
- *  il gioco ne paga 250. La classifica finale deve essere una cifra vera. */
+/** Quanto vali davvero: contante più quello che la banca ti darebbe liquidando adesso —
+ *  edifici a metà del costo, titoli al prezzo di svendita. La classifica finale è una cifra
+ *  realizzabile, non un prezzo di listino. */
 export function netWorth(game: PublicState, pid: string): number {
   let v = game.players.find((p) => p.id === pid)?.cash ?? 0;
   for (const [id, own] of Object.entries(game.props)) {
@@ -33,11 +32,10 @@ export function netWorth(game: PublicState, pid: string): number {
   return v;
 }
 
-/** L'ultimo tiro: facce e IDENTITÀ del lancio. `spin` cambia solo quando il tiro è nuovo —
- *  lo stato arriva sostituito a ogni messaggio, quindi gli oggetti di `log` sono sempre nuovi
- *  e confrontarli faceva ruzzolare i dadi a ogni azione. Il registro di sessione ha un seq
- *  monotono; chi entra a metà turno legge le facce dallo stato con spin 0: le vede, senza
- *  vedere un lancio a cui non ha assistito. */
+/** L'ultimo tiro: le facce e l'identità del lancio. `spin` viene dal seq del registro di
+ *  sessione, che cambia solo a tiro nuovo — gli oggetti di `log` arrivano sostituiti a ogni
+ *  messaggio e non servono da identità. Chi entra a metà turno le legge dallo stato con
+ *  spin 0: vede le facce senza vedere un lancio a cui non ha assistito. */
 export type Roll = Extract<GameEvent, { e: "rolled" }> & { spin: number };
 
 export function lastRoll(feed: FeedItem[], log: GameEvent[]): Roll | null {

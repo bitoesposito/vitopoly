@@ -10,8 +10,8 @@ import type { ClientAction, GameState } from "../src/types";
 // È il rilevatore di corruzione trasversale più economico che abbiamo: becca le fughe di
 // frame che nessun test scritto a mano immagina.
 
-/** Chi la macchina sta effettivamente aspettando. Scegliere a caso fra tutti i vivi
- *  faceva agire il giocatore sbagliato 3 volte su 4, e il soak testava solo i rifiuti. */
+/** Chi la macchina sta effettivamente aspettando: a caso fra tutti i vivi, tre azioni su
+ *  quattro sarebbero rifiuti e il soak non arriverebbe da nessuna parte. */
 function whoIsExpected(s: GameState, rng: { seed: number }): string {
   const node = activeNode(s);
   if (node.t === "debt") return node.debtor;
@@ -33,7 +33,7 @@ function randomAction(s: GameState, rng: { seed: number }): { pid: string; a: Cl
   const tutte = legalActions(s);
   const types = nextInt(rng, 6) === 0 ? tutte : tutte.filter((t) => !RACCOGLI.has(t));
   const type = types[nextInt(rng, types.length)];
-  // le caselle si pescano fra le PROPRIE: un tile a caso su 40 era quasi sempre un rifiuto
+  // le caselle si pescano fra le PROPRIE: una a caso su 40 è quasi sempre un rifiuto
   const mine = Object.keys(s.props)
     .map(Number)
     .filter((t) => s.props[t]!.owner === pid);
@@ -79,10 +79,9 @@ function playOut(seed: number, steps: number) {
 }
 
 describe("soak", () => {
-  // Le soglie sono tarate sui minimi MISURATI (422 azioni, 66 tiri per partita) con un
-  // margine largo. Non sono decorative: prima di essere alzate il soak applicava 66 azioni
-  // su 2000 e passava lo stesso. Se un'azione nuova le fa scendere, è il picker che va
-  // sistemato — o è un blocco vero, che è esattamente ciò che questo test deve trovare.
+  // Soglie tarate sui minimi MISURATI (422 azioni, 66 tiri per partita) con margine largo:
+  // se un'azione nuova le fa scendere, è il picker che va sistemato — o è un blocco vero,
+  // che è esattamente ciò che questo test deve trovare.
   it.each([1, 2, 3, 4, 5])("partita %i: 2000 azioni non corrompono mai lo stato", (seed) => {
     const { s, applied, rejected, rolls } = playOut(seed, 2000);
     expect(s.status === "ended" || applied > 300).toBe(true);

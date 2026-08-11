@@ -19,10 +19,9 @@ function seed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0] || 1;
 }
 
-// Quanto vive una stanza ferma. Un namespace di Durable Object NON si può elencare: senza
-// un registro nostro non c'è modo di trovare le stanze orfane, quindi non esiste uno
-// spazzino possibile e ogni stanza deve cancellarsi da sé. L'invariante che lo garantisce:
-// ogni transizione lascia esattamente UN allarme armato, sempre (vedi arma()).
+// Quanto vive una stanza ferma. Un namespace di Durable Object non si può elencare, quindi
+// uno spazzino non è scrivibile e ogni stanza deve cancellarsi da sé: l'invariante è che
+// ogni transizione lasci esattamente un allarme armato (vedi arma()).
 const SPENTA_MS = 24 * 60 * 60 * 1000; // in corso o in attesa: "riprendiamo domani" deve funzionare
 const FINITA_MS = 60 * 60 * 1000; // finita: il tempo di leggere la classifica e chiedere la rivincita
 
@@ -45,14 +44,9 @@ export class RoomDO extends DurableObject<Env> {
     });
   }
 
-  // Il posto è di chi ne ha il segreto. Chi arriva con un pid mai visto lo occupa e
-  // riceve il segreto; chi arriva con un pid già occupato e il segreto sbagliato non è
-  // quel giocatore, e resta spettatore. (Le stanze aperte prima di questo controllo non
-  // hanno segreti: il primo che si collega si prende il posto.)
-  //
-  // Il segreto si conia SOLO a chi può davvero sedersi. Prima lo riceveva ogni pid mai
-  // visto, spettatori compresi: una scrittura su storage e una riga di mappa per ogni
-  // curioso che apriva il link, senza limite.
+  // Il posto è di chi ne ha il segreto: un pid mai visto lo occupa e lo riceve, un pid già
+  // occupato col segreto sbagliato resta spettatore. Si conia solo a chi può davvero
+  // sedersi, così un curioso che apre il link non costa una scrittura e una riga di mappa.
   private async claimSeat(pid: string, token: string | null): Promise<string | null> {
     const existing = this.seats[pid];
     if (existing) return existing === token ? existing : null;
@@ -161,8 +155,8 @@ export class RoomDO extends DurableObject<Env> {
     await this.persistAndBroadcast();
   }
 
-  // una socket che muore male non chiama webSocketClose: senza questo il giocatore
-  // resterebbe "collegato" per sempre e la stanza continuerebbe a giocare da sola
+  // una socket che muore male non chiama webSocketClose, e il giocatore resterebbe
+  // "collegato" per sempre
   async webSocketError(ws: WebSocket): Promise<void> {
     await this.webSocketClose(ws);
   }
@@ -179,10 +173,9 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private async handleAlarm(): Promise<void> {
-    // scaduto il silenzio: la stanza si cancella. deleteAll() svuota lo storage ma non
-    // l'istanza, e il costruttore non rigira finché non viene sfrattata: senza azzerare
-    // anche la memoria, chi si collegasse adesso troverebbe la partita "cancellata" e la
-    // prima scrittura la resusciterebbe.
+    // Scaduto il silenzio la stanza si cancella. deleteAll() svuota lo storage ma non
+    // l'istanza, e il costruttore rigira solo dopo lo sfratto: la memoria si azzera qui, o
+    // la prima scrittura resuscita la partita.
     if (this.game.status === "ended" || !this.hasLivePlayers()) {
       await this.ctx.storage.deleteAll();
       this.game = createGame(seed());
@@ -190,8 +183,8 @@ export class RoomDO extends DurableObject<Env> {
       this.seats = {};
       return;
     }
-    // in attesa con qualcuno collegato: niente da fare, ma l'allarme va riarmato o questa
-    // stanza non ne avrà più uno e non morirà mai
+    // in attesa con qualcuno collegato: niente da fare, ma l'allarme va riarmato o la
+    // stanza resta senza
     if (this.game.status !== "playing") return void (await this.arma());
     if (!this.game.deadline) return void (await this.arma());
     if (Date.now() < this.game.deadline - 1000) {
@@ -226,16 +219,14 @@ export class RoomDO extends DurableObject<Env> {
     await this.persistAndBroadcast(r.events);
   }
 
-  // C'è ancora qualcuno che sta giocando davvero? Il timer del turno esiste per non far
-  // aspettare gli altri: senza nessuno collegato non ha nessuno da sbloccare, e una
-  // stanza abbandonata si giocherebbe da sola fino alla bancarotta di qualcuno.
+  // C'è ancora qualcuno che gioca davvero? Il timer del turno esiste per non far aspettare
+  // gli altri: a stanza vuota non ha nessuno da sbloccare, e giocherebbe da sola.
   private hasLivePlayers(): boolean {
     return this.game.players.some((p) => p.connected && !p.bankrupt);
   }
 
-  /** L'unico allarme della stanza: il timer del turno se si sta giocando davvero, altrimenti
-   *  il conto alla rovescia che la cancella. Chiamata da OGNI transizione, così non esiste
-   *  uno stato senza allarme — che è l'unico modo in cui una stanza resterebbe appesa. */
+  /** L'unico allarme della stanza: il timer del turno se si gioca davvero, altrimenti il
+   *  conto alla rovescia che la cancella. Da chiamare a OGNI transizione. */
   private async arma(): Promise<void> {
     if (this.game.status === "playing" && this.hasLivePlayers()) {
       this.game.deadline = Date.now() + timeoutMs(this.game);

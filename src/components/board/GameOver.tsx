@@ -19,9 +19,8 @@ export function GameOver({ game }: { game: PublicState }) {
         </h2>
         <ol className="mt-4 space-y-1 text-left text-xs">
           {standings.map((p, i) => (
-            // a cascata dall'alto: la classifica si legge in ordine, non tutta insieme.
-            // fill-mode-both perché `animate-in` da solo non tiene lo stato iniziale
-            // durante il ritardo, e le righe lampeggerebbero prima di partire.
+            // a cascata: la classifica si legge in ordine. fill-mode-both perché `animate-in`
+            // da solo non tiene lo stato iniziale durante il ritardo.
             <li
               key={p.id}
               style={{ animationDelay: `${i * 60}ms` }}

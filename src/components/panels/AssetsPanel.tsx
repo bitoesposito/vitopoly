@@ -9,8 +9,8 @@ import { Panel } from "./Panel";
 import { PropertyCell } from "./PropertyCell";
 import { PropertyActions } from "./PropertyActions";
 
-// Le mie proprietà: tocchi una cella e sotto compaiono le azioni per QUELLA proprietà,
-// a tutta larghezza invece che spalmate su ogni riga.
+// Le mie proprietà: tocchi una cella e sotto compaiono le azioni per QUELLA proprietà, a
+// tutta larghezza.
 export function AssetsPanel({ game, myId }: { game: PublicState; myId: string }) {
   const [sel, setSel] = useState<number | null>(null);
   const mine = ownedTiles(game, myId);

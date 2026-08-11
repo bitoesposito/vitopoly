@@ -11,17 +11,16 @@ const DIE_FACE: Record<number, string> = {
   6: "rotateX(180deg)",
 };
 
-// Dado 3D senza stato: key={spin} rimonta il cubo a ogni tiro e l'animazione CSS
-// one-shot riparte; quando finisce, la transition lo accompagna sulla faccia uscita.
-// `alt` varia verso e giri del tumble.
+// Dado 3D senza stato: `key={spin}` rimonta il cubo a ogni tiro e l'animazione one-shot
+// riparte, chiudendo sulla faccia uscita. `alt` varia verso e giri del tumble.
 function Die3D({ value, spin, alt, onLand }: { value: number | null; spin: number; alt?: boolean; onLand?: () => void }) {
   return (
     // key sulla scena e sul cubo: al tiro rimontano insieme, così arco e rotazione partono in fase
     <div
       key={spin}
       className="die-scene die-tossing"
-      // l'arco finisce quando il dado tocca il tavolo: lo dice il DOM, non un timer da
-      // tenere allineato a --roll. Il guardia scarta l'animationend del cubo, che risale.
+      // il dado tocca il tavolo quando finisce l'arco: lo dice il DOM, non un timer da
+      // tenere allineato a --roll. La guardia scarta l'animationend del cubo, che risale.
       onAnimationEnd={(e) => e.target === e.currentTarget && onLand?.()}
     >
       {/* la faccia va in --face (non in transform): così l'hover può comporre il tilt 3D */}

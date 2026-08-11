@@ -8,7 +8,7 @@ import { euro } from "@/lib/format";
 import { translate as t, tileName as tn, type MsgKey } from "@/lib/i18n";
 import { BundleChips } from "@/components/panels/BundleChips";
 
-// Animated event cards. Each pops in when pushed (ws.ts schedules the timing), stacks
+// Animated event cards. Each pops in when pushed (choreography.ts schedules the timing), stacks
 // on the previous ones, and dismisses itself after a readable hold. Non-blocking:
 // clicks pass through around the stack. Trades fly the exchanged assets between players.
 // Accenti "da carta": la carta evento è carta, quindi inchiostri stampabili sul chiaro.

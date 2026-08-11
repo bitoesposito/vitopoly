@@ -42,8 +42,7 @@ export function connect(code: string, name: string): void {
     useGame.setState({ connected: false });
     if (e.code === 4000) return; // respinto (stanza piena / partita iniziata)
     // reset del DO, deploy, rete ballerina: lo stato è persistito, si riprova con backoff.
-    // Il conteggio sta SOLO nello store: è lo stesso numero che il banner mostra, e
-    // tenerne una seconda copia qui significava allinearli a mano su tre righe.
+    // Il conteggio sta solo nello store: è lo stesso numero che mostra il banner.
     const attempt = useGame.getState().retries;
     useGame.setState({ retries: attempt + 1 });
     retryTimer = setTimeout(() => connect(code, name), Math.min(1000 * 2 ** attempt, 10_000));
@@ -92,9 +91,8 @@ export function send(action: ClientAction): void {
   socket?.send(JSON.stringify({ type: "action", action }));
 }
 
-/** Fuori dalla stanza. Il posto lo lascia il motore (leave); qui si torna alla home
- *  ricaricando, che è più sicuro di azzerare a mano sette pezzi di store. `dimentica`
- *  spegne il rientro dalla home: si usa quando non c'è più niente in cui rientrare. */
+/** Fuori dalla stanza: il posto lo lascia il motore (`leave`), qui si ricarica sulla home.
+ *  `dimentica` spegne il rientro, per quando non c'è più niente in cui rientrare. */
 export function torna(dimentica = true): void {
   if (dimentica) dimenticaStanza();
   location.href = location.origin + location.pathname;

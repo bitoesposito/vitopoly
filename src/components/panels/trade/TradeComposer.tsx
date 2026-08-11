@@ -38,8 +38,7 @@ export function TradeComposer({ game, myId }: { game: PublicState; myId: string 
             type="button"
             onClick={() => pick(p.id)}
             aria-pressed={to === p.id}
-            // la scala dei bottoni vale anche per un chip: scegliere con chi scambi è
-            // un'azione, e a 24px di alto non lo era
+            // la scala dei bottoni vale anche per un chip: scegliere con chi scambi è un'azione
             className={cn(
               buttonVariants({ variant: "outline" }),
               "gap-1.5",

@@ -7,8 +7,7 @@ import { started } from "./helpers";
 import { checkInvariants } from "./invariants";
 import type { GameEvent, GameState } from "../src/types";
 
-// Ogni effetto carta, uno per uno e in modo deterministico: si trucca il mazzo e si
-// pesca. Prima esisteva solo il soak, che in 2000 azioni ne toccava uno.
+// Ogni effetto carta, uno per uno e in modo deterministico: si trucca il mazzo e si pesca.
 
 /** Pesca la carta `id` da `deck` per il giocatore corrente. Ritorna stato ed eventi. */
 function draw(s: GameState, deck: "chance" | "chest", id: number): { s: GameState; ev: GameEvent[] } {

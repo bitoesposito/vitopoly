@@ -15,10 +15,10 @@ export type CardPopup = PopupBody & { id: number; wait: number };
 export type PopupInput = PopupBody & { wait?: number };
 let popupSeq = 0;
 
-// Eventi di gioco e chat in un registro solo. Gli eventi del motore non hanno un orario:
-// l'unico ordine comune è quello d'arrivo, con un contatore che non torna indietro quando
-// la lista si accorcia. Solo la cronologia caricata all'ingresso è approssimata (prima il
-// registro, poi la chat).
+// Eventi di gioco e chat in un registro solo. Gli eventi del motore non hanno un orario,
+// quindi l'ordine è quello d'arrivo: un contatore che non torna indietro nemmeno quando la
+// lista si accorcia. La cronologia caricata all'ingresso è l'unico punto approssimato —
+// prima il registro, poi la chat.
 export type FeedInput = { ev: GameEvent } | { msg: ChatMsg };
 export type FeedItem = FeedInput & { seq: number };
 let feedSeq = 0;

@@ -8,9 +8,8 @@ import type { BundleDraft } from "./draft";
 
 // Un lato dell'offerta: contanti, atti a celle (l'ordine di tabellone tiene i set
 // adiacenti), carte prigione. I due lati stanno affiancati, quindi il contenuto è
-// impaginato in verticale su una colonna stretta. Non è una card: due riquadri dentro un
-// pannello erano una cornice di troppo — a dividere le colonne basta un filetto, e dove
-// cade lo decide chi le mette una accanto all'altra.
+// impaginato in verticale su una colonna stretta. Non è una card: a dividere le colonne
+// basta un filetto, e dove cade lo decide chi le affianca.
 export function BundleEditor({
   game,
   player,

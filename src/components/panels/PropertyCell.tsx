@@ -17,8 +17,8 @@ export function PropertyCell({ game, tile, sel, onClick }: { game: PublicState; 
       title={tn(tile)}
       onClick={onClick}
       aria-pressed={sel}
-      // selezionato = spunta + cornice piena: il filetto verde da solo era invisibile,
-      // e senza si compone uno scambio alla cieca
+      // selezionato = spunta più cornice piena: un filetto verde da solo non si vede, e uno
+      // scambio si comporrebbe alla cieca
       className={`nota relative border p-1.5 text-left text-2xs leading-tight transition-colors ${sel ? "border-verde-carta ring-2 ring-verde-carta" : "border-paper-line/60 hover:border-paper-line"}`}
     >
       {sel && (

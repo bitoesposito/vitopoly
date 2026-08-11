@@ -12,12 +12,10 @@ export function Board({ game }: { game: PublicState }) {
   // l'asta è un interrupt di gioco: board bloccata (niente blur), si agisce dal pannello asta
   const auctionLive = game.status === "playing" && activeNode(game).t === "auction";
   return (
-    // shrink-0: fra sm e md la colonna ha altezza fissa e la plancia, come flex item, si
-    // faceva schiacciare (660×447 a chat chiusa, 660×42 con la chat aperta). Quadra sempre:
-    // se non ci sta, si scorre.
-    // Sempre quadrata: larghezza = min(spazio orizzontale, altezza viewport meno quello che
-    // non è plancia), aspect-square fa il resto. 4.5rem = i gutter (2.5) più la fascia della
-    // testata col suo filetto (2): misurato, non stimato — a 1280×720 con 4.25 restavano 3px.
+    // Sempre quadrata: larghezza = min(spazio orizzontale, altezza libera), e aspect-square
+    // fa il resto. 4.5rem = i gutter (2.5) più la fascia della testata col filetto (2).
+    // shrink-0: la colonna ha altezza fissa da sm, e una plancia che non ci sta si scorre —
+    // non si deforma.
     <div
       // gap-px su paper-line: il filo tra due note è una riga incisa
       className="filetto tratteggio relative m-auto grid aspect-square min-h-0 w-full shrink-0 gap-px border bg-paper-line md:w-[min(100%,100dvh_-_4.5rem)]"
@@ -25,8 +23,8 @@ export function Board({ game }: { game: PublicState }) {
       // RIMPICCIOLISCE invece di andare a capo — meglio minuscolo intero che leggibile spezzato.
       style={{
         containerType: "inline-size",
-        // minmax(0,…) e non 1fr: 1fr non scende sotto il min-content, e i nomi lunghi
-        // spingevano la griglia oltre l'aspect-square fino a uscire dal viewport
+        // minmax(0,…) e non 1fr: 1fr non scende sotto il min-content, e un nome lungo
+        // sfonderebbe l'aspect-square
         gridTemplateColumns: "minmax(0, 1.55fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.55fr)",
         gridTemplateRows: "minmax(0, 1.55fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.55fr)",
       }}
@@ -34,8 +32,8 @@ export function Board({ game }: { game: PublicState }) {
       {BOARD.map((_, i) => {
         const { row, col } = tileCell(i);
         return (
-          // grid (non block): il button è un item stretchato, MAI su una baseline di testo —
-          // l'inline-block dentro un div si sfalsa con le metriche del font caricato.
+          // grid (non block): il button è un item stretchato, mai su una baseline di testo,
+          // che si sfalserebbe con le metriche del font caricato.
           <div key={i} className="grid min-h-0 min-w-0" style={{ gridRow: row, gridColumn: col }}>
             <Tile index={i} game={game} landed={landed === i} />
           </div>

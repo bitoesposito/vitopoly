@@ -1,11 +1,7 @@
-// Chi sei, e come portarti dietro. Il posto in una stanza è la coppia (pid, segreto):
-// il pid vive in localStorage, il segreto lo conia il server alla prima entrata.
-//
-// Senza una via di trasferimento, svuotare i dati del browser o cambiare dispositivo
-// significava perdere la partita per sempre — restavi spettatore al tuo stesso tavolo, e
-// gli altri dovevano espellerti per sbloccare i timer. Il link di trasferimento è quella
-// via: è una credenziale al portatore, quindi si genera solo su richiesta esplicita e si
-// cancella dalla barra degli indirizzi appena consumata.
+// Chi sei, e come portarti dietro. Il posto in una stanza è la coppia (pid, segreto): il
+// pid vive in localStorage, il segreto lo conia il server alla prima entrata. Il link di
+// trasferimento porta entrambi su un altro dispositivo: è una credenziale al portatore,
+// quindi si genera solo su richiesta e si cancella dall'indirizzo appena consumata.
 
 const PID_KEY = "tangentopoly:pid";
 const STANZA_KEY = "tangentopoly:stanza";
@@ -14,10 +10,9 @@ const seatKey = (code: string) => `tangentopoly:token:${code}`;
 export const seatSecret = (code: string) => localStorage.getItem(seatKey(code)) ?? "";
 export const rememberSeat = (code: string, secret: string) => localStorage.setItem(seatKey(code), secret);
 
-/** L'ultima stanza in cui si è entrati. L'app installata parte da "/" — senza questa
- *  memoria, aprire l'icona significherebbe sempre una stanza nuova, e la partita in corso
- *  resterebbe raggiungibile solo dal link. Il segreto del posto è già salvato per codice,
- *  quindi rientrare qui è rientrare come sé stessi. */
+/** L'ultima stanza in cui si è entrati: l'app installata parte da "/", e da lì la home
+ *  offre il rientro. Il segreto del posto è salvato per codice, quindi si rientra come sé
+ *  stessi. */
 export const ultimaStanza = () => localStorage.getItem(STANZA_KEY);
 export const ricordaStanza = (code: string) => localStorage.setItem(STANZA_KEY, code);
 export const dimenticaStanza = () => localStorage.removeItem(STANZA_KEY);

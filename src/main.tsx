@@ -5,7 +5,6 @@ import "./index.css";
 import App from "./App.tsx";
 import { Toaster } from "@/components/ui/sonner";
 
-// sempre modalità scura
 document.documentElement.classList.add("dark");
 
 // L'app installata: il worker sta in public/sw.js e non passa dal bundle. Solo in

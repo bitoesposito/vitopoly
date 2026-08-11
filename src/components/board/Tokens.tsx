@@ -60,10 +60,10 @@ const SPREAD = [
   [15, 0],
 ];
 
-function Token({ token, pos, back, current }: { token: number; pos: number; back?: boolean; current: boolean }) {
+function Token({ token, pos, back, current, solo }: { token: number; pos: number; back?: boolean; current: boolean; solo: boolean }) {
   const [x, y] = useEdgeWalk(pos, back);
   const color = TOKEN_COLOR[token % 8];
-  const [dx, dy] = current ? [0, 0] : SPREAD[token % 8];
+  const [dx, dy] = solo ? [0, 0] : SPREAD[token % 8]; // lo scarto serve solo a non coprirsi
   return (
     // l'overlay è pointer-events-none: niente tooltip, l'identità è la lettera
     <div className={`absolute ${current ? "z-20" : "z-10"}`} style={{ left: `${x}%`, top: `${y}%` }} aria-hidden>
@@ -91,19 +91,23 @@ function Token({ token, pos, back, current }: { token: number; pos: number; back
 export function Tokens({ game }: { game: PublicState }) {
   const currentId = game.players[game.current]?.id;
   const tokenStep = useGame((s) => s.tokenStep); // choreographed display pos (ws.ts); state pos is the fallback
+  const vivi = game.players.filter((p) => !p.bankrupt);
+  const dove = (p: (typeof vivi)[number]) => tokenStep[p.id]?.pos ?? p.pos;
+  // quante pedine MOSTRATE su ogni casella: lo scarto è per non coprirsi, quindi da sola
+  // una pedina sta al centro — anche dopo che il turno è passato a un altro
+  const affollata = vivi.reduce<Record<number, number>>((n, p) => ({ ...n, [dove(p)]: (n[dove(p)] ?? 0) + 1 }), {});
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
-      {game.players
-        .filter((p) => !p.bankrupt)
-        .map((p) => (
-          <Token
-            key={p.id}
-            token={p.token}
-            pos={tokenStep[p.id]?.pos ?? p.pos}
-            back={tokenStep[p.id]?.back}
-            current={game.status === "playing" && p.id === currentId}
-          />
-        ))}
+      {vivi.map((p) => (
+        <Token
+          key={p.id}
+          token={p.token}
+          pos={dove(p)}
+          back={tokenStep[p.id]?.back}
+          current={game.status === "playing" && p.id === currentId}
+          solo={affollata[dove(p)] === 1}
+        />
+      ))}
     </div>
   );
 }

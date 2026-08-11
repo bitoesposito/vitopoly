@@ -1,4 +1,5 @@
 import type { PublicState } from "@tangentopoly/game";
+import { ModoAvviso } from "@/components/ModoAvviso";
 import { Stanza } from "@/components/Stanza";
 
 // Marchio e stanza. Montata due volte con visibilità responsive: dentro la colonna che
@@ -10,7 +11,11 @@ export function Testata({ game, className }: { game: PublicState; className?: st
       <span className="font-condensed text-sm font-bold tracking-tight uppercase">
         Tangento<span className="text-warning">poly</span>
       </span>
-      <Stanza game={game} />
+      {/* due icone accostate: sono cromatura della fascia, non due azioni distinte */}
+      <div className="flex items-center gap-0.5">
+        <ModoAvviso />
+        <Stanza game={game} />
+      </div>
     </header>
   );
 }

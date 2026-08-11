@@ -1,4 +1,4 @@
-import { DoorOpen, Share2 } from "lucide-react";
+import { DoorOpen, Menu, Share2 } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
@@ -25,13 +25,19 @@ export function Stanza({ game, className }: { game: PublicState; className?: str
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="ghost" className={`font-mono text-micro tracking-widest uppercase ${className ?? ""}`}>
-          N. {code}
+        <Button size="icon" variant="ghost" aria-label={t("room.menu")} className={className}>
+          <Menu />
         </Button>
       </PopoverTrigger>
-      {/* Un menu, non un modulo: due voci e un filetto. Lo spazio fra le righe è il gap
-          del popover. */}
+      {/* Un menu, non un modulo: dove sei, una voce, un filetto e l'uscita. Lo spazio fra
+          le righe è il gap del popover. */}
       <PopoverContent align="end" className="w-56 gap-1 font-sans">
+        {/* Il codice non sta più sul bottone, quindi è la prima cosa che il menu dice:
+            senza barra degli indirizzi è l'unico posto in cui si legge. */}
+        <div className="flex items-baseline justify-between px-2.5 pb-1">
+          <span className="text-micro tracking-widest text-muted-foreground uppercase">{t("room.label")}</span>
+          <span className="font-mono text-sm font-bold tracking-widest uppercase select-all">{code}</span>
+        </div>
         <Button size="sm" variant="ghost" className="w-full justify-start" onClick={() => shareInvite(code)}>
           <Share2 />
           {t("room.share")}

@@ -16,6 +16,26 @@ export const KNOCK = [30, 60, 30];
 /** Due dadi che si posano. */
 export const DICE = [15, 45, 15];
 
+// Come il gioco chiede attenzione. Due modi perché di canali non visivi ce n'è uno solo:
+// "sonoro" si infila in MODI il giorno che il gioco avrà un audio, e il bottone in testata
+// gira su tre voci invece di due senza altre modifiche.
+// È una preferenza di dispositivo, non di partita: vive in localStorage accanto al posto e
+// non viaggia sulla socket.
+const CHIAVE = "tangentopoly:modo";
+
+export const MODI = ["vibrazione", "silenzioso"] as const;
+export type Modo = (typeof MODI)[number];
+
+/** Su desktop `vibrate` esiste e non fa niente: senza un dito non c'è motore. */
+export const aptico = () => "vibrate" in navigator && matchMedia("(any-pointer: coarse)").matches;
+
+export function modo(): Modo {
+  const m = localStorage.getItem(CHIAVE) as Modo | null;
+  return m && MODI.includes(m) ? m : "vibrazione";
+}
+
+export const setModo = (m: Modo) => localStorage.setItem(CHIAVE, m);
+
 export function buzz(pattern: number | number[]): void {
-  navigator.vibrate?.(pattern);
+  if (modo() === "vibrazione") navigator.vibrate?.(pattern);
 }

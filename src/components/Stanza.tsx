@@ -30,15 +30,18 @@ export function Stanza({ game, className }: { game: PublicState; className?: str
           N. {code}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 space-y-2 font-sans">
-        <Button variant="outline" className="w-full" onClick={() => shareInvite(code)}>
+      {/* Un menu, non un modulo: due voci e un filetto. Lo spazio fra le righe è già il
+          gap del popover — sommarci un altro spaziatore raddoppiava tutto. */}
+      <PopoverContent align="end" className="w-56 gap-1 font-sans">
+        <Button size="sm" variant="ghost" className="w-full justify-start" onClick={() => shareInvite(code)}>
           <Share2 />
-          {t("settings.inviteDesc")}
+          {t("room.share")}
         </Button>
-        {mio && <p className="text-2xs text-muted-foreground">{game.status === "lobby" ? t("room.leaveLobby") : t("room.leaveGame")}</p>}
+        <div className="-mx-2.5 border-t border-border" />
         <ConfirmButton
-          variant="destructive"
-          className="w-full"
+          size="sm"
+          variant="ghost"
+          className="w-full justify-start text-destructive hover:bg-destructive/10"
           label={
             <>
               <DoorOpen />
@@ -49,6 +52,9 @@ export function Stanza({ game, className }: { game: PublicState; className?: str
           armedAriaLabel={t("room.leaveSure")}
           onConfirm={esci}
         />
+        {mio && (
+          <p className="px-2.5 text-2xs text-muted-foreground">{game.status === "lobby" ? t("room.leaveLobby") : t("room.leaveGame")}</p>
+        )}
       </PopoverContent>
     </Popover>
   );

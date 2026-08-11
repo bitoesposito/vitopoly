@@ -19,8 +19,12 @@ function seed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0] || 1;
 }
 
-// Una stanza morta viene cancellata dopo questo silenzio: fine partita, o nessuno collegato.
-const CLEANUP_MS = 24 * 60 * 60 * 1000;
+// Quanto vive una stanza ferma. Un namespace di Durable Object NON si può elencare: senza
+// un registro nostro non c'è modo di trovare le stanze orfane, quindi non esiste uno
+// spazzino possibile e ogni stanza deve cancellarsi da sé. L'invariante che lo garantisce:
+// ogni transizione lascia esattamente UN allarme armato, sempre (vedi arma()).
+const SPENTA_MS = 24 * 60 * 60 * 1000; // in corso o in attesa: "riprendiamo domani" deve funzionare
+const FINITA_MS = 60 * 60 * 1000; // finita: il tempo di leggere la classifica e chiedere la rivincita
 
 // One room = one Durable Object. State is a single JSON blob under key "game".
 export class RoomDO extends DurableObject<Env> {
@@ -175,9 +179,21 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private async handleAlarm(): Promise<void> {
-    // stanza finita o abbandonata: l'unico alarm che resta è quello che la cancella
-    if (this.game.status === "ended" || !this.hasLivePlayers()) return void (await this.ctx.storage.deleteAll());
-    if (this.game.status !== "playing" || !this.game.deadline) return;
+    // scaduto il silenzio: la stanza si cancella. deleteAll() svuota lo storage ma non
+    // l'istanza, e il costruttore non rigira finché non viene sfrattata: senza azzerare
+    // anche la memoria, chi si collegasse adesso troverebbe la partita "cancellata" e la
+    // prima scrittura la resusciterebbe.
+    if (this.game.status === "ended" || !this.hasLivePlayers()) {
+      await this.ctx.storage.deleteAll();
+      this.game = createGame(seed());
+      this.chat = [];
+      this.seats = {};
+      return;
+    }
+    // in attesa con qualcuno collegato: niente da fare, ma l'allarme va riarmato o questa
+    // stanza non ne avrà più uno e non morirà mai
+    if (this.game.status !== "playing") return void (await this.arma());
+    if (!this.game.deadline) return void (await this.arma());
     if (Date.now() < this.game.deadline - 1000) {
       // an action moved the deadline after this alarm was queued — re-arm
       await this.ctx.storage.setAlarm(this.game.deadline);
@@ -217,14 +233,21 @@ export class RoomDO extends DurableObject<Env> {
     return this.game.players.some((p) => p.connected && !p.bankrupt);
   }
 
-  private async persistAndBroadcast(events: GameEvent[] = []): Promise<void> {
+  /** L'unico allarme della stanza: il timer del turno se si sta giocando davvero, altrimenti
+   *  il conto alla rovescia che la cancella. Chiamata da OGNI transizione, così non esiste
+   *  uno stato senza allarme — che è l'unico modo in cui una stanza resterebbe appesa. */
+  private async arma(): Promise<void> {
     if (this.game.status === "playing" && this.hasLivePlayers()) {
       this.game.deadline = Date.now() + timeoutMs(this.game);
       await this.ctx.storage.setAlarm(this.game.deadline);
-    } else {
-      this.game.deadline = undefined;
-      await this.ctx.storage.setAlarm(Date.now() + CLEANUP_MS); // partita finita o stanza vuota: si cancella
+      return;
     }
+    this.game.deadline = undefined;
+    await this.ctx.storage.setAlarm(Date.now() + (this.game.status === "ended" ? FINITA_MS : SPENTA_MS));
+  }
+
+  private async persistAndBroadcast(events: GameEvent[] = []): Promise<void> {
+    await this.arma();
     await this.ctx.storage.put("game", this.game);
     const s = JSON.stringify({ type: "state", state: redact(this.game), events } satisfies ServerMsg);
     for (const ws of this.ctx.getWebSockets()) {

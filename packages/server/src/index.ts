@@ -15,8 +15,12 @@ const CORS = {
 };
 
 const CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"; // no ambiguous chars
+// Sei caratteri, non cinque: il codice non viene riservato da nessuna parte (creare una
+// stanza non tocca il Durable Object, ed è il motivo per cui una stanza mai usata non
+// costa niente), quindi l'unicità è solo probabilistica — 32^6 = un miliardo, e un
+// carattere in più costa meno di un registro da mantenere e da ripulire.
 function makeCode(): string {
-  const b = crypto.getRandomValues(new Uint8Array(5));
+  const b = crypto.getRandomValues(new Uint8Array(6));
   return Array.from(b, (x) => CODE_ALPHABET[x % CODE_ALPHABET.length]).join("");
 }
 

@@ -8,12 +8,15 @@
 
 ## Platform
 
-web, installable. A web app manifest and a service worker make it an installable PWA
-(`public/manifest.webmanifest`, `public/sw.js`): it runs standalone from the home screen, with its
-own icon and splash. **Offline play does not exist and cannot** — the engine is authoritative on the
-server and every action travels over a WebSocket; the worker only guarantees the app _opens_ without
-network, where it shows its reconnection banner instead of the browser's error page
-(`scripts/prova-pwa.mjs` verifies this against a served build).
+web
+
+Installable, and that changes the design constraints: a manifest and a service worker make it a PWA
+(`public/manifest.webmanifest`, `public/sw.js`) that runs standalone from the home screen — **with no
+address bar and no back button**, so every way out of a screen must exist inside the interface.
+**Offline play does not exist and cannot** — the engine is authoritative on the server and every
+action travels over a WebSocket; the worker only guarantees the app _opens_ without network, where it
+shows its reconnection banner instead of the browser's error page (`scripts/prova-pwa.mjs` verifies
+this against a served build).
 
 ## Users
 
@@ -59,8 +62,15 @@ Currency is € throughout.
 ## Operating Context
 
 - **Room lifecycle:** one room = one Cloudflare Durable Object, state persisted as a single JSON blob
-  (`packages/server/src/room.ts:10`). Invite by link with a room code; a native share sheet is used
-  where available (`src/lib/share.ts`).
+  (`packages/server/src/room.ts`). A room is never "closed" from outside: `idFromName(code)` means any
+  code resolves to a room, and an unknown code opens an empty one — creating a room does not even
+  touch the DO, so a code that nobody uses costs nothing. **A DO namespace cannot be enumerated**, so
+  no sweeper can exist and every room must delete itself: the invariant is that each transition arms
+  exactly one alarm — the turn deadline while somebody is playing, otherwise the countdown that wipes
+  it (1h once the match has ended, 24h while it is in progress or waiting, because "let's finish it
+  tomorrow" is why seat secrets exist). Codes are 6 characters over a 32-letter alphabet and are never
+  reserved: uniqueness is probabilistic by design.
+- Invite by link with a room code; a native share sheet is used where available (`src/lib/share.ts`).
 - **The rules are fixed and identical in every match.** `DEFAULT_SETTINGS`
   (`packages/game/src/setup.ts`) is the house rulebook: €1500 starting cash, auctions on decline,
   mortgages allowed, double rent on full sets, the `Malloppo` pot on Latitanza, rent still collected

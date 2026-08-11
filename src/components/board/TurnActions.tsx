@@ -10,7 +10,10 @@ import type { TurnView } from "./turn";
 // I bottoni dell'azione. Montati in UN SOLO posto per volta: sotto i dadi da md in su,
 // dentro la barra pollice sotto md (Center li porta lì con un portal, non li duplica).
 // Sotto md sono alti 3.25rem e si dividono la riga: la barra ha altezza fissa.
-const AZIONE = "text-sm md:text-base lg:text-lg max-md:h-13 max-md:min-w-0 max-md:flex-1";
+// La barra è flex-row-reverse (index.html): il primo bottone del DOM è l'azione primaria e
+// finisce a destra, sotto il pollice. whitespace-normal perché con tre azioni la riga è
+// stretta e "Paga cauzione €50" sforava invece di andare a capo.
+const AZIONE = "text-sm md:text-base lg:text-lg max-md:h-13 max-md:min-w-0 max-md:flex-1 max-md:whitespace-normal max-md:leading-tight";
 
 type Primary = { label: string; icon: LucideIcon | null; run: () => void };
 

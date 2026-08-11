@@ -62,7 +62,8 @@ export function Sidebar({ game }: { game: PublicState }) {
             <GamePanels game={game} />
           </div>
         )}
-        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
+        {/* pt: il bottone di chiusura qui sopra è absolute, e stava sopra il primo messaggio */}
+        <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} className="max-md:pt-9" />
       </aside>
     </>
   );

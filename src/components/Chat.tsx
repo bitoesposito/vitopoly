@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/sonner";
 import { useGame } from "@/lib/store";
 import { sendChat } from "@/lib/net/client";
 import { translate as t } from "@/lib/i18n";
@@ -21,14 +20,6 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.length]);
 
-  // chat chiusa: un messaggio nuovo diventa un toast, altrimenti passa inosservato
-  const prevLen = useRef(chat.length);
-  useEffect(() => {
-    const m = chat.at(-1);
-    if (chat.length > prevLen.current && m && !open) toast(`${m.name}: ${m.text}`);
-    prevLen.current = chat.length;
-  }, [chat, open]);
-
   useTypeToFocus(open, inputRef);
 
   const colorOf = (pid: string) => TOKEN_COLOR[(game?.players.find((p) => p.id === pid)?.token ?? 0) % 8];
@@ -36,6 +27,8 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
   const submit = () => {
     if (text.trim()) sendChat(text);
     setText("");
+    // mobile: il foglio copre la plancia, e il messaggio si rilegge nel registro
+    if (!matchMedia("(min-width: 48rem)").matches) onToggle?.();
   };
 
   // messaggi consecutivi dello stesso mittente in un blocco solo

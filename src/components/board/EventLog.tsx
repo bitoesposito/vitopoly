@@ -3,13 +3,40 @@ import type { GameEvent, PublicState } from "@tangentopoly/game";
 import { translate, tileName, type MsgKey } from "@/lib/i18n";
 import { playerNames } from "@/lib/selectors";
 import { euro } from "@/lib/format";
-import { useGame } from "@/lib/store";
+import { useGame, type FeedItem } from "@/lib/store";
 import { TOKEN_COLOR } from "@/lib/palette";
 
 // Dado, spostamenti e pagamenti d'asta NON finiscono nel log: li raccontano già dadi,
 // pedine e pannello asta. Tutto il resto diventa una riga di prosa.
 
-function line(e: GameEvent, names: Record<string, string>, myId: string): string | null {
+/** Eventi consecutivi di edifici sulla STESSA casella: costruire tre case sono tre azioni,
+ *  ma nel registro è una riga. Contati qui e non nel motore, che deve restare il verbale. */
+type Contato = FeedItem & { n?: number };
+
+function stessoEdificio(a: GameEvent, b: GameEvent): boolean {
+  return (
+    a.e === "asset" &&
+    b.e === "asset" &&
+    (a.what === "build" || a.what === "sellHouse") &&
+    a.what === b.what &&
+    a.pid === b.pid &&
+    a.tile === b.tile &&
+    !a.hotel &&
+    !b.hotel
+  );
+}
+
+function raggruppa(feed: FeedItem[]): Contato[] {
+  const out: Contato[] = [];
+  for (const f of feed) {
+    const ultimo = out.at(-1);
+    if ("ev" in f && ultimo && "ev" in ultimo && stessoEdificio(f.ev, ultimo.ev)) ultimo.n = (ultimo.n ?? 1) + 1;
+    else out.push({ ...f });
+  }
+  return out;
+}
+
+function line(e: GameEvent, names: Record<string, string>, myId: string, n = 1): string | null {
   const t = translate;
   switch (e.e) {
     case "rolled":
@@ -31,13 +58,17 @@ function line(e: GameEvent, names: Record<string, string>, myId: string): string
         e.what === "build"
           ? e.hotel
             ? "ev.buildHotel"
-            : "ev.build"
+            : n > 1
+              ? "ev.buildMany"
+              : "ev.build"
           : e.what === "sellHouse"
             ? e.hotel
               ? "ev.sellHotel"
-              : "ev.sellHouse"
+              : n > 1
+                ? "ev.sellHouseMany"
+                : "ev.sellHouse"
             : (`ev.${e.what}` as const); // mortgage | unmortgage | sellProperty
-      return t(key, { name: names[e.pid], tile: tileName(e.tile), amount: euro(e.amount) });
+      return t(key, { name: names[e.pid], tile: tileName(e.tile), amount: euro(e.amount * n), n });
     }
     case "auctionWon":
       return t("ev.auctionWon", { name: names[e.pid], tile: tileName(e.tile), price: euro(e.price) });
@@ -63,17 +94,17 @@ export function EventLog({ game, myId }: { game: PublicState; myId: string }) {
   const token = (pid: string) => game.players.find((p) => p.id === pid)?.token ?? 0;
 
   type Row = { key: number; text: string; from: string | null; ink: string | null };
-  const rows = feed
+  const rows = raggruppa(feed)
     .flatMap<Row>((f) => {
       if ("msg" in f) return [{ key: f.seq, text: f.msg.text, from: f.msg.name, ink: TOKEN_COLOR[token(f.msg.pid) % 8] }];
-      const text = line(f.ev, names, myId);
+      const text = line(f.ev, names, myId, f.n);
       return text ? [{ key: f.seq, text, from: null, ink: null }] : [];
     })
     .slice(-30)
     .reverse();
 
   return (
-    <div className="min-h-16 w-full flex-1 basis-0 overflow-y-auto rounded-md p-2 text-2xs leading-relaxed text-muted-foreground sm:text-xs lg:text-sm">
+    <div className="min-h-16 w-full flex-1 basis-0 overflow-y-auto p-2 text-2xs leading-relaxed text-muted-foreground sm:text-xs lg:text-sm">
       <div className="flex flex-col text-center">
         {rows.map(({ key, text, from, ink }, j) => (
           <div

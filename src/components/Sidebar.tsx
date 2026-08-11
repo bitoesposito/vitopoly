@@ -6,21 +6,24 @@ import { Button } from "@/components/ui/button";
 import { translate as t } from "@/lib/i18n";
 import { Chat } from "@/components/Chat";
 import { GamePanels } from "@/components/panels/GamePanels";
+import { daMd } from "@/lib/utils";
 
 // La colonna destra. Desktop: pannelli a tutta altezza + chat collassabile in fondo.
 // Mobile: bottom-sheet con la sola chat (i pannelli stanno sotto la plancia, App.tsx).
 const SNAP = [0.25, 0.45]; // altezze del foglio, in frazioni di viewport
 
 export function Sidebar({ game }: { game: PublicState }) {
-  // aperta di default da md: la colonna destra restava mezza vuota con la chat chiusa
-  const [chatOpen, setChatOpen] = useState(() => matchMedia("(min-width: 48rem)").matches);
+  // aperta di default da md: lì la chat è una colonna, non un foglio che copre
+  const [chatOpen, setChatOpen] = useState(daMd);
   const [sheetH, setSheetH] = useState<number>();
   const [thumbBar] = useState(() => document.getElementById("barra-azione"));
 
   const toggle = (
     <Button
       size="icon"
-      className="size-11"
+      // touch-manipulation: niente click sintetico del doppio-tap, che cadrebbe sul campo
+      // della chat appena il foglio si apre — e con lui la tastiera
+      className="size-11 touch-manipulation"
       aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
       onClick={() => setChatOpen((o) => !o)}
     >
@@ -30,9 +33,8 @@ export function Sidebar({ game }: { game: PublicState }) {
 
   return (
     <>
-      {/* In partita il bottone chat sta nella barra pollice, ancorato a destra: era una
-          FAB che galleggiava sopra i contenuti. Fuori partita la barra non c'è, quindi
-          resta flottante. */}
+      {/* In partita il bottone chat sta nella barra pollice, ancorato a destra. Fuori
+          partita la barra non c'è, quindi resta flottante. */}
       {chatOpen ? null : game.status === "playing" && thumbBar ? (
         createPortal(<div className="absolute right-2 md:hidden">{toggle}</div>, thumbBar)
       ) : (
@@ -62,7 +64,7 @@ export function Sidebar({ game }: { game: PublicState }) {
             <GamePanels game={game} />
           </div>
         )}
-        {/* pt: il bottone di chiusura qui sopra è absolute, e stava sopra il primo messaggio */}
+        {/* pt: lascia il posto al bottone di chiusura, che è absolute */}
         <Chat open={chatOpen} onToggle={() => setChatOpen(!chatOpen)} className="max-md:pt-9" />
       </aside>
     </>

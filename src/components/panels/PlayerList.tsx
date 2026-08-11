@@ -81,9 +81,8 @@ export function PlayerList({ game }: { game: PublicState }) {
                   onConfirm={() => send({ type: "votekick", target: p.id })}
                 />
               ) : p.id === myId && code ? (
-                // La riga tua è l'unica senza espulsione: quello slot era vuoto, e il
-                // trasferimento del posto riguarda esattamente te. Un'icona sola in tutta
-                // la lista, sempre visibile: è la via d'uscita se cambi dispositivo.
+                // La riga tua non ha l'espulsione: al suo posto il trasferimento, che
+                // riguarda solo te. Sempre visibile: è la via d'uscita se cambi dispositivo.
                 <Button
                   size="icon-sm"
                   variant="ghost"
@@ -97,7 +96,8 @@ export function PlayerList({ game }: { game: PublicState }) {
               ) : (
                 <span className="size-8 shrink-0" /> // slot riservato: cash allineata su tutte le righe
               ))}
-            {game.status !== "lobby" && <Cash value={p.cash} className="text-success" />}
+            {/* larghezza fissa: senza, l'icona accanto si spostava di 14px fra €60 e €1500 */}
+            {game.status !== "lobby" && <Cash value={p.cash} className="w-14 text-right text-success" />}
           </span>
         </div>
       ))}

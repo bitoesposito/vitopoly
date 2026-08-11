@@ -3,6 +3,7 @@ import { ChevronDown, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGame } from "@/lib/store";
+import { daMd } from "@/lib/utils";
 import { sendChat } from "@/lib/net/client";
 import { translate as t } from "@/lib/i18n";
 import { TOKEN_COLOR } from "@/lib/palette";
@@ -16,9 +17,10 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
   const bottom = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // anche all'apertura, non solo a messaggio nuovo: si entra sempre sull'ultimo detto
   useEffect(() => {
-    bottom.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chat.length]);
+    bottom.current?.scrollIntoView({ behavior: "instant" });
+  }, [chat.length, open]);
 
   useTypeToFocus(open, inputRef);
 
@@ -27,8 +29,11 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
   const submit = () => {
     if (text.trim()) sendChat(text);
     setText("");
+    // via il fuoco dal campo, o la tastiera resta su e il browser lo ripristina alla
+    // riapertura del foglio
+    inputRef.current?.blur();
     // mobile: il foglio copre la plancia, e il messaggio si rilegge nel registro
-    if (!matchMedia("(min-width: 48rem)").matches) onToggle?.();
+    if (!daMd()) onToggle?.();
   };
 
   // messaggi consecutivi dello stesso mittente in un blocco solo

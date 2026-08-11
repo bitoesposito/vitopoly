@@ -20,7 +20,10 @@ function base(mut?: (g: GameState) => void): GameState {
   addPlayer(g, "p3", "Bruno");
   g.status = "playing";
   g.log = [
+    { e: "rolled", pid: "p2", d1: 3, d2: 5 },
     { e: "paid", from: "p2", to: "bank", amount: 200, why: "tax" },
+    { e: "asset", pid: "p2", tile: 1, what: "build", amount: 50, hotel: false },
+    { e: "asset", pid: "p2", tile: 1, what: "build", amount: 50, hotel: false },
     { e: "asset", pid: "p2", tile: 1, what: "build", amount: 50, hotel: false },
     { e: "info", text: "— stato simulato /dev —" },
   ];
@@ -184,7 +187,7 @@ function popup(ps: PopupInput[]) {
   useGame.getState().pushPopups(ps);
 }
 
-// prova generale: la VERA coreografia di ws.ts su eventi sintetici
+// prova generale: la VERA coreografia su eventi sintetici
 // (cammina fino agli Imprevisti, carta "vai in prigione", poi in cella)
 function jailTrip() {
   if (!useGame.getState().game) show(base());

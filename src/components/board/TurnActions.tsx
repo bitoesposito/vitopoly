@@ -11,8 +11,8 @@ import type { TurnView } from "./turn";
 // dentro la barra pollice sotto md (Center li porta lì con un portal, non li duplica).
 // Sotto md sono alti 3.25rem e si dividono la riga: la barra ha altezza fissa.
 // La barra è flex-row-reverse (index.html): il primo bottone del DOM è l'azione primaria e
-// finisce a destra, sotto il pollice. whitespace-normal perché con tre azioni la riga è
-// stretta e "Paga cauzione €50" sforava invece di andare a capo.
+// finisce a destra, sotto il pollice. whitespace-normal perché con tre azioni ogni etichetta
+// ha 102px, e "Paga cauzione €50" ne vuole due righe.
 const AZIONE = "text-sm md:text-base lg:text-lg max-md:h-13 max-md:min-w-0 max-md:flex-1 max-md:whitespace-normal max-md:leading-tight";
 
 type Primary = { label: string; icon: LucideIcon | null; run: () => void };
@@ -73,30 +73,21 @@ export function TurnActions({ game, view }: { game: PublicState; view: TurnView 
         </>
       )}
 
-      {debt && iOwe && <DebtActions payable={(me?.cash ?? 0) >= debt.claims[0].amount} />}
-    </>
-  );
-}
-
-function DebtActions({ payable }: { payable: boolean }) {
-  return (
-    <>
-      {/* stesso richiamo della pedina di turno, in giallo: il debito è l'unica azione
-          che blocca la partita finché non la fai */}
-      <span className="relative flex max-md:min-w-0 max-md:flex-1">
-        {payable && <span className="absolute -inset-1 animate-ping bg-warning opacity-35" aria-hidden />}
-        <Button size="lg" className={`${AZIONE} relative`} disabled={!payable} onClick={() => send({ type: "payDebt" })}>
-          {t("debt.pay")}
-        </Button>
-      </span>
-      <ConfirmButton
-        size="lg"
-        className={AZIONE}
-        variant="destructive"
-        label={t("debt.bankrupt")}
-        armedLabel={t("debt.bankruptSure")}
-        onConfirm={() => send({ type: "bankrupt" })}
-      />
+      {debt && iOwe && (
+        <>
+          <Button size="lg" className={AZIONE} disabled={(me?.cash ?? 0) < debt.claims[0].amount} onClick={() => send({ type: "payDebt" })}>
+            {t("debt.pay")}
+          </Button>
+          <ConfirmButton
+            size="lg"
+            className={AZIONE}
+            variant="destructive"
+            label={t("debt.bankrupt")}
+            armedLabel={t("debt.bankruptSure")}
+            onConfirm={() => send({ type: "bankrupt" })}
+          />
+        </>
+      )}
     </>
   );
 }

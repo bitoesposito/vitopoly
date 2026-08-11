@@ -294,14 +294,16 @@
 .die-left::after { margin: -.35em 0 0 -.35em; box-shadow: .25em .25em, .5em .5em; }
 
 /* perspective() DENTRO i keyframe: scorcio solo al cubo in movimento, a riposo
-   axis-aligned e pulito. 9em e non 4: più vicino, lo scorcio stira le facce. */
+   axis-aligned e pulito. 9em e non 4: più vicino, lo scorcio stira le facce.
+   L'ultimo fotogramma è la posa di riposo (`var(--face)`): il tumble si chiude sulla faccia
+   uscita, senza scatto quando l'animazione lascia il posto alla trasformazione di base. */
 @keyframes die-roll {
     50% { transform: perspective(9em) rotateX(1turn) rotateY(1.25turn) rotateZ(.25turn) scale(.86); }
-    to { transform: perspective(9em) rotateX(2turn) rotateY(2.5turn) rotateZ(.5turn); }
+    to { transform: var(--face, rotateZ(0)); }
 }
 @keyframes die-roll-alt {
     50% { transform: perspective(9em) rotateX(-1.25turn) rotateY(1turn) rotateZ(-.25turn) scale(.86); }
-    to { transform: perspective(9em) rotateX(-2.5turn) rotateY(2turn) rotateZ(-.5turn); }
+    to { transform: var(--face, rotateZ(0)); }
 }
 .die-rolling { animation: die-roll var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }
 .die-rolling-alt { animation: die-roll-alt var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }

@@ -57,10 +57,12 @@ export function Center({ game }: { game: PublicState }) {
           posizione fissa, prompt e bottoni crescono verso il basso senza spostare nulla */}
       <div className="flex flex-1 basis-0 flex-col items-center gap-2 pt-1 sm:gap-3 sm:pt-2">
         <div className="flex items-center justify-center gap-1 text-center text-xs text-muted-foreground sm:text-sm lg:text-base">
-          <span>
+          {/* flex: il testo del turno si allinea a timer e cifra, che un inline-block
+              sfalserebbe con lo scarto della baseline */}
+          <span className="flex items-center">
             {/* key sul giocatore: il passaggio di turno entra invece di sostituirsi. Il
                 countdown resta fuori, o si rimonterebbe muto a ogni cambio. */}
-            <span key={current?.id ?? "-"} className="inline-block animate-in duration-200 fade-in slide-in-from-top-1">
+            <span key={current?.id ?? "-"} className="animate-in duration-200 fade-in slide-in-from-top-1">
               {isMyTurn ? (
                 <b className="text-foreground">{t("center.yourTurn")}</b>
               ) : (
@@ -71,10 +73,9 @@ export function Center({ game }: { game: PublicState }) {
             </span>
             <Countdown deadline={game.deadline} />
           </span>
-          {/* la cifra sta accanto al nome, quindi è di CHI HA IL TURNO: prima mostrava
-              sempre la mia e si leggeva come il contante dell'altro */}
-          {/* key sul giocatore: al passaggio di turno la cifra è di un'ALTRA persona, e senza
-              rimontare il delta mostrerebbe una differenza che nessuno ha pagato */}
+          {/* La cifra è di CHI HA IL TURNO: sta accanto al suo nome. La key sul giocatore
+              perché al cambio di turno è di un altro, e il delta non deve inventare una
+              differenza che nessuno ha pagato. */}
           {current && <Cash key={current.id} value={current.cash} delta className="text-success" />}
           <Popover>
             <PopoverTrigger asChild>
@@ -105,7 +106,7 @@ export function Center({ game }: { game: PublicState }) {
               <div className="text-sm font-semibold lg:text-base">
                 {t("buy.q", { name: tn(buyTile) })} <span className="font-mono text-success">{euro(BOARD[buyTile].price ?? 0)}</span>?
               </div>
-              {/* mancano i soldi: dirlo, e dire quanti. Un bottone spento non si capiva. */}
+              {/* mancano i soldi: dirlo, e dire quanti */}
               {shortfall > 0 && (
                 <div role="alert" className="text-xs font-semibold text-destructive lg:text-sm">
                   {t("buy.short", { amount: euro(shortfall) })}

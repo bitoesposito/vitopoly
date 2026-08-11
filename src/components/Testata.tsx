@@ -6,7 +6,7 @@ import { Stanza } from "@/components/Stanza";
 // durante la partita non compariva da nessuna parte, e il codice nemmeno.
 export function Testata({ game, className }: { game: PublicState; className?: string }) {
   return (
-    <header className={`flex w-full items-center justify-between gap-2 ${className ?? ""}`}>
+    <header className={`flex w-full items-center justify-between gap-2 border-b border-border py-2 ${className ?? ""}`}>
       <span className="font-condensed text-sm font-bold tracking-tight uppercase">
         Tangento<span className="text-warning">poly</span>
       </span>

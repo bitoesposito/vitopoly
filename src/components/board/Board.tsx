@@ -16,11 +16,11 @@ export function Board({ game }: { game: PublicState }) {
     // faceva schiacciare (660×447 a chat chiusa, 660×42 con la chat aperta). Quadra sempre:
     // se non ci sta, si scorre.
     // Sempre quadrata: larghezza = min(spazio orizzontale, altezza viewport meno quello che
-    // non è plancia), aspect-square fa il resto. 4.25rem = i gutter (2.5) più la fascia della
-    // testata (1.75): misurato, non stimato — con 2.5 la plancia sforava sotto.
+    // non è plancia), aspect-square fa il resto. 4.5rem = i gutter (2.5) più la fascia della
+    // testata col suo filetto (2): misurato, non stimato — a 1280×720 con 4.25 restavano 3px.
     <div
       // gap-px su paper-line: il filo tra due note è una riga incisa
-      className="filetto tratteggio relative m-auto grid aspect-square min-h-0 w-full shrink-0 gap-px border bg-paper-line md:w-[min(100%,100dvh_-_4.25rem)]"
+      className="filetto tratteggio relative m-auto grid aspect-square min-h-0 w-full shrink-0 gap-px border bg-paper-line md:w-[min(100%,100dvh_-_4.5rem)]"
       // containerType inline-size: la tipografia delle celle è in cqi, quindi la plancia
       // RIMPICCIOLISCE invece di andare a capo — meglio minuscolo intero che leggibile spezzato.
       style={{

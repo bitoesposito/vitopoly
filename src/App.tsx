@@ -57,22 +57,22 @@ export default function App() {
       {/* Da md la testata è una fascia sua sopra le colonne: appesa in cima alla sidebar
           sembrava una fascia mancante, perché la plancia è centrata e lì accanto non c'era
           niente. Sotto md resta dentro la colonna che scorre. */}
-      <Testata game={game} className="hidden shrink-0 px-2 pt-2 md:flex" />
+      {game.status !== "lobby" && <Testata game={game} className="hidden shrink-0 px-2 md:flex" />}
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* panels render twice with responsive visibility: mobile below the board, desktop in the Sidebar */}
         <main className="min-h-0 flex-1 overflow-auto">
           {/* md:p-2 = stesso gutter dal bordo pagina delle sidebar; center-safe: se il
             contenuto supera l'altezza non taglia la parte alta, la lascia scrollabile */}
-          <div className="flex flex-col items-center justify-center-safe gap-3 sm:h-full md:p-2">
+          <div className="flex flex-col items-center justify-center-safe sm:h-full md:p-2">
             {game.status === "lobby" ? (
               <PreMatch game={game} />
             ) : (
               <>
-                <Testata game={game} className="px-3 pt-2 md:hidden" />
+                <Testata game={game} className="px-3 md:hidden" />
                 <Board game={game} />
                 {/* la barra pollice è fixed: le si lascia sotto la sua altezza piena */}
-                <div className="w-full pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] md:hidden">
+                <div className="mt-3 w-full pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] md:hidden">
                   <GamePanels game={game} />
                 </div>
               </>

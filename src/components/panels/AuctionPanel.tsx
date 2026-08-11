@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Gavel } from "lucide-react";
-import { toast } from "sonner";
 import { AUCTION_MS, BOARD } from "@tangentopoly/game";
 import type { AuctionFrame, PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
@@ -50,13 +49,11 @@ export function AuctionPanel({ game }: { game: PublicState }) {
     if (live && !matchMedia("(min-width: 768px)").matches) ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [live]);
 
-  // sorpasso: 6 secondi per accorgersene, serve un segnale
+  // sorpasso: 6 secondi per accorgersene. Il segnale è l'aptica più la cifra che rientra;
+  // un toast sopra un pannello che sta già cambiando era rumore.
   const wasLeader = useRef(false);
   useEffect(() => {
-    if (wasLeader.current && leader && leader !== myId) {
-      buzz(NUDGE); // sei stato superato e hai 6 secondi per accorgertene
-      toast.warning(t("auction.outbid"));
-    }
+    if (wasLeader.current && leader && leader !== myId) buzz(NUDGE);
     wasLeader.current = leader === myId;
   }, [leader, myId]);
 
@@ -102,7 +99,13 @@ export function AuctionPanel({ game }: { game: PublicState }) {
               {euro(a.bid)}
             </div>
           </div>
-          <div className="text-xs text-muted-foreground">{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
+          <div className="text-right text-xs text-muted-foreground">
+            <div>{a.leader ? t("auction.by", { name: names[a.leader] }) : t("auction.none")}</div>
+            {/* il listino è il metro dell'offerta: senza, si offre alla cieca */}
+            <div className="text-2xs">
+              {t("auction.list")} <span className="font-mono tabular-nums">{euro(tile.price ?? 0)}</span>
+            </div>
+          </div>
         </div>
 
         <TimeBar deadline={game.deadline} total={a.bids.length ? AUCTION_MS.bid : AUCTION_MS.start} />

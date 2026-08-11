@@ -132,7 +132,7 @@ describe("fare cassa durante l'asta", () => {
     if (m.ok) expect(m.state.props[6]!.mortgaged).toBe(true);
   });
 
-  it("chi si è ritirato dall'asta non può più fare cassa fuori turno", () => {
+  it("chi si è ritirato dall'asta smonta il patrimonio comunque", () => {
     const s = started();
     s.props[6] = { owner: "b", mortgaged: false, houses: 0 };
     s.phase = { t: "buyPrompt", tile: 1, again: false };
@@ -140,10 +140,8 @@ describe("fare cassa durante l'asta", () => {
     if (!d.ok) throw new Error(d.error);
     const f = apply(d.state, "b", { type: "fold" });
     if (!f.ok) throw new Error(f.error);
-    // se l'asta è ancora aperta, b è fuori e non può più smontare il patrimonio
-    if (f.state.stack.at(-1)?.t === "auction") {
-      expect(apply(f.state, "b", { type: "mortgage", tile: 6 }).ok).toBe(false);
-    }
+    // il patrimonio è suo: ipotecarlo non è una mossa di turno né d'asta
+    expect(apply(f.state, "b", { type: "mortgage", tile: 6 }).ok).toBe(true);
   });
 });
 

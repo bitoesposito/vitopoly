@@ -110,6 +110,7 @@ describe("turnView", () => {
     const g = game();
     expect(turnView(g, "a").legal.has("roll")).toBe(true);
     expect(turnView(g, "a").legal.has("endTurn")).toBe(false); // non hai ancora tirato
-    expect(turnView(g, "b").legal.has("mortgage")).toBe(false); // non è il tuo turno
+    expect(turnView(g, "b").legal.has("mortgage")).toBe(true); // il patrimonio è tuo a qualunque ora
+    expect(turnView(g, "b").legal.has("roll")).toBe(true); // la lista è del NODO, chi può agire lo dice il motore
   });
 });

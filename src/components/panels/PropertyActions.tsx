@@ -36,7 +36,7 @@ export function PropertyActions({ game, myId, tile }: { game: PublicState; myId:
   const def = BOARD[tile];
   if (!own || own.owner !== myId) return null;
 
-  const legal = new Set(legalActions(game, myId));
+  const legal = new Set(legalActions(game));
   const street = def.kind === "street";
 
   const rows: Row[] = [

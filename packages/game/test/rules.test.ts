@@ -74,7 +74,7 @@ describe("building", () => {
   });
 });
 
-describe("asset actions: own turn only", () => {
+describe("asset actions", () => {
   it("build is legal on your own preRoll, before rolling", () => {
     const s = started();
     s.players[0].cash = 10000;
@@ -85,14 +85,21 @@ describe("asset actions: own turn only", () => {
     if (r.ok) expect(r.state.props[1]!.houses).toBe(1);
   });
 
-  it("cash raisers are rejected off-turn, allowed for an off-turn debtor", () => {
+  it("cash raisers need no turn: your own assets, at any point", () => {
     const s = started();
     s.props[6] = { owner: "b", mortgaged: false, houses: 0 };
-    expect(apply(s, "b", { type: "mortgage", tile: 6 }).ok).toBe(false); // a's turn
-    expect(apply(s, "b", { type: "sellProperty", tile: 6 }).ok).toBe(false);
-    // b owes (e.g. a "pay each player" card) -> b may raise cash even off-turn
-    s.stack.push({ t: "debt", debtor: "b", claims: [{ creditor: "a", amount: 500 }] });
+    expect(s.players[s.current].id).toBe("a"); // it is NOT b's turn
     expect(apply(s, "b", { type: "mortgage", tile: 6 }).ok).toBe(true);
+    expect(apply(s, "b", { type: "sellProperty", tile: 6 }).ok).toBe(true);
+    // someone else's deed stays refused: it is ownership, not turn, that gates this
+    expect(apply(s, "a", { type: "mortgage", tile: 6 }).ok).toBe(false);
+  });
+
+  it("spending still waits for your turn: building is not raising cash", () => {
+    const s = started();
+    ownGroup(s, [6, 8, 9], "b");
+    s.players[1].cash = 10000;
+    expect(apply(s, "b", { type: "build", tile: 6 }).ok).toBe(false); // a's turn
   });
 
   it("sellProperty: deed back to the bank at mortgage + 25%", () => {

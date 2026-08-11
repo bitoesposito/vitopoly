@@ -13,7 +13,7 @@ export { CHANCE, CHEST } from "./data/cards";
 export type { CardDef, CardFx } from "./data/cards";
 
 // il motore
-export { apply, activeNode, canRaiseCash, legalActions, auctionTimeout } from "./engine";
+export { apply, activeNode, legalActions, auctionTimeout } from "./engine";
 export { AUCTION_MS, TIMEOUT_MS, timeoutAction, timeoutMs } from "./timeouts";
 export { invariantViolations } from "./invariants";
 

@@ -22,11 +22,16 @@ function whoIsExpected(s: GameState, rng: { seed: number }): string {
   return s.players[s.current].id;
 }
 
+const RACCOGLI = new Set(["mortgage", "sellHouse", "sellProperty"]);
+
 function randomAction(s: GameState, rng: { seed: number }): { pid: string; a: ClientAction } {
   const alive = s.players.filter((p) => !p.bankrupt);
   // 1 su 5 agisce un giocatore a caso: i rifiuti restano coperti, ma smettono di essere tutto
   const pid = nextInt(rng, 5) === 0 ? alive[nextInt(rng, alive.length)].id : whoIsExpected(s, rng);
-  const types = legalActions(s, pid);
+  // i raccogli-cassa ora sono legali a ogni nodo e per chiunque: pescarli con la stessa
+  // probabilità delle mosse di turno significa una partita che non chiude mai
+  const tutte = legalActions(s);
+  const types = nextInt(rng, 6) === 0 ? tutte : tutte.filter((t) => !RACCOGLI.has(t));
   const type = types[nextInt(rng, types.length)];
   // le caselle si pescano fra le PROPRIE: un tile a caso su 40 era quasi sempre un rifiuto
   const mine = Object.keys(s.props)

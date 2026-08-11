@@ -35,7 +35,7 @@ export function turnView(game: PublicState, myId: string): TurnView {
   const names = playerNames(game);
   const isMyTurn = game.players[game.current]?.id === myId;
   const again = game.phase.t === "postRoll" && game.phase.again && game.stack.length === 0;
-  const legal = new Set<string>(legalActions(game, myId));
+  const legal = new Set<string>(legalActions(game));
   const debt = node.t === "debt" ? node : null;
   const buyTile = node.t === "buyPrompt" && isMyTurn ? node.tile : null;
 

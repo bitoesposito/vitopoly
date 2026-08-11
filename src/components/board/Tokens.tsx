@@ -92,10 +92,8 @@ export function Tokens({ game }: { game: PublicState }) {
   const currentId = game.players[game.current]?.id;
   const tokenStep = useGame((s) => s.tokenStep); // choreographed display pos (ws.ts); state pos is the fallback
   const vivi = game.players.filter((p) => !p.bankrupt);
-  const dove = (p: (typeof vivi)[number]) => tokenStep[p.id]?.pos ?? p.pos;
-  // quante pedine MOSTRATE su ogni casella: lo scarto è per non coprirsi, quindi da sola
-  // una pedina sta al centro — anche dopo che il turno è passato a un altro
-  const affollata = vivi.reduce<Record<number, number>>((n, p) => ({ ...n, [dove(p)]: (n[dove(p)] ?? 0) + 1 }), {});
+  const dove = (p: (typeof vivi)[number]) => tokenStep[p.id]?.pos ?? p.pos; // posizione MOSTRATA
+  const solo = (p: (typeof vivi)[number]) => vivi.every((o) => o === p || dove(o) !== dove(p));
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
       {vivi.map((p) => (
@@ -105,7 +103,7 @@ export function Tokens({ game }: { game: PublicState }) {
           pos={dove(p)}
           back={tokenStep[p.id]?.back}
           current={game.status === "playing" && p.id === currentId}
-          solo={affollata[dove(p)] === 1}
+          solo={solo(p)}
         />
       ))}
     </div>

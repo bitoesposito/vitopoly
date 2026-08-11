@@ -26,12 +26,13 @@ export function Center({ game }: { game: PublicState }) {
   // il contenitore vive in index.html: esiste già al primo render
   const [thumbBar] = useState(() => document.getElementById("barra-azione"));
   const myId = useGame((s) => s.myId);
+  const feed = useGame((s) => s.feed);
 
   if (game.status === "ended") return <GameOver game={game} />;
 
   const view = turnView(game, myId);
   const { isMyTurn, me, current, names, canRoll, buyTile, shortfall, debt, iOwe, owed, creditors } = view;
-  const dice = lastRoll(useGame.getState().feed, game.log);
+  const dice = lastRoll(feed, game.log);
   const actions = <TurnActions game={game} view={view} />;
 
   // il risultato del dado esiste solo come trasformazione CSS: senza questo è muto

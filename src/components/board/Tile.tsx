@@ -84,14 +84,15 @@ export function Tile({ index, game, landed }: { index: number; game: PublicState
   // le celle dei lati sono 48×31: per una riga di edifici restano 5.7px e le icone ne
   // vogliono 8. Lì gli edifici vanno sulla riga del prezzo, contati come nel pannello.
   const bassa = side === "left" || side === "right";
-  const edifici = !own?.houses ? null : own.houses === 5 ? (
-    <Hotel className="size-[min(3cqi,1rem)] shrink-0" />
-  ) : (
-    <>
-      <House className="size-[min(2.1cqi,0.875rem)] shrink-0" />
-      {own.houses > 1 && <span>×{own.houses}</span>}
-    </>
-  );
+  const edifici =
+    !bassa || !own?.houses ? null : own.houses === 5 ? (
+      <Hotel className="size-[min(3cqi,1rem)] shrink-0" />
+    ) : (
+      <>
+        <House className="size-[min(2.1cqi,0.875rem)] shrink-0" />
+        {own.houses > 1 && <span>×{own.houses}</span>}
+      </>
+    );
 
   return (
     <Popover>
@@ -160,7 +161,7 @@ export function Tile({ index, game, landed }: { index: number; game: PublicState
                 )}
                 <span className="flex shrink-0 items-center justify-center gap-[min(0.5cqi,0.19rem)] font-mono leading-none text-paper-ink/75 tabular-nums">
                   {euro(tile.price ?? 0)}
-                  {bassa && edifici}
+                  {edifici}
                 </span>
               </>
             )}

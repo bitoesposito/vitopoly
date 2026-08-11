@@ -42,7 +42,7 @@ export function GameOver({ game }: { game: PublicState }) {
           <Button size="lg" className="w-full" onClick={() => send({ type: "rematch" })}>
             {t("end.rematch")}
           </Button>
-          <Button variant="ghost" className="w-full" onClick={torna}>
+          <Button variant="ghost" className="w-full" onClick={() => torna()}>
             {t("end.home")}
           </Button>
         </div>

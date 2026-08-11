@@ -1,14 +1,13 @@
-import { ChevronDown, Share2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Share2 } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { PlayerList } from "@/components/panels/PlayerList";
 import { Rules } from "@/components/lobby/Rules";
 import { Identity } from "@/components/lobby/Identity";
 import { InstallaApp } from "@/components/InstallaApp";
-import { Stanza } from "@/components/Stanza";
 import { useGame } from "@/lib/store";
 import { translate as t } from "@/lib/i18n";
-import { send } from "@/lib/net/client";
+import { send, torna } from "@/lib/net/client";
 import { shareInvite } from "@/lib/share";
 
 // Sala d'attesa, non un cruscotto: colonna sola e centrata, sezioni separate da un
@@ -24,8 +23,21 @@ export function PreMatch({ game }: { game: PublicState }) {
   return (
     // stesso ritmo della home (Lobby): gutter 5, sezioni 5, dentro 2, dopo un filetto 3
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 p-5">
-      {/* la sala d'attesa è una stanza come le altre: da qui si vede quale, e si esce */}
-      <Stanza game={game} className="self-end" />
+      {/* Qui indietro vuol dire una cosa sola: lascio la stanza. Il posto si libera davvero,
+          ma la stanza resta e la home offre il rientro — quindi niente conferma a due tocchi.
+          Il link da condividere ce l'ha già la sezione dei giocatori. */}
+      <Button
+        size="sm"
+        variant="ghost"
+        className="-ml-2.5 self-start text-muted-foreground"
+        onClick={() => {
+          send({ type: "leave" });
+          setTimeout(() => torna(false), 300);
+        }}
+      >
+        <ArrowLeft />
+        {t("room.leave")}
+      </Button>
 
       <section className="space-y-2">
         <h2 className={LABEL}>{t("id.title")}</h2>
@@ -43,7 +55,12 @@ export function PreMatch({ game }: { game: PublicState }) {
             <div className="font-medium">{t("settings.invite")}</div>
             <div className="text-xs text-muted-foreground">{alone ? t("settings.inviteAlone") : t("settings.inviteDesc")}</div>
           </div>
-          <Share2 className="size-4 shrink-0" />
+          {/* il codice sta qui perché è la sezione dell'invito, e in standalone non c'è un
+              indirizzo da leggere: senza, non puoi dire a voce in quale stanza sei */}
+          <span className="flex shrink-0 items-center gap-2">
+            <span className="font-mono text-micro tracking-widest text-muted-foreground uppercase">N. {code}</span>
+            <Share2 className="size-4" />
+          </span>
         </button>
       </section>
 

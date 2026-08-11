@@ -93,9 +93,10 @@ export function send(action: ClientAction): void {
 }
 
 /** Fuori dalla stanza. Il posto lo lascia il motore (leave); qui si torna alla home
- *  ricaricando, che è più sicuro di azzerare a mano sette pezzi di store. */
-export function torna(): void {
-  dimenticaStanza();
+ *  ricaricando, che è più sicuro di azzerare a mano sette pezzi di store. `dimentica`
+ *  spegne il rientro dalla home: si usa quando non c'è più niente in cui rientrare. */
+export function torna(dimentica = true): void {
+  if (dimentica) dimenticaStanza();
   location.href = location.origin + location.pathname;
 }
 

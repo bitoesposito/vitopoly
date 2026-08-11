@@ -32,6 +32,8 @@ const CHAT = [
   { pid: "p2", name: "Anna", text: "ciao!", ts: 0 },
   { pid: "p2", name: "Anna", text: "pronti?", ts: 0 },
   { pid: ME, name: "Tu", text: "pronti", ts: 0 },
+  // lungo di proposito: nel registro deve andare a capo allineato a sinistra
+  { pid: "p3", name: "Bruno", text: "aspetta che ipoteco Milano e Brescia, poi tiro — non chiudete il turno senza di me", ts: 0 },
 ];
 
 function show(g: GameState | null) {

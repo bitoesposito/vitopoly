@@ -80,10 +80,10 @@ export function EventLog({ game, myId }: { game: PublicState; myId: string }) {
             key={key}
             // solo le righe nuove si montano, quindi solo loro entrano
             className={`animate-in duration-200 ease-out fade-in slide-in-from-top-1 ${j === 0 ? "font-semibold text-foreground" : ""} ${
-              ink ? "flex items-center justify-center gap-1.5" : ""
+              ink ? "flex items-start justify-center gap-1.5 text-left" : ""
             }`}
           >
-            {ink && <span className="h-3 w-1 shrink-0" style={{ background: ink }} aria-hidden />}
+            {ink && <span className="mt-1 h-3 w-1 shrink-0" style={{ background: ink }} aria-hidden />}
             {from && <b className="text-foreground">{from}</b>}
             <span className={ink ? "min-w-0 text-foreground" : ""}>{text}</span>
           </div>

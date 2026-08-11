@@ -2,23 +2,21 @@ import { describe, expect, it } from "vitest";
 import { apply } from "../src/engine";
 import { rentFor } from "../src/rules/rent";
 import { build } from "../src/rules/property";
-import { addPlayer, createGame, DEFAULT_SETTINGS, TOKENS } from "../src/setup";
+import { addPlayer, CASSA_INIZIALE, createGame, TOKENS } from "../src/setup";
 import { started } from "./helpers";
 
-describe("game settings", () => {
-  it("le regole della casa sono fisse e si applicano allo start", () => {
+describe("regole della casa", () => {
+  it("la cassa iniziale si applica allo start", () => {
     const s = createGame(7);
     addPlayer(s, "a", "A");
     addPlayer(s, "b", "B");
     const g = apply(s, "a", { type: "start" });
     if (!g.ok) throw new Error(g.error);
-    expect(g.state.settings).toEqual(DEFAULT_SETTINGS);
-    expect(g.state.players.every((p) => p.cash === DEFAULT_SETTINGS.startingCash)).toBe(true);
+    expect(g.state.players.every((p) => p.cash === CASSA_INIZIALE)).toBe(true);
   });
 
-  // Il tetto è il numero di inchiostri. Prima non c'era, e il nono giocatore riceveva
-  // token 0: stesso colore, stessa lettera e stesso scostamento del primo, cioè due
-  // pedine sovrapposte e indistinguibili sulla plancia.
+  // Il tetto è il numero di inchiostri: un nono giocatore avrebbe colore, lettera e
+  // scostamento del primo, cioè una pedina indistinguibile.
   it("in lobby ci si siede fino a TOKENS, poi si guarda", () => {
     const s = createGame(7);
     for (let i = 0; i < TOKENS; i++) expect(addPlayer(s, `p${i}`, `P${i}`)).not.toBeNull();
@@ -48,29 +46,8 @@ describe("game settings", () => {
     expect(rentFor(s, 1, 7)).toBe(2);
   });
 
-  it("doubleRentFullSet off keeps base rent on monopolies", () => {
-    const s = started();
-    s.props[1] = { owner: "b", mortgaged: false, houses: 0 };
-    s.props[3] = { owner: "b", mortgaged: false, houses: 0 };
-    expect(rentFor(s, 1, 7)).toBe(4);
-    s.settings.doubleRentFullSet = false;
-    expect(rentFor(s, 1, 7)).toBe(2);
-  });
-
-  it("auction off: decline leaves the tile unowned, no frame", () => {
-    const s = started();
-    s.settings.auction = false;
-    s.phase = { t: "buyPrompt", tile: 1, again: false };
-    const r = apply(s, "a", { type: "decline" });
-    expect(r.ok).toBe(true);
-    if (!r.ok) return;
-    expect(r.state.stack).toHaveLength(0);
-    expect(r.state.props[1]).toBeUndefined();
-  });
-
   it("vacation pot: bank fees accumulate, landing collects", () => {
     const s = started();
-    expect(s.settings.vacationCash).toBe(true);
     s.players[0].cash = 1000;
     s.phase = { t: "postRoll", again: false };
     s.stack.push({ t: "debt", debtor: "a", claims: [{ creditor: "bank", amount: 200 }] });
@@ -79,7 +56,7 @@ describe("game settings", () => {
     expect(paid.state.vacationPot).toBe(200);
   });
 
-  it("randomOrder shuffles turn order deterministically by seed", () => {
+  it("l'ordine di turno è sorteggiato, e col seme è ripetibile", () => {
     const make = () => {
       const s = createGame(42);
       addPlayer(s, "a", "A");

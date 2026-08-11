@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @import "@fontsource-variable/ibm-plex-sans";
 @import "@fontsource/ibm-plex-sans-condensed/400.css";
 @import "@fontsource/ibm-plex-sans-condensed/500.css";
@@ -14,339 +13,466 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-condensed);
-    --font-sans: 'IBM Plex Sans Variable', sans-serif;
-    --font-condensed: 'IBM Plex Sans Condensed', sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-    /* Scala tipografica dell'app:
+  --font-sans: "IBM Plex Sans Variable", sans-serif;
+  --font-condensed: "IBM Plex Sans Condensed", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* Scala tipografica dell'app:
        - text-2xs  etichette uppercase, badge, metadati delle celle
        - text-xs   righe di lista, descrizioni, chat
        - text-sm   titoli pannello, contenuto primario
        - display   offerta asta / vincitore (2xl), dadi
        La board (tiles + centro) aggiunge step responsive fino a lg:text-sm /
        xl:text-base; la sidebar è a larghezza fissa e non ne ha bisogno. */
-    --text-2xs: 0.6875rem;
-    --text-2xs--line-height: 0.875rem;
-    /* microtesto: regioni, lettere di serie, diciture. Sempre caps. */
-    --text-micro: 0.5625rem;
-    --text-micro--line-height: 0.75rem;
-    --text-micro--letter-spacing: 0.08em;
-    --text-micro--font-weight: 600;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    /* un inchiostro, un mestiere */
-    --color-success: var(--verde-valore); /* denaro */
-    --color-warning: var(--bollo); /* aste, scadenze */
-    --color-sanguigna: var(--sanguigna); /* annullo: ipoteca, bancarotta, debito */
-    --color-indaco: var(--indaco); /* scambi */
-    --color-paper: var(--paper);
-    --color-paper-ink: var(--paper-ink);
-    --color-paper-line: var(--paper-line);
-    --color-sanguigna-carta: var(--sanguigna-carta);
-    --color-indaco-carta: var(--indaco-carta);
-    --color-verde-carta: var(--verde-carta);
-    --color-bollo-carta: var(--bollo-carta);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 0.875rem;
+  /* microtesto: regioni, lettere di serie, diciture. Sempre caps. */
+  --text-micro: 0.5625rem;
+  --text-micro--line-height: 0.75rem;
+  --text-micro--letter-spacing: 0.08em;
+  --text-micro--font-weight: 600;
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  /* un inchiostro, un mestiere */
+  --color-success: var(--verde-valore); /* denaro */
+  --color-warning: var(--bollo); /* aste, scadenze */
+  --color-sanguigna: var(--sanguigna); /* annullo: ipoteca, bancarotta, debito */
+  --color-indaco: var(--indaco); /* scambi */
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --color-paper-line: var(--paper-line);
+  --color-sanguigna-carta: var(--sanguigna-carta);
+  --color-indaco-carta: var(--indaco-carta);
+  --color-verde-carta: var(--verde-carta);
+  --color-bollo-carta: var(--bollo-carta);
 }
 
 /* gioco sempre in dark (main.tsx aggiunge .dark); la classe resta perché le utility
    `dark:` dei componenti ui la usano */
 :root {
-    --radius: 0;
+  --radius: 0;
 }
 
 /* La carta NON è `--card`: è un materiale applicato dove la carta esiste davvero
    (celle, talloncini, carte evento). Ribaltare `--card` spegnerebbe ogni
    `text-muted-foreground`, che serve sia la chrome scura sia la carta. */
 .dark {
-    --background: oklch(0.288 0.022 168);
-    --foreground: oklch(0.95 0.012 92);
-    --card: oklch(0.352 0.024 168);
-    --card-foreground: oklch(0.95 0.012 92);
-    --popover: oklch(0.332 0.023 168);
-    --popover-foreground: oklch(0.95 0.012 92);
-    --primary: oklch(0.9 0.014 90);
-    --primary-foreground: oklch(0.19 0.02 168);
-    --secondary: oklch(0.395 0.022 168);
-    --secondary-foreground: oklch(0.95 0.012 92);
-    --muted: oklch(0.41 0.021 168);
-    --muted-foreground: oklch(0.805 0.016 95); /* 6.9:1 su --card */
-    --accent: oklch(0.415 0.024 168);
-    --accent-foreground: oklch(0.94 0.012 92);
-    --destructive: oklch(0.605 0.163 30); /* sanguigna */
-    --border: oklch(0.86 0.02 90 / 16%);
-    --input: oklch(0.86 0.02 90 / 22%);
-    --ring: oklch(0.74 0.132 76); /* il focus è un timbro */
-    --chart-1: oklch(0.62 0.1 158);
-    --chart-2: oklch(0.74 0.132 76);
-    --chart-3: oklch(0.56 0.11 262);
-    --chart-4: oklch(0.605 0.163 30);
-    --chart-5: oklch(0.5 0.02 168);
-    --sidebar: oklch(0.318 0.023 168);
-    --sidebar-foreground: oklch(0.95 0.012 92);
-    --sidebar-primary: oklch(0.56 0.11 262);
-    --sidebar-primary-foreground: oklch(0.96 0.01 90);
-    --sidebar-accent: oklch(0.395 0.022 168);
-    --sidebar-accent-foreground: oklch(0.95 0.012 92);
-    --sidebar-border: oklch(0.86 0.02 90 / 14%);
-    --sidebar-ring: oklch(0.74 0.132 76);
+  --background: oklch(0.288 0.022 168);
+  --foreground: oklch(0.95 0.012 92);
+  --card: oklch(0.352 0.024 168);
+  --card-foreground: oklch(0.95 0.012 92);
+  --popover: oklch(0.332 0.023 168);
+  --popover-foreground: oklch(0.95 0.012 92);
+  --primary: oklch(0.9 0.014 90);
+  --primary-foreground: oklch(0.19 0.02 168);
+  --secondary: oklch(0.395 0.022 168);
+  --secondary-foreground: oklch(0.95 0.012 92);
+  --muted: oklch(0.41 0.021 168);
+  --muted-foreground: oklch(0.805 0.016 95); /* 6.9:1 su --card */
+  --accent: oklch(0.415 0.024 168);
+  --accent-foreground: oklch(0.94 0.012 92);
+  --destructive: oklch(0.605 0.163 30); /* sanguigna */
+  --border: oklch(0.86 0.02 90 / 16%);
+  --input: oklch(0.86 0.02 90 / 22%);
+  --ring: oklch(0.74 0.132 76); /* il focus è un timbro */
+  --sidebar: oklch(0.318 0.023 168);
 
-    --paper: oklch(0.832 0.018 88);
-    --paper-ink: oklch(0.245 0.022 166); /* 13.2:1 su --paper */
-    --paper-line: oklch(0.6 0.022 160);
-    --verde-valore: oklch(0.63 0.104 158);
-    --bollo: oklch(0.745 0.132 76);
-    --sanguigna: oklch(0.605 0.163 30);
-    --indaco: oklch(0.565 0.112 262);
-    /* gli stessi inchiostri su carta: quelli sopra stanno sotto 4,5:1 sul chiaro */
-    --sanguigna-carta: oklch(0.44 0.15 30);
-    --indaco-carta: oklch(0.43 0.13 262);
-    --verde-carta: oklch(0.4 0.1 158);
-    --bollo-carta: oklch(0.42 0.1 76);
+  --paper: oklch(0.832 0.018 88);
+  --paper-ink: oklch(0.245 0.022 166); /* 13.2:1 su --paper */
+  --paper-line: oklch(0.6 0.022 160);
+  --verde-valore: oklch(0.63 0.104 158);
+  --bollo: oklch(0.745 0.132 76);
+  --sanguigna: oklch(0.605 0.163 30);
+  --indaco: oklch(0.565 0.112 262);
+  /* gli stessi inchiostri su carta: quelli sopra stanno sotto 4,5:1 sul chiaro */
+  --sanguigna-carta: oklch(0.44 0.15 30);
+  --indaco-carta: oklch(0.43 0.13 262);
+  --verde-carta: oklch(0.4 0.1 158);
+  --bollo-carta: oklch(0.42 0.1 76);
 }
 
 /* Materiali: substrato, filetto, sovrastampa. Lo stato si timbra, non si colora. */
 :root {
-    /* grana della carta: rumore fine, non una texture disegnata */
-    --grana: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='.055'/%3E%3C/svg%3E");
-    /* scrivania: tratteggio d'intaglio a 45 gradi, appena percettibile */
-    --tratteggio: repeating-linear-gradient(45deg, oklch(1 0 0 / 0.016) 0 1px, transparent 1px 7px);
+  /* grana della carta: rumore fine, non una texture disegnata */
+  --grana: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='.055'/%3E%3C/svg%3E");
+  /* scrivania: tratteggio d'intaglio a 45 gradi, appena percettibile */
+  --tratteggio: repeating-linear-gradient(45deg, oklch(1 0 0 / 0.016) 0 1px, transparent 1px 7px);
 }
 /* `background-color` e non la scorciatoia: la tinta del proprietario arriva inline
    e non deve cancellare la grana. */
 .nota {
-    background-color: var(--paper);
-    background-image: var(--grana);
-    color: var(--paper-ink);
+  background-color: var(--paper);
+  background-image: var(--grana);
+  color: var(--paper-ink);
 }
 /* non in @layer: deve battere il `border-border` della base */
 .filetto {
-    border-color: var(--paper-line);
+  border-color: var(--paper-line);
 }
 /* il bulino della scrivania, riusabile su qualunque superficie scura */
 .tratteggio {
-    background-image: var(--tratteggio);
+  background-image: var(--tratteggio);
 }
 /* IPOTECA / FUORI: timbro obliquo, non intercetta il puntatore */
 .sovrastampa {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-    font-family: var(--font-condensed);
-    font-size: max(1.65cqi, 5px);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--sanguigna-carta);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  font-family: var(--font-condensed);
+  font-size: max(1.65cqi, 5px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sanguigna-carta);
 }
 .sovrastampa > span {
-    padding: 0.1em 0.3em;
-    border-block: 0.12em solid currentColor;
-    white-space: nowrap;
-    transform: rotate(-11deg);
-    background: color-mix(in oklab, var(--paper) 62%, transparent);
+  padding: 0.1em 0.3em;
+  border-block: 0.12em solid currentColor;
+  white-space: nowrap;
+  transform: rotate(-11deg);
+  background: color-mix(in oklab, var(--paper) 62%, transparent);
 }
 
 /* EventCard.tsx: springy pop-in from the bottom with rotation + focus pull, quick toss-out */
 @keyframes card-in {
-    0% { opacity: 0; transform: translateY(80%) rotate(16deg) scale(0.65); filter: blur(6px); }
-    55% { opacity: 1; transform: translateY(-3%) rotate(-4deg) scale(1.04); filter: blur(0); }
-    75% { transform: translateY(1%) rotate(1.5deg) scale(0.99); }
-    100% { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(80%) rotate(16deg) scale(0.65);
+    filter: blur(6px);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-3%) rotate(-4deg) scale(1.04);
+    filter: blur(0);
+  }
+  75% {
+    transform: translateY(1%) rotate(1.5deg) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+    filter: blur(0);
+  }
 }
 @keyframes card-out {
-    to { opacity: 0; transform: translateY(-35%) rotate(8deg) scale(0.85); filter: blur(4px); }
+  to {
+    opacity: 0;
+    transform: translateY(-35%) rotate(8deg) scale(0.85);
+    filter: blur(4px);
+  }
 }
-.card-pop-in { animation: card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.card-pop-out { animation: card-out 0.24s ease-in both; }
+.card-pop-in {
+  animation: card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.card-pop-out {
+  animation: card-out 0.24s ease-in both;
+}
 
 /* trade card: rises without spin, then the exchanged chips fly between the players */
 @keyframes trade-in {
-    0% { opacity: 0; transform: translateY(45%) scale(0.92); }
-    60% { opacity: 1; transform: translateY(-2%) scale(1.01); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(45%) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2%) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
-@keyframes chip-r { from { opacity: 0; transform: translateX(-42px); } to { opacity: 1; transform: none; } }
-@keyframes chip-l { from { opacity: 0; transform: translateX(42px); } to { opacity: 1; transform: none; } }
-.trade-pop-in { animation: trade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.chip-fly-r { animation: chip-r 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.chip-fly-l { animation: chip-l 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes chip-r {
+  from {
+    opacity: 0;
+    transform: translateX(-42px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes chip-l {
+  from {
+    opacity: 0;
+    transform: translateX(42px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.trade-pop-in {
+  animation: trade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.chip-fly-r {
+  animation: chip-r 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.chip-fly-l {
+  animation: chip-l 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 /* Cash.tsx: la differenza sale e svanisce sopra la cifra. `both` la lascia a opacità 0
    invece di rimetterla visibile a fine corsa. */
 @keyframes cifra-delta {
-    0% { opacity: 0; transform: translateY(4px); }
-    25% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-8px); }
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
 }
-.cifra-delta { animation: cifra-delta 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.cifra-delta {
+  animation: cifra-delta 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 /* Tile.tsx: la casella accusa il colpo quando la pedina si posa — è il filo tra la
    camminata e la sua conseguenza. Un anello interno che si spegne, niente movimento:
    la plancia è la superficie che si deve leggere. */
 @keyframes arrivo {
-    from { box-shadow: inset 0 0 0 2px var(--ring); }
-    to { box-shadow: inset 0 0 0 2px transparent; }
+  from {
+    box-shadow: inset 0 0 0 2px var(--ring);
+  }
+  to {
+    box-shadow: inset 0 0 0 2px transparent;
+  }
 }
-.casella-arrivo { animation: arrivo 0.5s ease-out both; }
+.casella-arrivo {
+  animation: arrivo 0.5s ease-out both;
+}
 
 /* Dadi 3D (Center.tsx): cubo a 6 facce, geometria in em (1em = lato, misura via --die).
    Il lancio è diviso in due: la SCENA porta l'arco, il CUBO la rotazione. Durata uguale
    per entrambi i dadi — la varietà sta nei giri — e si posano decelerando, non rimbalzando. */
 .die-scene {
-    width: var(--die, 3rem);
-    height: var(--die, 3rem);
-    /* niente perspective: ortografica -> a riposo solo la faccia frontale, zero artefatti.
+  width: var(--die, 3rem);
+  height: var(--die, 3rem);
+  /* niente perspective: ortografica -> a riposo solo la faccia frontale, zero artefatti.
        Niente filter: su un antenato appiattisce il 3D dei figli. */
-    transition: transform .25s ease;
+  transition: transform 0.25s ease;
 }
 /* l'arco del lancio: su e giù, con la salita più rapida della discesa */
 @keyframes die-toss {
-    0% { transform: translateY(0) }
-    32% { transform: translateY(-42%) }
-    100% { transform: translateY(0) }
+  0% {
+    transform: translateY(0);
+  }
+  32% {
+    transform: translateY(-42%);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
-.die-tossing { animation: die-toss var(--roll, .92s) cubic-bezier(.3, 0, .3, 1) both; }
+.die-tossing {
+  animation: die-toss var(--roll, 0.92s) cubic-bezier(0.3, 0, 0.3, 1) both;
+}
 .die {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    font-size: var(--die, 3rem);
-    transform-style: preserve-3d;
-    /* tilt (hover) composto con la faccia corrente: l'inclinazione mostra i lati
+  position: relative;
+  width: 100%;
+  height: 100%;
+  font-size: var(--die, 3rem);
+  transform-style: preserve-3d;
+  /* tilt (hover) composto con la faccia corrente: l'inclinazione mostra i lati
        del cubo senza perdere il valore uscito */
-    transform: var(--die-tilt, rotateZ(0)) var(--face, rotateZ(0));
-    /* decelerazione esponenziale: un dado che si ferma rallenta, non rimbalza */
-    transition: transform .62s cubic-bezier(.16, 1, .3, 1);
+  transform: var(--die-tilt, rotateZ(0)) var(--face, rotateZ(0));
+  /* decelerazione esponenziale: un dado che si ferma rallenta, non rimbalza */
+  transition: transform 0.62s cubic-bezier(0.16, 1, 0.3, 1);
 }
 /* La faccia NON è preserve-3d: i pip sono pseudo-elementi e devono stare sopra il fondo
    in ordine di pittura. Con preserve-3d WebKit li ordina in Z e, a cubo fermo (nessuna
    perspective attiva), su iOS il fondo li copriva: dadi bianchi da fermi, pallini solo
    durante il tumble. */
 .die-face {
-    position: absolute;
-    inset: 0;
-    border-radius: .13em;
-    border: .035em solid #fffdf8;
-    background: linear-gradient(150deg, #fbf8f2 0%, #e7e2d8 62%, #d7d1c5 100%);
-    color: #16241e; /* i pip secondari sono box-shadow: senza questo prendono currentColor */
-    box-shadow: 0 .05em .1em rgb(0 0 0 / .38);
-    backface-visibility: hidden;
+  position: absolute;
+  inset: 0;
+  border-radius: 0.13em;
+  border: 0.035em solid #fffdf8;
+  background: linear-gradient(150deg, #fbf8f2 0%, #e7e2d8 62%, #d7d1c5 100%);
+  color: #16241e; /* i pip secondari sono box-shadow: senza questo prendono currentColor */
+  box-shadow: 0 0.05em 0.1em rgb(0 0 0 / 0.38);
+  backface-visibility: hidden;
 }
 .die-face::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: .17em;
-    height: .17em;
-    border-radius: 50%; /* i pip sono tondi */
-    background: currentColor;
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.17em;
+  height: 0.17em;
+  border-radius: 50%; /* i pip sono tondi */
+  background: currentColor;
 }
-.die-front { transform: translateZ(.5em); }
-.die-back { transform: rotateX(180deg) translateZ(.5em); }
-.die-top { transform: rotateX(90deg) translateZ(.5em); }
-.die-bottom { transform: rotateX(-90deg) translateZ(.5em); }
-.die-right { transform: rotateY(90deg) translateZ(.5em); }
-.die-left { transform: rotateY(-90deg) translateZ(.5em); }
-.die-front::after { width: .28em; height: .28em; margin: -.14em 0 0 -.14em; background: #9c3a26; } /* sanguigna */
-.die-back::after { margin: -.35em 0 0 -.3em; box-shadow: .4em 0, 0 .25em, .4em .25em, 0 .5em, .4em .5em; }
-.die-top::after { margin: -.3em 0 0 -.3em; box-shadow: .4em .4em; }
-.die-bottom::after { margin: -.36em 0 0 -.36em; box-shadow: .26em .26em, .52em .52em, .52em 0, 0 .52em; }
-.die-right::after { margin: -.3em 0 0 -.3em; box-shadow: .4em 0, 0 .4em, .4em .4em; }
-.die-left::after { margin: -.35em 0 0 -.35em; box-shadow: .25em .25em, .5em .5em; }
+.die-front {
+  transform: translateZ(0.5em);
+}
+.die-back {
+  transform: rotateX(180deg) translateZ(0.5em);
+}
+.die-top {
+  transform: rotateX(90deg) translateZ(0.5em);
+}
+.die-bottom {
+  transform: rotateX(-90deg) translateZ(0.5em);
+}
+.die-right {
+  transform: rotateY(90deg) translateZ(0.5em);
+}
+.die-left {
+  transform: rotateY(-90deg) translateZ(0.5em);
+}
+.die-front::after {
+  width: 0.28em;
+  height: 0.28em;
+  margin: -0.14em 0 0 -0.14em;
+  background: #9c3a26;
+} /* sanguigna */
+.die-back::after {
+  margin: -0.35em 0 0 -0.3em;
+  box-shadow:
+    0.4em 0,
+    0 0.25em,
+    0.4em 0.25em,
+    0 0.5em,
+    0.4em 0.5em;
+}
+.die-top::after {
+  margin: -0.3em 0 0 -0.3em;
+  box-shadow: 0.4em 0.4em;
+}
+.die-bottom::after {
+  margin: -0.36em 0 0 -0.36em;
+  box-shadow:
+    0.26em 0.26em,
+    0.52em 0.52em,
+    0.52em 0,
+    0 0.52em;
+}
+.die-right::after {
+  margin: -0.3em 0 0 -0.3em;
+  box-shadow:
+    0.4em 0,
+    0 0.4em,
+    0.4em 0.4em;
+}
+.die-left::after {
+  margin: -0.35em 0 0 -0.35em;
+  box-shadow:
+    0.25em 0.25em,
+    0.5em 0.5em;
+}
 
 /* perspective() DENTRO i keyframe: scorcio solo al cubo in movimento, a riposo
    axis-aligned e pulito. 9em e non 4: più vicino, lo scorcio stira le facce.
    L'ultimo fotogramma è la posa di riposo (`var(--face)`): il tumble si chiude sulla faccia
    uscita, senza scatto quando l'animazione lascia il posto alla trasformazione di base. */
 @keyframes die-roll {
-    50% { transform: perspective(9em) rotateX(1turn) rotateY(1.25turn) rotateZ(.25turn) scale(.86); }
-    to { transform: var(--face, rotateZ(0)); }
+  50% {
+    transform: perspective(9em) rotateX(1turn) rotateY(1.25turn) rotateZ(0.25turn) scale(0.86);
+  }
+  to {
+    transform: var(--face, rotateZ(0));
+  }
 }
 @keyframes die-roll-alt {
-    50% { transform: perspective(9em) rotateX(-1.25turn) rotateY(1turn) rotateZ(-.25turn) scale(.86); }
-    to { transform: var(--face, rotateZ(0)); }
+  50% {
+    transform: perspective(9em) rotateX(-1.25turn) rotateY(1turn) rotateZ(-0.25turn) scale(0.86);
+  }
+  to {
+    transform: var(--face, rotateZ(0));
+  }
 }
-.die-rolling { animation: die-roll var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }
-.die-rolling-alt { animation: die-roll-alt var(--roll, .92s) cubic-bezier(.25, .5, .2, 1); }
+.die-rolling {
+  animation: die-roll var(--roll, 0.92s) cubic-bezier(0.25, 0.5, 0.2, 1);
+}
+.die-rolling-alt {
+  animation: die-roll-alt var(--roll, 0.92s) cubic-bezier(0.25, 0.5, 0.2, 1);
+}
 
 /* hover sul tray: i due cubi si inclinano in verso opposto e mostrano i lati */
-.dice-tray:not(:disabled):hover .die { --die-tilt: perspective(9em) rotateX(-12deg) rotateY(14deg); }
-.dice-tray:not(:disabled):hover .die-rolling-alt { --die-tilt: perspective(9em) rotateX(-12deg) rotateY(-14deg); }
-.dice-tray:not(:disabled):active .die-scene { transform: scale(.9); }
+.dice-tray:not(:disabled):hover .die {
+  --die-tilt: perspective(9em) rotateX(-12deg) rotateY(14deg);
+}
+.dice-tray:not(:disabled):hover .die-rolling-alt {
+  --die-tilt: perspective(9em) rotateX(-12deg) rotateY(-14deg);
+}
+.dice-tray:not(:disabled):active .die-scene {
+  transform: scale(0.9);
+}
 
 @media (prefers-reduced-motion: reduce) {
-    .card-pop-in, .card-pop-out, .trade-pop-in, .chip-fly-r, .chip-fly-l { animation-duration: 0.15s; }
-    .die-rolling, .die-rolling-alt, .die-tossing { animation-duration: 0.2s; }
-    /* la cifra resta leggibile e la casella lampeggia comunque: si accorcia, non si spegne */
-    .cifra-delta { animation-duration: 0.3s; }
-    .casella-arrivo { animation-duration: 0.25s; }
+  .card-pop-in,
+  .card-pop-out,
+  .trade-pop-in,
+  .chip-fly-r,
+  .chip-fly-l {
+    animation-duration: 0.15s;
+  }
+  .die-rolling,
+  .die-rolling-alt,
+  .die-tossing {
+    animation-duration: 0.2s;
+  }
+  /* la cifra resta leggibile e la casella lampeggia comunque: si accorcia, non si spegne */
+  .cifra-delta {
+    animation-duration: 0.3s;
+  }
+  .casella-arrivo {
+    animation-duration: 0.25s;
+  }
 }
 
 @layer base {
   * {
     /* niente /50: su fondo scuro sta sotto 3:1 */
     @apply border-border outline-ring;
-    }
+  }
   body {
     @apply bg-background text-foreground;
     background-image: var(--tratteggio);
-    }
-  button:not(:disabled), [role="button"]:not(:disabled) {
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
     cursor: pointer;
-    }
+  }
   /* selezione, caret e scrollbar non restano ai default del browser */
   ::selection {
     background: var(--bollo);
     color: oklch(0.19 0.02 168);
-    }
+  }
   :root {
     caret-color: var(--bollo);
     scrollbar-color: oklch(0.86 0.02 90 / 28%) transparent;
     scrollbar-width: thin;
-    }
+  }
   html {
     @apply font-sans;
     /* scala fluida dell'intera UI (tutto è in rem): fissa fino ai laptop,
        cresce dolcemente sui viewport larghi. I breakpoint non ne dipendono. */
     font-size: clamp(16px, 12px + 0.32vw, 19px);
-    }
+  }
 }

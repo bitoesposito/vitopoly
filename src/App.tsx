@@ -13,7 +13,6 @@ export default function App() {
   const retries = useGame((s) => s.retries);
   const myId = useGame((s) => s.myId);
 
-  // ws.ts reconnects on its own; just show a banner while offline
   if (!game) return <Lobby />;
 
   const spectator = !game.players.some((p) => p.id === myId); // joined after the game started
@@ -23,7 +22,7 @@ export default function App() {
 
   return (
     <div className={`flex h-dvh flex-col bg-background text-foreground ${banner ? "pt-6" : ""}`}>
-      {/* senza questo ogni turno costa 40 Tab */}
+      {/* skip link: prima dell'azione ci sono quaranta celle */}
       <a
         href="#azione"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-100 focus:bg-warning focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-background"
@@ -54,9 +53,8 @@ export default function App() {
           {t("spec.banner")}
         </div>
       )}
-      {/* Da md la testata è una fascia sua sopra le colonne: appesa in cima alla sidebar
-          sembrava una fascia mancante, perché la plancia è centrata e lì accanto non c'era
-          niente. Sotto md resta dentro la colonna che scorre. */}
+      {/* Da md la testata è una fascia sopra le colonne; sotto md sta dentro la colonna che
+          scorre, dove pinnarla costerebbe 36px fissi. */}
       {game.status !== "lobby" && <Testata game={game} className="hidden shrink-0 px-2 md:flex" />}
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">

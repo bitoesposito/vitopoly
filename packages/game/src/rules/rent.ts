@@ -10,7 +10,7 @@ export function rentFor(s: GameState, tile: TileId, diceTotal: number): number {
   if (def.kind === "street") {
     if (own.houses > 0) return def.rent![own.houses];
     const monopoly = groupTiles(def.group!).every((t) => s.props[t]?.owner === own.owner);
-    return monopoly && s.settings.doubleRentFullSet ? def.rent![0] * 2 : def.rent![0];
+    return monopoly ? def.rent![0] * 2 : def.rent![0];
   }
   if (def.kind === "railroad") {
     const count = BOARD.filter((t, i) => t.kind === "railroad" && s.props[i]?.owner === own.owner).length;

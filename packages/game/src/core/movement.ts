@@ -55,7 +55,7 @@ function resolveLanding(s: GameState, p: Player, diceTotal: number, again: boole
       sendToJail(s, p, ev);
       return;
     case "vacation":
-      if (s.settings.vacationCash && s.vacationPot > 0) {
+      if (s.vacationPot > 0) {
         transfer(s, "bank", p.id, s.vacationPot, "vacation cash", ev);
         s.vacationPot = 0;
       }

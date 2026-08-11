@@ -2,7 +2,7 @@ import type { ClientAction, GameState, PlayerId, Result } from "../types";
 import { CHANCE, CHEST } from "../data/cards";
 import { err, info, ok } from "../core/result";
 import { nextInt } from "../rng";
-import { addPlayer, createGame, MAX_NAME, TOKENS } from "../setup";
+import { addPlayer, CASSA_INIZIALE, createGame, MAX_NAME, TOKENS } from "../setup";
 
 // Prima del fischio d'inizio: nome, inchiostro, avvio. Il regolamento è fisso —
 // updateSettings è stata tolta dal protocollo, non solo dalla UI.
@@ -24,17 +24,16 @@ export function lobby(s: GameState, pid: PlayerId, a: ClientAction): Result {
   if (s.players.length < 2) return err("servono almeno 2 giocatori");
 
   s.status = "playing";
-  if (s.settings.randomOrder) s.players = shuffled(s, s.players.length).map((i) => s.players[i]);
-  for (const p of s.players) p.cash = s.settings.startingCash;
+  s.players = shuffled(s, s.players.length).map((i) => s.players[i]);
+  for (const p of s.players) p.cash = CASSA_INIZIALE;
   s.current = 0;
   s.phase = { t: "preRoll" };
   s.decks = { chance: shuffled(s, CHANCE.length), chest: shuffled(s, CHEST.length) };
   return ok(s, [info("partita iniziata")]);
 }
 
-/** Lascio il tavolo prima che inizi: il posto torna libero davvero, altrimenti resterebbe
- *  un giocatore fantasma a occupare un inchiostro e a contare per l'avvio. In partita non
- *  passa da qui — lì lasciare è il ritiro volontario, che ha le sue conseguenze. */
+/** Lascio il tavolo prima che inizi: il posto torna libero, l'inchiostro con lui. In
+ *  partita non passa da qui — lì lasciare è il ritiro volontario. */
 export function leaveLobby(s: GameState, pid: PlayerId): Result {
   const i = s.players.findIndex((p) => p.id === pid);
   if (i < 0) return err("non sei in partita");
@@ -42,9 +41,8 @@ export function leaveLobby(s: GameState, pid: PlayerId): Result {
   return ok(s, [info(`${via.name} lascia il tavolo`)]);
 }
 
-/** Rivincita: si torna in sala d'attesa con gli stessi giocatori. Non un reset a mano dei
- *  campi ma una partita nuova in cui si risiedono i posti, così un campo aggiunto domani a
- *  GameState nasce pulito qui come alla prima apertura della stanza. */
+/** Rivincita: sala d'attesa, stessi giocatori. È una partita nuova con i posti riassegnati,
+ *  non un reset a mano dei campi — così un campo aggiunto domani nasce pulito anche qui. */
 export function rematch(s: GameState, pid: PlayerId): Result {
   if (!s.players.some((p) => p.id === pid)) return err("non sei in partita");
   const fresh = createGame(s.seed); // stesso seed: la sequenza dei dadi continua, non si ripete

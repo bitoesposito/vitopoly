@@ -31,7 +31,7 @@ export function TradePanel({ game, myId }: { game: PublicState; myId: string }) 
   const back = () => (compose ? useGame.setState({ tradeOpen: false }) : detail && setHidden(detail.id, true));
 
   return (
-    <Panel ring={compose || detail ? "ring-2 ring-success/50" : undefined}>
+    <Panel className={compose || detail ? "ring-2 ring-success/50" : undefined}>
       <div className="mb-0 flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-sm font-semibold">
           {compose || detail ? (

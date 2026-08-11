@@ -1,14 +1,10 @@
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { translate as t } from "@/lib/i18n";
 import { transferLink } from "@/lib/seat";
 
-/** Il link d'invito. Dove il sistema ha il suo foglio di condivisione è quello a
- *  spedirlo, e gli appunti non c'entrano: copiare in silenzio dietro al foglio aggiungeva
- *  un "copiato" che contraddiceva quello che l'utente stava già facendo.
- *
- *  La discriminante è il DISPOSITIVO, non la larghezza della finestra: `hover: none` e
- *  `pointer: coarse` li ha un telefono, non un browser desktop strizzato — quello resta
- *  hover+fine a qualunque dimensione e continua a passare dagli appunti. */
+/** Il link d'invito: dove il sistema ha il suo foglio di condivisione lo spedisce quello,
+ *  altrove finisce negli appunti. La discriminante è il DISPOSITIVO, non la larghezza:
+ *  `hover: none` e `pointer: coarse` li ha un telefono, non un browser desktop strizzato. */
 export async function shareInvite(code: string | null): Promise<void> {
   const link = `${location.origin}${location.pathname}?room=${code}`;
   if (typeof navigator.share === "function" && matchMedia("(hover: none) and (pointer: coarse)").matches) {

@@ -1,19 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { apply } from "../src/engine";
 import { addPlayer, createGame } from "../src/setup";
-import { started } from "./helpers";
+import { inOrdine, started } from "./helpers";
 import { checkInvariants } from "./invariants";
 import type { GameState } from "../src/types";
 
 function trio(): GameState {
   const g = createGame(7);
-  g.settings.randomOrder = false;
   addPlayer(g, "a", "A");
   addPlayer(g, "b", "B");
   addPlayer(g, "c", "C");
   const r = apply(g, "a", { type: "start" });
   if (!r.ok) throw new Error(r.error);
-  return r.state;
+  return inOrdine(r.state);
 }
 
 function step(s: GameState, pid: string, target: string): GameState {

@@ -69,21 +69,10 @@ export interface Trade {
   get: Bundle;
 }
 
-// Fisso, non configurabile: i valori vivono in DEFAULT_SETTINGS (setup.ts).
-export interface GameSettings {
-  startingCash: number;
-  doubleRentFullSet: boolean; // x2 base rent on full color group
-  vacationCash: boolean; // taxes/bank fees accumulate on Free Parking, landing collects
-  auction: boolean; // declined purchase -> auction (off: stays unowned)
-  mortgageAllowed: boolean;
-  randomOrder: boolean; // shuffle turn order at start
-}
-
 export interface GameState {
   status: "lobby" | "playing" | "ended";
   seed: number; // xorshift32 state: dice + shuffles, replayable tests
-  settings: GameSettings;
-  vacationPot: number; // accumulated bank fees when settings.vacationCash
+  vacationPot: number; // tasse e spese di banca, incassate da chi atterra sulla Latitanza
   players: Player[]; // turn order
   current: number; // index into players
   props: Partial<Record<TileId, OwnedProp>>;
@@ -125,8 +114,8 @@ export type ClientAction =
 
 export type GameEvent =
   | { e: "rolled"; pid: PlayerId; d1: number; d2: number }
-  // `back`: senza il flag il verso non è ricostruibile — su un anello 3 passi indietro
-  // sono indistinguibili da 37 in avanti.
+  // `back`: su un anello from/to non contengono il verso — 3 passi indietro e 37 in avanti
+  // sono la stessa coppia.
   | { e: "moved"; pid: PlayerId; from: TileId; to: TileId; back?: boolean }
   | { e: "paid"; from: PlayerId | "bank"; to: PlayerId | "bank"; amount: number; why: string }
   | { e: "card"; pid: PlayerId; deck: "chance" | "chest"; cardId: number }

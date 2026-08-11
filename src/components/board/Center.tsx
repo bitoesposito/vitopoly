@@ -33,7 +33,7 @@ export function Center({ game }: { game: PublicState }) {
   const view = turnView(game, myId);
   const { isMyTurn, me, current, names, canRoll, buyTile, shortfall, debt, iOwe, owed, creditors } = view;
   const dice = lastRoll(feed, game.log);
-  const actions = <TurnActions game={game} view={view} />;
+  const actions = <TurnActions view={view} />;
 
   // il risultato del dado esiste solo come trasformazione CSS: senza questo è muto
   const announcement = [

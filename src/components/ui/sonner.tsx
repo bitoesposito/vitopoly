@@ -21,5 +21,3 @@ export function Toaster(props: React.ComponentProps<typeof Sonner>) {
     />
   );
 }
-
-export { toast } from "sonner";

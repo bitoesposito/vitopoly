@@ -6,11 +6,12 @@ import { auctionLive, isMyTurn, lastRoll, netWorth, ownedTiles, playerNames } fr
 /** Una partita avviata, ridotta a stato pubblico: è quello che il client vede davvero. */
 function game(): PublicState {
   const s = createGame(42);
-  s.settings.randomOrder = false;
   addPlayer(s, "a", "Alice");
   addPlayer(s, "b", "Bob");
   const r = apply(s, "a", { type: "start" });
   if (!r.ok) throw new Error(r.error);
+  // l'ordine di turno è sorteggiato: qui si asserisce su "a", quindi lo si rimette in fila
+  r.state.players.sort((x, y) => x.id.localeCompare(y.id));
   return r.state;
 }
 

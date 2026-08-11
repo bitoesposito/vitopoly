@@ -24,7 +24,6 @@ import { euro } from "@/lib/format";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TileDetails } from "./TileDetails";
 
-// Ogni marchio dice cosa succede sulla casella.
 const KIND_ICON: Partial<Record<TileKind, LucideIcon>> = {
   go: Banknote, // VIA: è lì che il denaro viene emesso
   chest: Mail, // Favori: la busta
@@ -81,8 +80,8 @@ export function Tile({ index, game, landed }: { index: number; game: PublicState
   const isCorner = index % 10 === 0;
   const buyable = tile.price != null;
   const region = tile.group ? GROUP_LABEL[tile.group] : undefined;
-  // le celle dei lati sono 48×31: per una riga di edifici restano 5.7px e le icone ne
-  // vogliono 8. Lì gli edifici vanno sulla riga del prezzo, contati come nel pannello.
+  // Le celle dei lati sono 48×31: per una riga di edifici restano 5,7px e le icone ne
+  // vogliono 8, quindi lì gli edifici stanno sulla riga del prezzo, contati.
   const bassa = side === "left" || side === "right";
   const edifici =
     !bassa || !own?.houses ? null : own.houses === 5 ? (
@@ -99,8 +98,8 @@ export function Tile({ index, game, landed }: { index: number; game: PublicState
       <PopoverTrigger asChild>
         <button
           type="button"
-          // transform-gpu: cella isolata sul proprio layer — evita il ghosting delle bande
-          // (dipinte sfalsate rispetto al box) causato dal churn di layer del filter in hover
+          // transform-gpu: cella su un layer suo, o le bande fantasma dipinte fuori dal box
+          // dal churn di layer del filter in hover
           className={`nota relative h-full w-full transform-gpu overflow-hidden font-condensed text-inherit ${landed ? "casella-arrivo" : ""} hover:ring-1 hover:ring-paper-line hover:ring-inset focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset`}
           // velatura decisa: sulla plancia il proprietario si legge a colpo d'occhio dal colore
           style={
@@ -142,8 +141,8 @@ export function Tile({ index, game, landed }: { index: number; game: PublicState
               {region && (
                 <span className="w-full truncate text-[min(1.5cqi,0.5625rem)] tracking-[0.06em] text-paper-ink/75 uppercase">{region}</span>
               )}
-              {/* -0.02em di tracking: recupera i 2-3px che facevano sforare
-                  "Tangente", "Autostrade" ed "Equitalia" senza rimpicciolire tutto */}
+              {/* -0.02em di tracking: i nomi lunghi (Tangente, Autostrade, Equitalia) stanno
+                  nella cella senza rimpicciolire tutto */}
               <span className="flex w-full items-start justify-center text-[min(2.25cqi,0.875rem)] leading-[1.06] font-medium tracking-[-0.02em] break-words text-paper-ink">
                 {name}
               </span>

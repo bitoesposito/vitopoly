@@ -1,5 +1,4 @@
 import { Dices, Ticket, type LucideIcon } from "lucide-react";
-import type { PublicState } from "@tangentopoly/game";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { translate as t, tileName as tn } from "@/lib/i18n";
@@ -29,7 +28,7 @@ function primaryAction(view: TurnView): Primary | null {
   return null;
 }
 
-export function TurnActions({ game, view }: { game: PublicState; view: TurnView }) {
+export function TurnActions({ view }: { view: TurnView }) {
   const { node, isMyTurn, me, buyTile, shortfall, debt, iOwe } = view;
   const primary = primaryAction(view);
 
@@ -68,7 +67,7 @@ export function TurnActions({ game, view }: { game: PublicState; view: TurnView 
             {t("buy.buy")}
           </Button>
           <Button size="lg" className={AZIONE} variant="secondary" onClick={() => send({ type: "decline" })}>
-            {game.settings.auction ? t("buy.declineAuction") : t("buy.decline")}
+            {t("buy.declineAuction")}
           </Button>
         </>
       )}

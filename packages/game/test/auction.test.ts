@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { apply, auctionTimeout } from "../src/engine";
 import { addPlayer, createGame } from "../src/setup";
-import { started } from "./helpers";
+import { inOrdine, started } from "./helpers";
 import { checkInvariants } from "./invariants";
 import type { ClientAction, GameState, PlayerId } from "../src/types";
 
@@ -154,8 +154,7 @@ describe("l'asta si chiude sempre", () => {
     for (const n of ["a", "b", "c", "d"]) addPlayer(s, n, n.toUpperCase());
     const st = apply(s, "a", { type: "start" });
     if (!st.ok) throw new Error(st.error);
-    let g = st.state;
-    g.settings.randomOrder = false;
+    let g = inOrdine(st.state);
     g.phase = { t: "buyPrompt", tile: 1, again: false };
 
     const d = apply(g, g.players[g.current].id, { type: "decline" });

@@ -8,9 +8,8 @@ import { send, torna } from "@/lib/net/client";
 import { shareInvite } from "@/lib/share";
 import { useGame } from "@/lib/store";
 
-// Dove sei e come te ne vai. Installata, l'app non ha barra degli indirizzi né tasto
-// indietro: il codice della stanza non era scritto da nessuna parte e non esisteva una via
-// d'uscita che non fosse chiudere l'app.
+// Dove sei e come te ne vai: installata, l'app non ha barra degli indirizzi né tasto
+// indietro, quindi il codice e l'uscita devono stare nell'interfaccia.
 export function Stanza({ game, className }: { game: PublicState; className?: string }) {
   const code = useGame((s) => s.code);
   const myId = useGame((s) => s.myId);
@@ -30,8 +29,8 @@ export function Stanza({ game, className }: { game: PublicState; className?: str
           N. {code}
         </Button>
       </PopoverTrigger>
-      {/* Un menu, non un modulo: due voci e un filetto. Lo spazio fra le righe è già il
-          gap del popover — sommarci un altro spaziatore raddoppiava tutto. */}
+      {/* Un menu, non un modulo: due voci e un filetto. Lo spazio fra le righe è il gap
+          del popover. */}
       <PopoverContent align="end" className="w-56 gap-1 font-sans">
         <Button size="sm" variant="ghost" className="w-full justify-start" onClick={() => shareInvite(code)}>
           <Share2 />

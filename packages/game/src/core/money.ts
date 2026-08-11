@@ -11,7 +11,7 @@ const NO_POT = new Set(["auction", "bankruptcy", "trade"]);
 export function transfer(s: GameState, from: PlayerId | "bank", to: PlayerId | "bank", amount: number, why: string, ev: GameEvent[]): void {
   if (from !== "bank") byId(s, from).cash -= amount;
   if (to !== "bank") byId(s, to).cash += amount;
-  if (to === "bank" && s.settings.vacationCash && !NO_POT.has(why) && !why.startsWith("buy ")) s.vacationPot += amount;
+  if (to === "bank" && !NO_POT.has(why) && !why.startsWith("buy ")) s.vacationPot += amount;
   ev.push({ e: "paid", from, to, amount, why });
 }
 

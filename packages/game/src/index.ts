@@ -4,9 +4,7 @@
 export * from "./types";
 export * from "./protocol";
 
-// tabellone e mazzi, come dati
-// walkTiles ha reso inutili i primitivi che esportava: chi cammina sull'anello chiede a
-// lei, e il conto delle caselle non serve fuori dal motore (c'è BOARD.length).
+// tabellone e mazzi, come dati. Chi cammina sull'anello chiede a walkTiles.
 export { BOARD, JAIL, GO_SALARY, BAIL, walkTiles } from "./data/tiles";
 export type { TileDef, TileKind } from "./data/tiles";
 export { CHANCE, CHEST } from "./data/cards";
@@ -18,7 +16,7 @@ export { AUCTION_MS, TIMEOUT_MS, timeoutAction, timeoutMs } from "./timeouts";
 export { invariantViolations } from "./invariants";
 
 // partita e roster (competenza del server, non azioni di gioco)
-export { createGame, addPlayer, setConnected, freeName, freeToken, MAX_NAME, TOKENS, DEFAULT_SETTINGS } from "./setup";
+export { createGame, addPlayer, setConnected, freeName, freeToken, CASSA_INIZIALE, MAX_NAME, TOKENS } from "./setup";
 
 // regole sulle proprietà: il client le interroga per spegnere i bottoni col motivo giusto
 export {

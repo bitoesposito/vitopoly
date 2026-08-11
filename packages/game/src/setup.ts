@@ -1,20 +1,13 @@
-import type { GameSettings, GameState, Player, PlayerId } from "./types";
+import type { GameState, Player, PlayerId } from "./types";
 
-// Regolamento della casa: fisso, nessuna UI e nessuna azione di rete lo cambia.
-export const DEFAULT_SETTINGS: GameSettings = {
-  startingCash: 1500,
-  doubleRentFullSet: true,
-  vacationCash: true,
-  auction: true,
-  mortgageAllowed: true,
-  randomOrder: true,
-};
+/** Il regolamento della casa non è configurabile: `updateSettings` non esiste sul filo.
+ *  Questa è la sola cifra che vale la pena nominare. */
+export const CASSA_INIZIALE = 1500;
 
 export function createGame(seed: number): GameState {
   return {
     status: "lobby",
     seed: seed || 1, // seed 0 is a fixed point of xorshift32
-    settings: { ...DEFAULT_SETTINGS },
     vacationPot: 0,
     players: [],
     current: 0,
@@ -69,7 +62,7 @@ export function addPlayer(s: GameState, id: PlayerId, name: string): Player | nu
     id,
     name: freeName(s, name),
     token,
-    cash: s.settings.startingCash, // re-applied at start (settings may change in lobby)
+    cash: CASSA_INIZIALE,
     pos: 0,
     inJail: false,
     jailTurns: 0,

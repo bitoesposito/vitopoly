@@ -101,7 +101,7 @@ export function PlayerList({ game }: { game: PublicState }) {
           </span>
         </div>
       ))}
-      {game.status === "playing" && game.settings.vacationCash && (
+      {game.status === "playing" && (
         <div className="flex items-center gap-1.5 border-t border-border px-2 pt-1.5 text-xs text-muted-foreground">
           <Briefcase className="size-3.5" /> {t("players.vacationPot")}
           <span className="ml-auto font-mono text-warning tabular-nums">{euro(game.vacationPot)}</span>

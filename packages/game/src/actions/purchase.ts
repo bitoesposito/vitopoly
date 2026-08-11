@@ -26,6 +26,6 @@ export const decline: Handler = (s, pid) => {
   if (ph.t !== "buyPrompt") return err("nessun acquisto in corso");
   if (cur(s).id !== pid) return err("non è il tuo turno");
   s.phase = { t: "postRoll", again: ph.again }; // PRIMA il punto di ripresa, poi l'interrupt sopra
-  if (s.settings.auction) pushAuction(s, ph.tile, []); // il pannello asta che compare È la notifica
+  pushAuction(s, ph.tile, []); // il pannello asta che compare È la notifica
   return ok(s);
 };

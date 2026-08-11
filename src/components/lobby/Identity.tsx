@@ -70,8 +70,8 @@ export function Identity({ game }: { game: PublicState }) {
 
       <fieldset className="space-y-2">
         <legend className="font-condensed text-micro tracking-widest text-muted-foreground uppercase">{t("id.ink")}</legend>
-        {/* riempie la riga: 4 chip larghe sul telefono, 8 in linea da sm. Altezza
-            fissa a 44px invece di aspect-square, che su mobile faceva blocchi da 100px. */}
+        {/* riempie la riga: 4 chip larghe sul telefono, 8 in linea da sm. Altezza fissa a
+            44px, non aspect-square: su una colonna stretta darebbe blocchi da 100px. */}
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
           {Array.from({ length: TOKENS }, (_, i) => {
             const other = game.players.find((p) => p.id !== myId && p.token === i);
@@ -90,8 +90,8 @@ export function Identity({ game }: { game: PublicState }) {
                 title={other ? t("id.inkTaken", { ink: TOKEN_NAME[i], name: other.name }) : TOKEN_NAME[i]}
                 onClick={() => send({ type: "profile", token: i })}
               >
-                {/* preso = spento e basta. Le iniziali sopra al colore si leggevano
-                    come il NOME del colore, non come "è di qualcun other". */}
+                {/* preso = spento e basta: un'iniziale sopra al colore si legge come il
+                    nome del colore, non come "è di un altro" */}
                 {mine && <Check className="size-5" style={{ color: "var(--color-paper-ink)" }} />}
               </button>
             );

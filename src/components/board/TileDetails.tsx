@@ -19,7 +19,7 @@ function tileDesc(tile: TileDef, game: PublicState): string | null {
     case "jail":
       return t("info.jail");
     case "parking":
-      return game.settings.vacationCash ? t("info.parkingPot", { pot: game.vacationPot }) : t("info.parking");
+      return t("info.parkingPot", { pot: game.vacationPot });
     case "gotojail":
       return t("info.gotojail");
     case "chance":

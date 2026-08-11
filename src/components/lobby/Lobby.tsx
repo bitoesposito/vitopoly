@@ -69,8 +69,8 @@ export function Lobby() {
             {t("lobby.reenter", { code: ultima })}
           </Button>
         )}
-        {/* con un codice si entra in una stanza precisa: prima esisteva solo il link altrui.
-            Minuscolo perché è la forma con cui il codice vive nell'URL e nei segreti del posto. */}
+        {/* Il codice apre una stanza precisa, senza passare dal link di qualcun altro.
+            Minuscolo: è la forma con cui vive nell'URL e nella chiave del segreto. */}
         <label className="block pt-1 font-condensed text-micro tracking-widest text-muted-foreground uppercase" htmlFor="codice">
           {t("lobby.withCode")}
         </label>

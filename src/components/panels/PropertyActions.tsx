@@ -42,8 +42,8 @@ export function PropertyActions({ game, myId, tile }: { game: PublicState; myId:
   const rows: Row[] = [
     {
       type: "build",
-      // mostrato anche su titolo ipotecato: whyNotBuild dice "è ipotecata", e un bottone
-      // che sparisce si legge come una funzione che non esiste
+      // mostrato anche su titolo ipotecato: whyNotBuild dice il motivo, e un bottone che
+      // sparisce si legge come una funzione che non esiste
       shown: street && own.houses < 5,
       why: whyNotBuild(game, myId, tile),
       label: (
@@ -67,7 +67,7 @@ export function PropertyActions({ game, myId, tile }: { game: PublicState; myId:
     },
     {
       type: "mortgage",
-      shown: game.settings.mortgageAllowed && !own.mortgaged,
+      shown: !own.mortgaged,
       why: whyNotMortgage(game, myId, tile),
       label: t("assets.mortgage", { amount: euro((def.price ?? 0) / 2) }),
     },
@@ -101,8 +101,7 @@ export function PropertyActions({ game, myId, tile }: { game: PublicState; myId:
             className={`flex-1 ${blocked ? "opacity-50" : ""}`}
             aria-disabled={!!blocked}
             title={blocked ?? undefined}
-            // non `disabled`: su touch il tooltip non esiste, e un bottone spento e muto
-            // si legge come assente. Il motivo va detto, quindi il tap lo dice.
+            // non `disabled`: su touch il tooltip non esiste, quindi il motivo lo dice il tap
             onClick={() => (blocked ? toast.warning(blocked) : send({ type, tile }))}
           >
             {label}

@@ -8,7 +8,7 @@ import { BOARD, groupTiles } from "../data/tiles";
 // li chiama prima di mutare. Nessuna regola è scritta due volte.
 
 /** La vista minima che serve ai predicati: la stessa che ha il client (PublicState). */
-export type RulesView = Pick<GameState, "props" | "players" | "settings" | "bank">;
+export type RulesView = Pick<GameState, "props" | "players" | "bank">;
 
 const owner = (s: RulesView, pid: PlayerId) => s.players.find((p) => p.id === pid);
 
@@ -49,7 +49,6 @@ export function whyNotSellHouse(s: RulesView, pid: PlayerId, tile: TileId): stri
 }
 
 export function whyNotMortgage(s: RulesView, pid: PlayerId, tile: TileId): string | null {
-  if (!s.settings.mortgageAllowed) return "ipoteche disabilitate in questa partita";
   const def = BOARD[tile];
   const own = s.props[tile];
   if (!own || own.owner !== pid) return "non è tua";

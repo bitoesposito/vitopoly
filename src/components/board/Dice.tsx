@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import type { GameEvent } from "@tangentopoly/game";
+import type { Roll } from "@/lib/selectors";
 import { buzz, DICE } from "@/lib/haptics";
 
 // Rotazione del cubo che porta davanti la faccia col valore uscito (vedi .die-* in index.css).
@@ -44,22 +43,14 @@ export function DiceTray({
   label,
   mine,
 }: {
-  roll: Extract<GameEvent, { e: "rolled" }> | null;
+  roll: Roll | null;
   enabled: boolean;
   onRoll: () => void;
   label: string;
   /** il tiro è tuo: vibrano solo i tuoi dadi, o il telefono ronza a ogni turno di chiunque */
   mine?: boolean;
 }) {
-  // nuovo evento rolled (per identità) -> nuovo tumble
-  const [spin, setSpin] = useState(0);
-  const last = useRef<GameEvent | null>(null);
-  useEffect(() => {
-    if (roll && last.current !== roll) {
-      last.current = roll;
-      setSpin((n) => n + 1);
-    }
-  }, [roll]);
+  const spin = roll?.spin ?? 0; // il key del cubo: cambia solo a tiro nuovo, non a ogni stato
 
   return (
     <button

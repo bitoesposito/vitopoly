@@ -1,5 +1,6 @@
 import { BOARD, sellValue } from "@tangentopoly/game";
 import type { GameEvent, PublicState } from "@tangentopoly/game";
+import type { FeedItem } from "./store";
 
 // Derivazioni pure sullo stato pubblico. Nessuna di queste è una regola: le regole
 // stanno nel motore. Qui c'è solo quello che la UI chiede allo stato più di una volta.
@@ -32,8 +33,19 @@ export function netWorth(game: PublicState, pid: string): number {
   return v;
 }
 
-/** L'ultimo tiro nel registro degli eventi: è lui a decidere le facce dei dadi. */
-export function lastRoll(events: GameEvent[]): Extract<GameEvent, { e: "rolled" }> | null {
-  for (let i = events.length - 1; i >= 0; i--) if (events[i].e === "rolled") return events[i] as Extract<GameEvent, { e: "rolled" }>;
+/** L'ultimo tiro: facce e IDENTITÀ del lancio. `spin` cambia solo quando il tiro è nuovo —
+ *  lo stato arriva sostituito a ogni messaggio, quindi gli oggetti di `log` sono sempre nuovi
+ *  e confrontarli faceva ruzzolare i dadi a ogni azione. Il registro di sessione ha un seq
+ *  monotono; chi entra a metà turno legge le facce dallo stato con spin 0: le vede, senza
+ *  vedere un lancio a cui non ha assistito. */
+export type Roll = Extract<GameEvent, { e: "rolled" }> & { spin: number };
+
+export function lastRoll(feed: FeedItem[], log: GameEvent[]): Roll | null {
+  for (let i = feed.length - 1; i >= 0; i--) {
+    const f = feed[i];
+    if ("ev" in f && f.ev.e === "rolled") return { ...f.ev, spin: f.seq };
+  }
+  for (let i = log.length - 1; i >= 0; i--)
+    if (log[i].e === "rolled") return { ...(log[i] as Extract<GameEvent, { e: "rolled" }>), spin: 0 };
   return null;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { addPlayer, apply, createGame } from "@tangentopoly/game";
-import type { PublicState } from "@tangentopoly/game";
+import type { GameEvent, PublicState } from "@tangentopoly/game";
 import { auctionLive, isMyTurn, lastRoll, netWorth, ownedTiles, playerNames } from "./selectors";
 
 /** Una partita avviata, ridotta a stato pubblico: è quello che il client vede davvero. */
@@ -45,15 +45,23 @@ describe("selettori", () => {
     expect(auctionLive(g)).toBe(true); // sepolta sotto un debito, ma sempre in corso
   });
 
-  it("lastRoll prende l'ultimo tiro, non il primo", () => {
-    expect(lastRoll([])).toBeNull();
-    expect(lastRoll([{ e: "info", text: "niente dadi" }])).toBeNull();
-    const roll = lastRoll([
+  it("lastRoll prende l'ultimo tiro, non il primo, e ne porta l'identità", () => {
+    expect(lastRoll([], [])).toBeNull();
+    expect(lastRoll([], [{ e: "info", text: "niente dadi" }])).toBeNull();
+    const eventi: GameEvent[] = [
       { e: "rolled", pid: "a", d1: 1, d2: 2 },
       { e: "moved", pid: "a", from: 0, to: 3 },
       { e: "rolled", pid: "b", d1: 6, d2: 6 },
-    ]);
-    expect(roll).toMatchObject({ pid: "b", d1: 6, d2: 6 });
+    ];
+    // dal registro di sessione: `spin` è il seq del tiro, così i dadi ruzzolano una volta sola
+    expect(
+      lastRoll(
+        eventi.map((ev, seq) => ({ seq, ev })),
+        []
+      )
+    ).toMatchObject({ pid: "b", d1: 6, d2: 6, spin: 2 });
+    // chi entra a metà turno legge lo stato: facce sì, lancio no
+    expect(lastRoll([], eventi)).toMatchObject({ pid: "b", d1: 6, d2: 6, spin: 0 });
   });
 });
 

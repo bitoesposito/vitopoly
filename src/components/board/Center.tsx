@@ -31,8 +31,7 @@ export function Center({ game }: { game: PublicState }) {
 
   const view = turnView(game, myId);
   const { isMyTurn, me, current, names, canRoll, buyTile, shortfall, debt, iOwe, owed, creditors } = view;
-  // dal registro autoritativo: chi entra o ricarica a metà turno vedeva il vassoio vuoto
-  const dice = lastRoll(game.log);
+  const dice = lastRoll(useGame.getState().feed, game.log);
   const actions = <TurnActions game={game} view={view} />;
 
   // il risultato del dado esiste solo come trasformazione CSS: senza questo è muto

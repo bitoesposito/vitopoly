@@ -1,7 +1,7 @@
 import { BOARD, CHANCE, CHEST, JAIL, walkTiles } from "@tangentopoly/game";
 import type { GameEvent, PublicState } from "@tangentopoly/game";
 import { walkMs } from "../board-layout";
-import { buzz, KNOCK, NUDGE } from "../haptics";
+import { avvisa, type Avviso } from "../avvisi";
 import { useGame, type PopupInput } from "../store";
 
 // Lo stato arriva con le posizioni FINALI; sono gli eventi a raccontare la storia.
@@ -26,10 +26,10 @@ let lastDebt = false;
 function feel(state: PublicState): void {
   const me = useGame.getState().myId;
   const turn = state.status === "playing" ? state.players[state.current]?.id : undefined;
-  if (turn === me && lastTurn !== me) buzz(NUDGE);
+  if (turn === me && lastTurn !== me) avvisa("turno");
   lastTurn = turn;
   const debt = state.stack.some((f) => f.t === "debt" && f.debtor === me);
-  if (debt && !lastDebt) buzz(KNOCK);
+  if (debt && !lastDebt) avvisa("debito");
   lastDebt = debt;
 }
 
@@ -49,6 +49,7 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
   const skip = typeof document !== "undefined" && document.hidden; // già in background: niente timeline
   const at = (ms: number, fn: () => void) => (ms <= 0 || skip ? fn() : void pending.push(setTimeout(fn, ms)));
   const pop = (ms: number, p: PopupInput) => at(ms, () => useGame.getState().pushPopups([p]));
+  const suono = (ms: number, a: Avviso) => at(ms, () => avvisa(a));
 
   feel(state);
 
@@ -66,15 +67,18 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
       }
       case "card":
         pop(t, { kind: e.deck, name: name(e.pid), text: (e.deck === "chance" ? CHANCE : CHEST)[e.cardId].text });
+        suono(t, "carta");
         t += 1100; // la carta atterra prima del battito successivo (es. "vai in prigione")
         break;
       case "jailed":
         pop(t, { kind: "jailed", name: name(e.pid), you: e.pid === useGame.getState().myId });
+        suono(t, "prigione");
         at(t + 350, () => useGame.getState().setTokenStep(e.pid, { pos: JAIL }));
         t += 800;
         break;
       case "auctionWon":
         pop(t, { kind: "buy", name: name(e.pid), tile: e.tile, price: e.price });
+        suono(t, "asta");
         t += 500;
         break;
       case "traded":
@@ -85,8 +89,9 @@ export function choreograph(state: PublicState, events: GameEvent[]): void {
         if (e.from !== "bank" && e.to === "bank" && e.why.startsWith("buy ")) {
           const tile = BOARD.findIndex((x) => x.name === e.why.slice(4)); // why = `buy ${BOARD[tile].name}`
           if (tile >= 0) pop(t, { kind: "buy", name: name(e.from), tile, price: e.amount });
+          suono(t, "acquisto");
           t += 500;
-        }
+        } else if (e.from !== "bank") suono(t, "pagamento"); // chi incassa non ha bisogno di un avviso
         break;
     }
   }

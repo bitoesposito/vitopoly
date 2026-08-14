@@ -1,5 +1,5 @@
 import type { Roll } from "@/lib/selectors";
-import { buzz, DICE } from "@/lib/haptics";
+import { avvisa } from "@/lib/avvisi";
 
 // Rotazione del cubo che porta davanti la faccia col valore uscito (vedi .die-* in index.css).
 const DIE_FACE: Record<number, string> = {
@@ -61,7 +61,7 @@ export function DiceTray({
       title={enabled ? label : undefined}
       className={`dice-tray flex items-center justify-center gap-2 [--die:3rem] sm:gap-3 sm:[--die:3.5rem] lg:[--die:4rem] ${enabled ? "" : "opacity-60"}`}
     >
-      <Die3D value={roll?.d1 ?? null} spin={spin} onLand={() => spin > 0 && mine && buzz(DICE)} />
+      <Die3D value={roll?.d1 ?? null} spin={spin} onLand={() => spin > 0 && mine && avvisa("dadi")} />
       <Die3D value={roll?.d2 ?? null} spin={spin} alt />
     </button>
   );

@@ -11,7 +11,7 @@ import { send } from "@/lib/net/client";
 import { useGame } from "@/lib/store";
 import { daMd } from "@/lib/utils";
 import { euro } from "@/lib/format";
-import { buzz, NUDGE } from "@/lib/haptics";
+import { avvisa } from "@/lib/avvisi";
 import { TileDetails } from "@/components/board/TileDetails";
 
 // Rilanci fissi: in percentuale, su un titolo da 60 due bottoni darebbero la stessa cifra.
@@ -49,10 +49,10 @@ export function AuctionPanel({ game }: { game: PublicState }) {
     if (live && !daMd()) ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [live]);
 
-  // sorpasso: 6 secondi per accorgersene, e il segnale è l'aptica più la cifra che rientra
+  // sorpasso: 6 secondi per accorgersene, e il segnale è l'avviso più la cifra che rientra
   const wasLeader = useRef(false);
   useEffect(() => {
-    if (wasLeader.current && leader && leader !== myId) buzz(NUDGE);
+    if (wasLeader.current && leader && leader !== myId) avvisa("rilancio");
     wasLeader.current = leader === myId;
   }, [leader, myId]);
 

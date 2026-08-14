@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { buzz, TICK } from "@/lib/haptics";
+import { avvisa } from "@/lib/avvisi";
 
 // Conferma a due tempi al posto di `confirm()`: il primo tocco arma, il secondo esegue,
 // e dopo qualche secondo si disarma da solo. Il dialogo nativo in certe webview in-app
@@ -42,7 +42,7 @@ export function ConfirmButton({
       className={`${rest.className ?? ""} ${armed ? "animate-pulse" : ""}`}
       onClick={() => {
         if (!armed) {
-          buzz(TICK); // il tocco che arma non fa niente di visibile a parte cambiare etichetta
+          avvisa("tocco"); // il tocco che arma non fa niente di visibile a parte cambiare etichetta
           return setArmed(true);
         }
         setArmed(false);

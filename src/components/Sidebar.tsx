@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, MessageSquare } from "lucide-react";
 import type { PublicState } from "@tangentopoly/game";
@@ -18,11 +18,22 @@ export function Sidebar({ game }: { game: PublicState }) {
   const [sheetH, setSheetH] = useState<number>();
   const [thumbBar] = useState(() => document.getElementById("barra-azione"));
 
+  // Il foglio vive fuori da <main>, ma la tastiera del telefono può portarsi dietro la
+  // colonna che scorre: la posizione della plancia si segna all'apertura e si rimette alla
+  // chiusura, così chiudere la chat riporta al tabellone e non in fondo alla pagina.
+  const posa = useRef(0);
+  useEffect(() => {
+    const colonna = document.querySelector("main");
+    if (!colonna || daMd()) return;
+    if (chatOpen) posa.current = colonna.scrollTop;
+    else colonna.scrollTo({ top: posa.current });
+  }, [chatOpen]);
+
   const toggle = (
     <Button
       size="icon"
-      // touch-manipulation: niente click sintetico del doppio-tap, che cadrebbe sul campo
-      // della chat appena il foglio si apre — e con lui la tastiera
+      // touch-manipulation: niente ritardo da doppio-tap su un bersaglio che apre la
+      // tastiera, e nessun click sintetico in ritardo sul campo che c'è sotto
       className="size-11 touch-manipulation"
       aria-label={chatOpen ? t("aria.closeChat") : t("aria.openChat")}
       onClick={() => setChatOpen((o) => !o)}

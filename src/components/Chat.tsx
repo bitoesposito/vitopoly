@@ -14,13 +14,20 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
   const chat = useGame((s) => s.chat);
   const game = useGame((s) => s.game);
   const [text, setText] = useState("");
-  const bottom = useRef<HTMLDivElement>(null);
+  const lista = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // anche all'apertura, non solo a messaggio nuovo: si entra sempre sull'ultimo detto
+  // Anche all'apertura, non solo a messaggio nuovo: si entra sempre sull'ultimo detto.
+  // scrollTop e non scrollIntoView, che porta con sé ogni antenato che può scorrere.
   useEffect(() => {
-    bottom.current?.scrollIntoView({ behavior: "instant" });
+    const el = lista.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [chat.length, open]);
+
+  // il foglio si apre per scrivere: la tastiera non deve costare un secondo tocco
+  useEffect(() => {
+    if (open && !daMd()) inputRef.current?.focus();
+  }, [open]);
 
   useTypeToFocus(open, inputRef);
 
@@ -61,7 +68,8 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
       </div>
 
       {/* 8px come la cornice qui sopra e come ogni pannello: una colonna, un padding */}
-      <div className={`min-h-0 flex-1 space-y-2 overflow-y-auto p-2 text-sm ${open ? "" : "md:hidden"}`}>
+      {/* overscroll-contain: arrivato in fondo, il trascinamento non passa alla pagina dietro */}
+      <div ref={lista} className={`min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-2 text-sm ${open ? "" : "md:hidden"}`}>
         {chat.length === 0 && <div className="text-xs text-muted-foreground">{t("chat.empty")}</div>}
         {groups.map((g, i) => (
           <div key={i} className="border border-border px-2 py-1">
@@ -78,7 +86,6 @@ export function Chat({ open, onToggle, className }: { open: boolean; onToggle?: 
             ))}
           </div>
         ))}
-        <div ref={bottom} />
       </div>
 
       {/* il foglio mobile arriva al bordo del viewport: senza l'inset il campo finisce

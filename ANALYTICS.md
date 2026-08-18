@@ -56,6 +56,14 @@ finestra. Vuole il token in `~/.cf-analytics-token` e l'id account in `~/.cf-acc
 `SUM(_sample_interval)` sostituisce `count()` in ogni conteggio — se un giorno scattasse il
 campionamento, contare le righe darebbe numeri più bassi del vero senza dirlo.
 
+### La seconda finestra: i log
+
+Ogni punto viene anche stampato come una riga JSON, e i log **hanno** una pagina nel
+dashboard: worker → *Observability* → *Logs*, filtro sul campo `metrica`. I campi sono
+indicizzati, quindi si cerca per `metrica = "sfratto"` o `stanza = "zjxk2p"` senza scrivere
+SQL né usare un token. Due finestre sulla stessa cosa: i log tengono 3 giorni e si guardano
+subito, il dataset tiene 3 mesi e risponde alle domande aggregate.
+
 A mano, la stessa cosa:
 
 ```bash

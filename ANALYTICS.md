@@ -31,6 +31,9 @@ coda è gratis, cambiare l'ordine rompe tutto in silenzio.
 | `blob1` | evento: `stanza` · `ingresso` · `azione` · `fine` · `sfratto` |
 | `blob2` | dettaglio: (ingresso) `posto`/`spettatore` · (azione) tipo di azione · (sfratto) come è morta |
 | `blob3` | come: (ingresso) perché non si è seduto · (azione) `umano`/`timeout` |
+| `blob4` | pid: l'UUID casuale del browser. Non dice chi sei, dice se sei lo stesso di ieri |
+| `blob5` | paese, dall'intestazione `CF-IPCountry` |
+| `blob6` | dispositivo: `telefono` · `tablet` · `desktop`, stimato dall'User-Agent |
 | `double1` | giocatori al tavolo in quel momento |
 | `double2` | (fine) quanti sono falliti |
 | `double3` | (fine) contante del vincitore |
@@ -131,3 +134,114 @@ GROUP BY motivo ORDER BY n DESC
   sul dominio del client, non da qui.
 - **Nessun allarme automatico.** Per ora si guarda quando si vuole guardare; la sveglia,
   se servirà, si costruisce sopra queste query.
+
+---
+
+# Due sorgenti, e perché
+
+**Analytics Engine** è lo stream: ogni momento diventa un punto, si guarda nel tempo, tiene
+3 mesi. A bassi volumi però è **approssimativo**: misurato su 20 punti scritti a mano, ne
+sono arrivati ~17, e l'ingestione impiega qualche minuto. Va benissimo per le tendenze e per
+i grafici; non per dire "ho fatto esattamente 12 partite".
+
+**D1** è il registro: una riga per partita, una per partecipante, esatte e incrociabili. È
+la fonte per i conteggi, le durate, chi ha giocato e quante volte.
+
+## La dashboard: Grafana Cloud su Analytics Engine
+
+Grafana non ha un datasource per Analytics Engine, ma la SQL API parla ClickHouse: si usa il
+**plugin ClickHouse di Altinity**.
+
+1. Account su Grafana Cloud (piano gratuito), poi **Connections → Add new connection →
+   ClickHouse (Altinity)** e installa il plugin.
+2. Configura il datasource così:
+   - **URL**: `https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/analytics_engine/sql`
+   - tutte le autenticazioni integrate **disattivate**
+   - un header HTTP personalizzato: nome `Authorization`, valore `Bearer <TOKEN>` — lo stesso
+     token con `Account Analytics: Read` che sta in `~/.cf-analytics-token`
+3. Nei pannelli, `$timeSeries` e `$timeFilter` sono macro del plugin: fanno l'arrotondamento
+   e il filtro temporale seguendo lo zoom del grafico.
+
+Query pronte da incollare nei pannelli:
+
+```sql
+-- azioni nel tempo, a mano contro automatiche
+SELECT $timeSeries AS t, blob3 AS come, SUM(_sample_interval) AS n
+FROM tangentopoly WHERE $timeFilter AND blob1 = 'azione' GROUP BY come, t ORDER BY t
+```
+
+```sql
+-- ingressi per dispositivo
+SELECT $timeSeries AS t, blob6 AS dispositivo, SUM(_sample_interval) AS n
+FROM tangentopoly WHERE $timeFilter AND blob1 = 'ingresso' GROUP BY dispositivo, t ORDER BY t
+```
+
+```sql
+-- l'imbuto, come tabella
+SELECT blob1 AS evento, SUM(_sample_interval) AS n
+FROM tangentopoly WHERE $timeFilter GROUP BY evento
+```
+
+```sql
+-- persone distinte per paese
+SELECT blob5 AS paese, uniqExact(blob4) AS persone
+FROM tangentopoly WHERE $timeFilter AND blob1 = 'ingresso' GROUP BY paese ORDER BY persone DESC
+```
+
+**D1 non è un datasource di Grafana.** Per portarci anche il registro esatto servirebbe una
+rotta JSON protetta sul worker più il plugin Infinity: si fa, ma prima vale la pena vedere
+se i pannelli su Analytics Engine ti bastano.
+
+## Il registro: interrogare D1
+
+```bash
+pnpm --filter @tangentopoly/server exec wrangler d1 execute tangentopoly-partite --remote --command "SELECT esito, COUNT(*) n FROM partite GROUP BY esito"
+```
+
+Le domande che hai fatto, in SQL:
+
+```sql
+-- quante partite, come sono finite, quanto sono durate
+SELECT esito, COUNT(*) AS partite, ROUND(AVG(durata_s) / 60.0, 1) AS minuti_medi,
+       MAX(durata_s) / 60 AS piu_lunga_min
+FROM partite GROUP BY esito;
+
+-- partite per giorno
+SELECT date(chiusa_il / 1000, 'unixepoch') AS giorno, COUNT(*) AS partite,
+       ROUND(AVG(durata_s) / 60.0, 1) AS minuti_medi
+FROM partite GROUP BY giorno ORDER BY giorno DESC LIMIT 14;
+
+-- chi gioca, quanto, e da quando
+SELECT MAX(nome) AS nome, pid, COUNT(DISTINCT codice) AS partite,
+       date(MIN(entrato_il) / 1000, 'unixepoch') AS prima_volta,
+       SUM(bancarotta) AS bancarotte
+FROM partecipanti WHERE spettatore = 0 GROUP BY pid ORDER BY partite DESC LIMIT 20;
+
+-- nuovi contro di ritorno, per giorno
+WITH prime AS (SELECT pid, MIN(entrato_il) AS p FROM partecipanti GROUP BY pid)
+SELECT date(pa.entrato_il / 1000, 'unixepoch') AS giorno,
+       SUM(CASE WHEN pa.entrato_il = pr.p THEN 1 ELSE 0 END) AS nuovi,
+       SUM(CASE WHEN pa.entrato_il > pr.p THEN 1 ELSE 0 END) AS di_ritorno
+FROM partecipanti pa JOIN prime pr USING (pid)
+GROUP BY giorno ORDER BY giorno DESC LIMIT 14;
+
+-- dispositivi e paesi delle persone vere
+SELECT dispositivo, paese, COUNT(DISTINCT pid) AS persone, COUNT(*) AS ingressi
+FROM partecipanti GROUP BY dispositivo, paese ORDER BY ingressi DESC;
+
+-- chi vince
+SELECT vincitore, COUNT(*) AS vittorie, ROUND(AVG(vincitore_cassa)) AS cassa_media
+FROM partite WHERE esito = 'finita' GROUP BY vincitore ORDER BY vittorie DESC;
+
+-- quanto gioca il server al posto della gente
+SELECT SUM(azioni_umane) AS a_mano, SUM(azioni_auto) AS automatiche,
+       ROUND(100.0 * SUM(azioni_auto) / NULLIF(SUM(azioni_umane + azioni_auto), 0), 1) AS percento_auto
+FROM partite;
+```
+
+## Le visite: Cloudflare Web Analytics
+
+Visite, pagine viste, provenienza, browser e Core Web Vitals riguardano chi **apre** l'app, e
+il server non li vede: quelli li dà Cloudflare Web Analytics, gratis e senza cookie, con una
+dashboard sua. Va abilitato dal dashboard sul dominio del client e aggiunto uno snippet in
+`index.html`. È l'unico pezzo che il repo non copre ancora.

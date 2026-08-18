@@ -221,8 +221,17 @@ export class RoomDO extends DurableObject<Env> {
 
   // C'è ancora qualcuno che gioca davvero? Il timer del turno esiste per non far aspettare
   // gli altri: a stanza vuota non ha nessuno da sbloccare, e giocherebbe da sola.
+  // Le socket aperte, non `connected`: quel flag racconta la UI e resta vero se una socket
+  // muore senza che il close arrivi, e allora la stanza si crede abitata e riarma il turno
+  // per sempre — un minuto per volta, per settimane.
   private hasLivePlayers(): boolean {
-    return this.game.players.some((p) => p.connected && !p.bankrupt);
+    const attivi = new Set(
+      this.ctx
+        .getWebSockets()
+        .filter((ws) => ws.readyState === WebSocket.READY_STATE_OPEN)
+        .map((ws) => (ws.deserializeAttachment() as { pid: string }).pid)
+    );
+    return this.game.players.some((p) => attivi.has(p.id) && !p.bankrupt);
   }
 
   /** L'unico allarme della stanza: il timer del turno se si gioca davvero, altrimenti il

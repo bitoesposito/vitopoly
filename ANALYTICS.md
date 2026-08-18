@@ -76,10 +76,13 @@ curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/analytics_engine
 ### L'imbuto, in una query
 
 ```sql
-SELECT blob1 AS evento, SUM(_sample_interval) AS n
+SELECT sumIf(_sample_interval, blob1 = 'stanza')   AS stanze_aperte,
+       sumIf(_sample_interval, blob1 = 'ingresso') AS ingressi,
+       sumIf(_sample_interval, blob1 = 'azione')   AS azioni,
+       sumIf(_sample_interval, blob1 = 'fine')     AS partite_finite,
+       sumIf(_sample_interval, blob2 = 'abbandonata') AS abbandonate
 FROM tangentopoly
 WHERE timestamp > now() - INTERVAL '7' DAY
-GROUP BY evento
 ```
 
 ### Quanto durano le partite
@@ -145,11 +148,18 @@ la fonte per i conteggi, le durate, chi ha giocato e quante volte.
 
 ### Il dialetto è un sottoinsieme, non ClickHouse intero
 
-Provato contro la SQL API: `count(DISTINCT x)` funziona, `uniq`, `uniqExact` e `countDistinct`
-no. Le combinator condizionali (`countIf`, `sumIf`) nemmeno: si filtra con `WHERE` e si
-raggruppa. `toStartOfHour` e `toStartOfMinute` vanno, `toStartOfInterval(..., INTERVAL 15
-MINUTE)` viene rifiutato dal parser. In dubbio, si prova con `SELECT 'ciao' AS m` come
-sonda e si aggiunge un pezzo per volta.
+Provato una per una contro la SQL API, perché il dialetto è un sottoinsieme e non si indovina:
+
+| Funziona | Non funziona |
+|---|---|
+| `count(DISTINCT x)` | `uniq`, `uniqExact`, `countDistinct` |
+| `countIf(cond)`, `sumIf(col, cond)` | `CASE WHEN … THEN … END` |
+| `SUM(IF(cond, col, 0))` | `toStartOfInterval(ts, INTERVAL 15 MINUTE)` |
+| `toStartOfHour`, `toStartOfMinute` | |
+
+In dubbio si sonda con `SELECT 'ciao' AS m` e si aggiunge un pezzo per volta. Nota che
+questi limiti valgono per **Analytics Engine**: il registro su D1 è SQLite normale, dove
+`CASE WHEN` e le CTE ci sono.
 
 ## La dashboard: Grafana Cloud su Analytics Engine
 

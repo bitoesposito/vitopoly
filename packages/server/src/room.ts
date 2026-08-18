@@ -13,6 +13,7 @@ import {
   TOKENS,
 } from "@tangentopoly/game";
 import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@tangentopoly/game";
+import { misura } from "./metriche";
 import type { Env } from "./index";
 
 function seed(): number {
@@ -31,6 +32,9 @@ export class RoomDO extends DurableObject<Env> {
   private chat!: ChatMsg[];
   // pid -> segreto. Fuori dal blob del gioco: redact() non può perderlo per sbaglio.
   private seats!: Record<string, string>;
+  // Il codice della stanza. Il Durable Object lo riceve solo nell'URL di ingresso, ma le
+  // metriche servono anche quando parla un allarme: si ricorda una volta e basta.
+  private codice!: string;
   private lastChatAt: Record<string, number> = {};
 
   constructor(ctx: DurableObjectState, env: Env) {
@@ -41,6 +45,7 @@ export class RoomDO extends DurableObject<Env> {
       this.game.kickVotes ??= {}; // blobs persisted before votekick existed
       this.chat = (await ctx.storage.get<ChatMsg[]>("chat")) ?? [];
       this.seats = (await ctx.storage.get<Record<string, string>>("seats")) ?? {};
+      this.codice = (await ctx.storage.get<string>("codice")) ?? "";
     });
   }
 
@@ -57,14 +62,20 @@ export class RoomDO extends DurableObject<Env> {
     return minted;
   }
 
-  private whySpectator(pid: string): string {
-    if (this.seats[pid]) return "questo posto è di un altro giocatore: puoi solo guardare";
-    if (this.game.status !== "lobby") return "la partita è già iniziata: puoi solo guardare";
-    return `il tavolo è al completo (${TOKENS} giocatori): puoi solo guardare`;
+  // Il testo per chi guarda, e la stessa ragione in due parole per le metriche.
+  private whySpectator(pid: string): { motivo: string; testo: string } {
+    if (this.seats[pid]) return { motivo: "posto occupato", testo: "questo posto è di un altro giocatore: puoi solo guardare" };
+    if (this.game.status !== "lobby") return { motivo: "già iniziata", testo: "la partita è già iniziata: puoi solo guardare" };
+    return { motivo: "al completo", testo: `il tavolo è al completo (${TOKENS} giocatori): puoi solo guardare` };
   }
 
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
+    const codice = url.pathname.split("/")[3] ?? ""; // /api/room/<codice>/ws
+    if (codice && this.codice !== codice) {
+      this.codice = codice;
+      await this.ctx.storage.put("codice", codice);
+    }
     const pid = url.searchParams.get("pid");
     const token = url.searchParams.get("token");
 
@@ -89,10 +100,18 @@ export class RoomDO extends DurableObject<Env> {
     if (seat && joined) {
       this.send(server, { type: "seat", token: seat });
       setConnected(this.game, pid, true);
+      misura(this.env, this.codice, { evento: "ingresso", dettaglio: "posto", giocatori: this.game.players.length });
       await this.persistAndBroadcast();
     } else {
       // spettatore: vede stato e chat. Dirgli PERCHÉ, o il banner "stai guardando" è un muro.
-      this.send(server, { type: "error", error: this.whySpectator(pid) });
+      const perche = this.whySpectator(pid);
+      this.send(server, { type: "error", error: perche.testo });
+      misura(this.env, this.codice, {
+        evento: "ingresso",
+        dettaglio: "spettatore",
+        come: perche.motivo,
+        giocatori: this.game.players.length,
+      });
       this.send(server, { type: "state", state: redact(this.game), events: [] });
     }
 
@@ -146,6 +165,7 @@ export class RoomDO extends DurableObject<Env> {
 
     const r = apply(this.game, pid, msg.action);
     if (!r.ok) return this.send(ws, { type: "error", error: r.error });
+    misura(this.env, this.codice, { evento: "azione", dettaglio: msg.action.type, come: "umano", giocatori: this.game.players.length });
     await this.commit(r, ws);
   }
 
@@ -177,10 +197,16 @@ export class RoomDO extends DurableObject<Env> {
     // l'istanza, e il costruttore rigira solo dopo lo sfratto: la memoria si azzera qui, o
     // la prima scrittura resuscita la partita.
     if (this.game.status === "ended" || !this.hasLivePlayers()) {
+      misura(this.env, this.codice, {
+        evento: "sfratto",
+        dettaglio: this.game.status === "ended" ? "finita" : this.game.status === "lobby" ? "mai iniziata" : "abbandonata",
+        giocatori: this.game.players.length,
+      });
       await this.ctx.storage.deleteAll();
       this.game = createGame(seed());
       this.chat = [];
       this.seats = {};
+      this.codice = "";
       return;
     }
     // in attesa con qualcuno collegato: niente da fare, ma l'allarme va riarmato o la
@@ -193,11 +219,14 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
     let r: Result;
+    let quale: string;
     if (activeNode(this.game).t === "auction") {
       r = auctionTimeout(this.game); // timer expiry settles to the leader (or nobody)
+      quale = "asta";
     } else {
       const t = timeoutAction(this.game);
       if (!t) return void (await this.arma());
+      quale = t.action.type;
       r = apply(this.game, t.pid, t.action);
       if (!r.ok && activeNode(this.game).t === "debt") r = apply(this.game, t.pid, { type: "bankrupt" }); // can't pay -> out
     }
@@ -205,6 +234,7 @@ export class RoomDO extends DurableObject<Env> {
     // Uscire di qui senza riarmare la lascia senza nessun timer: né turno né sfratto, e
     // nessuno la raccoglie più — è così che si accumulano stanze immortali.
     if (!r.ok) return void (await this.arma());
+    misura(this.env, this.codice, { evento: "azione", dettaglio: quale, come: "timeout", giocatori: this.game.players.length });
     r.events.push({ e: "info", text: "⏰ tempo scaduto — azione automatica" });
     await this.commit(r);
   }
@@ -216,6 +246,15 @@ export class RoomDO extends DurableObject<Env> {
       console.error("invarianti violate, stato non salvato:", broken, JSON.stringify(r.events));
       if (from) this.send(from, { type: "error", error: "errore interno (stato non salvato)" });
       return;
+    }
+    if (this.game.status !== "ended" && r.state.status === "ended") {
+      const vinto = r.state.players.find((p) => p.id === r.state.winner);
+      misura(this.env, this.codice, {
+        evento: "fine",
+        giocatori: r.state.players.length,
+        falliti: r.state.players.filter((p) => p.bankrupt).length,
+        soldi: vinto?.cash ?? 0,
+      });
     }
     r.state.log = [...r.state.log, ...r.events].slice(-100);
     this.game = r.state;

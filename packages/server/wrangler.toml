@@ -18,3 +18,9 @@ new_sqlite_classes = ["RoomDO"]
 # lasciare traccia. 200k eventi al giorno sono gratis, la retention è di 3 giorni.
 [observability]
 enabled = true
+
+# Le metriche: il dataset nasce alla prima scrittura, non va creato a mano. Piano Free:
+# 100k punti al giorno, 3 mesi di retention. Lo schema sta in ANALYTICS.md.
+[[analytics_engine_datasets]]
+binding = "METRICHE"
+dataset = "tangentopoly"

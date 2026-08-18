@@ -1,9 +1,11 @@
 import { RoomDO } from "./room";
+import { misura } from "./metriche";
 
 export { RoomDO };
 
 export interface Env {
   ROOM: DurableObjectNamespace;
+  METRICHE?: AnalyticsEngineDataset;
 }
 
 // Aperto di proposito: non c'è cookie né credenziale da rubare con una richiesta
@@ -32,7 +34,11 @@ export default {
 
     // Create a room -> return a join code. The DO is created lazily on first WS connect.
     if (req.method === "POST" && url.pathname === "/api/room") {
-      return Response.json({ code: makeCode() }, { headers: CORS });
+      const code = makeCode();
+      // Qui, e solo qui, si sa che una stanza è nata: creare il codice non tocca il
+      // Durable Object, quindi una stanza mai usata non lascia altra traccia.
+      misura(env, code, { evento: "stanza" });
+      return Response.json({ code }, { headers: CORS });
     }
 
     // WebSocket into a room (+ debug state dump).

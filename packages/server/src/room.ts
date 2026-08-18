@@ -14,6 +14,7 @@ import {
 } from "@tangentopoly/game";
 import type { ChatMsg, ClientMsg, GameEvent, GameState, Result, ServerMsg } from "@tangentopoly/game";
 import { misura } from "./metriche";
+import { chiude, entra } from "./registro";
 import type { Env } from "./index";
 
 function seed(): number {
@@ -35,6 +36,10 @@ export class RoomDO extends DurableObject<Env> {
   // Il codice della stanza. Il Durable Object lo riceve solo nell'URL di ingresso, ma le
   // metriche servono anche quando parla un allarme: si ricorda una volta e basta.
   private codice!: string;
+  // Quel che il registro vuole sapere e il motore non tiene: quando la stanza è nata, quando
+  // la partita è partita, quante azioni a mano e quante dal timer. Sta accanto al blob del
+  // gioco, quindi sopravvive all'ibernazione.
+  private vita!: { aperta: number; iniziata: number | null; umane: number; auto: number };
   private lastChatAt: Record<string, number> = {};
 
   constructor(ctx: DurableObjectState, env: Env) {
@@ -46,6 +51,7 @@ export class RoomDO extends DurableObject<Env> {
       this.chat = (await ctx.storage.get<ChatMsg[]>("chat")) ?? [];
       this.seats = (await ctx.storage.get<Record<string, string>>("seats")) ?? {};
       this.codice = (await ctx.storage.get<string>("codice")) ?? "";
+      this.vita = (await ctx.storage.get<typeof this.vita>("vita")) ?? { aperta: Date.now(), iniziata: null, umane: 0, auto: 0 };
     });
   }
 
@@ -87,7 +93,8 @@ export class RoomDO extends DurableObject<Env> {
     const codice = url.pathname.split("/")[3] ?? ""; // /api/room/<codice>/ws
     if (codice && this.codice !== codice) {
       this.codice = codice;
-      await this.ctx.storage.put("codice", codice);
+      this.vita = { ...this.vita, aperta: Date.now() };
+      await this.ctx.storage.put({ codice, vita: this.vita });
     }
     const pid = url.searchParams.get("pid");
     const token = url.searchParams.get("token");
@@ -120,6 +127,13 @@ export class RoomDO extends DurableObject<Env> {
         pid,
         ...RoomDO.provenienza(req),
       });
+      await entra(this.env, this.codice, {
+        pid,
+        nome: joined.name,
+        inchiostro: joined.token,
+        spettatore: false,
+        ...RoomDO.provenienza(req),
+      });
       await this.persistAndBroadcast();
     } else {
       // spettatore: vede stato e chat. Dirgli PERCHÉ, o il banner "stai guardando" è un muro.
@@ -133,6 +147,7 @@ export class RoomDO extends DurableObject<Env> {
         pid,
         ...RoomDO.provenienza(req),
       });
+      await entra(this.env, this.codice, { pid, nome: name, inchiostro: null, spettatore: true, ...RoomDO.provenienza(req) });
       this.send(server, { type: "state", state: redact(this.game), events: [] });
     }
 
@@ -187,6 +202,7 @@ export class RoomDO extends DurableObject<Env> {
     const r = apply(this.game, pid, msg.action);
     if (!r.ok) return this.send(ws, { type: "error", error: r.error });
     misura(this.env, this.codice, { evento: "azione", dettaglio: msg.action.type, come: "umano", giocatori: this.game.players.length });
+    this.vita.umane++;
     await this.commit(r, ws);
   }
 
@@ -218,11 +234,10 @@ export class RoomDO extends DurableObject<Env> {
     // l'istanza, e il costruttore rigira solo dopo lo sfratto: la memoria si azzera qui, o
     // la prima scrittura resuscita la partita.
     if (this.game.status === "ended" || !this.hasLivePlayers()) {
-      misura(this.env, this.codice, {
-        evento: "sfratto",
-        dettaglio: this.game.status === "ended" ? "finita" : this.game.status === "lobby" ? "mai iniziata" : "abbandonata",
-        giocatori: this.game.players.length,
-      });
+      const esito = this.game.status === "ended" ? "finita" : this.game.status === "lobby" ? "mai iniziata" : "abbandonata";
+      misura(this.env, this.codice, { evento: "sfratto", dettaglio: esito, giocatori: this.game.players.length });
+      // le partite finite hanno già il loro verbale: qui si scrivono quelle che non finiscono
+      if (esito !== "finita") await chiude(this.env, this.codice, this.game, { ...this.vita, esito });
       await this.ctx.storage.deleteAll();
       this.game = createGame(seed());
       this.chat = [];
@@ -256,6 +271,7 @@ export class RoomDO extends DurableObject<Env> {
     // nessuno la raccoglie più — è così che si accumulano stanze immortali.
     if (!r.ok) return void (await this.arma());
     misura(this.env, this.codice, { evento: "azione", dettaglio: quale, come: "timeout", giocatori: this.game.players.length });
+    this.vita.auto++;
     r.events.push({ e: "info", text: "⏰ tempo scaduto — azione automatica" });
     await this.commit(r);
   }
@@ -268,7 +284,9 @@ export class RoomDO extends DurableObject<Env> {
       if (from) this.send(from, { type: "error", error: "errore interno (stato non salvato)" });
       return;
     }
-    if (this.game.status !== "ended" && r.state.status === "ended") {
+    if (this.game.status === "lobby" && r.state.status === "playing") this.vita.iniziata = Date.now();
+    const finita = this.game.status !== "ended" && r.state.status === "ended";
+    if (finita) {
       const vinto = r.state.players.find((p) => p.id === r.state.winner);
       misura(this.env, this.codice, {
         evento: "fine",
@@ -279,6 +297,7 @@ export class RoomDO extends DurableObject<Env> {
     }
     r.state.log = [...r.state.log, ...r.events].slice(-100);
     this.game = r.state;
+    if (finita) await chiude(this.env, this.codice, this.game, { ...this.vita, esito: "finita" });
     await this.persistAndBroadcast(r.events);
   }
 
@@ -311,7 +330,7 @@ export class RoomDO extends DurableObject<Env> {
 
   private async persistAndBroadcast(events: GameEvent[] = []): Promise<void> {
     await this.arma();
-    await this.ctx.storage.put("game", this.game);
+    await this.ctx.storage.put({ game: this.game, vita: this.vita });
     const s = JSON.stringify({ type: "state", state: redact(this.game), events } satisfies ServerMsg);
     for (const ws of this.ctx.getWebSockets()) {
       try {

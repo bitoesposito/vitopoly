@@ -6,6 +6,7 @@ export { RoomDO };
 export interface Env {
   ROOM: DurableObjectNamespace;
   METRICHE?: AnalyticsEngineDataset;
+  PARTITE?: D1Database;
 }
 
 // Aperto di proposito: non c'è cookie né credenziale da rubare con una richiesta

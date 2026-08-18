@@ -24,3 +24,11 @@ enabled = true
 [[analytics_engine_datasets]]
 binding = "METRICHE"
 dataset = "tangentopoly"
+
+# Il registro delle partite: una riga per partita e una per partecipante. Analytics Engine
+# è approssimativo a bassi volumi (qualche punto perso, minuti di ingestione); qui i numeri
+# sono esatti e si possono incrociare. Schema in packages/server/partite.sql.
+[[d1_databases]]
+binding = "PARTITE"
+database_name = "tangentopoly-partite"
+database_id = "62279fee-3581-40bd-a174-4115cc7584bf"

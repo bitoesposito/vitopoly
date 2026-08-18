@@ -41,7 +41,22 @@ che è il conteggio delle `azione`.
 
 ## Leggere i dati
 
-Serve un token con `Account Analytics: Read` (vedi `~/.cf-analytics-token`), poi:
+Un comando:
+
+```bash
+node scripts/metriche.mjs
+```
+
+Stampa l'imbuto, come sono morte le stanze, cosa fa la gente contro cosa fa il server al
+posto suo, chi è restato a guardare e le stanze più vive. `GIORNI=30` per allargare la
+finestra. Vuole il token in `~/.cf-analytics-token` e l'id account in `~/.cf-account-id`
+(fuori dal repo, come in `deploy.yml`).
+
+**Per Analytics Engine non esiste una pagina nel dashboard**: la SQL API è l'unica via, e
+`SUM(_sample_interval)` sostituisce `count()` in ogni conteggio — se un giorno scattasse il
+campionamento, contare le righe darebbe numeri più bassi del vero senza dirlo.
+
+A mano, la stessa cosa:
 
 ```bash
 curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/analytics_engine/sql" -H "Authorization: Bearer $(cat ~/.cf-analytics-token)" --data "SELECT blob1 AS evento, count() AS n FROM tangentopoly WHERE timestamp > now() - INTERVAL '7' DAY GROUP BY evento"

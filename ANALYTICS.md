@@ -76,14 +76,10 @@ curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/analytics_engine
 ### L'imbuto, in una query
 
 ```sql
-SELECT
-  countIf(blob1 = 'stanza')                          AS stanze_aperte,
-  uniqExactIf(index1, blob1 = 'ingresso')            AS stanze_con_qualcuno,
-  uniqExactIf(index1, blob1 = 'azione')              AS stanze_che_hanno_giocato,
-  uniqExactIf(index1, blob1 = 'fine')                AS partite_finite,
-  uniqExactIf(index1, blob2 = 'abbandonata')         AS partite_abbandonate
+SELECT blob1 AS evento, SUM(_sample_interval) AS n
 FROM tangentopoly
 WHERE timestamp > now() - INTERVAL '7' DAY
+GROUP BY evento
 ```
 
 ### Quanto durano le partite
@@ -147,6 +143,14 @@ i grafici; non per dire "ho fatto esattamente 12 partite".
 **D1** è il registro: una riga per partita, una per partecipante, esatte e incrociabili. È
 la fonte per i conteggi, le durate, chi ha giocato e quante volte.
 
+### Il dialetto è un sottoinsieme, non ClickHouse intero
+
+Provato contro la SQL API: `count(DISTINCT x)` funziona, `uniq`, `uniqExact` e `countDistinct`
+no. Le combinator condizionali (`countIf`, `sumIf`) nemmeno: si filtra con `WHERE` e si
+raggruppa. `toStartOfHour` e `toStartOfMinute` vanno, `toStartOfInterval(..., INTERVAL 15
+MINUTE)` viene rifiutato dal parser. In dubbio, si prova con `SELECT 'ciao' AS m` come
+sonda e si aggiunge un pezzo per volta.
+
 ## La dashboard: Grafana Cloud su Analytics Engine
 
 Grafana non ha un datasource per Analytics Engine, ma la SQL API parla ClickHouse: si usa il
@@ -184,7 +188,7 @@ FROM tangentopoly WHERE $timeFilter GROUP BY evento
 
 ```sql
 -- persone distinte per paese
-SELECT blob5 AS paese, uniqExact(blob4) AS persone
+SELECT blob5 AS paese, count(DISTINCT blob4) AS persone
 FROM tangentopoly WHERE $timeFilter AND blob1 = 'ingresso' GROUP BY paese ORDER BY persone DESC
 ```
 

@@ -37,7 +37,7 @@ export const IT = {
   "modo.muto": "Muto",
   "modo.aria": "Avvisi: {modo}. Tocca per cambiare",
   "settings.invite": "Invita giocatori",
-  "settings.inviteAlone": "Sei solo — il giro non si fa da soli, condividi il link. Non c'è un tetto di posti.",
+  "settings.inviteAlone": "Sei solo — il giro non si fa da soli, condividi il link.",
   "settings.inviteDesc": "Condividi il link della stanza",
   "settings.waiting": "In attesa di giocatori…",
   "settings.start": "Inizia partita",

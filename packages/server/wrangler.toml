@@ -10,3 +10,8 @@ class_name = "RoomDO"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["RoomDO"]
+
+# I log erano spenti: il loop di una stanza che si giocava da sola è girato un mese senza
+# lasciare traccia. 200k eventi al giorno sono gratis, la retention è di 3 giorni.
+[observability]
+enabled = true

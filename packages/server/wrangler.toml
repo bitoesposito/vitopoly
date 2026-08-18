@@ -1,4 +1,7 @@
-name = "tangentopoly"
+# Il nome è quello dello script che serve server.tangentopoly.it dal 4 luglio: un Durable
+# Object namespace non si sposta fra script, e lì dentro ci sono le stanze vive. Rinominare
+# il worker al posto del file avrebbe abbandonato le partite in corso.
+name = "tangentopoly-server"
 main = "src/index.ts"
 compatibility_date = "2025-06-01"
 

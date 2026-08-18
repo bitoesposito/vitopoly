@@ -69,6 +69,19 @@ export class RoomDO extends DurableObject<Env> {
     return { motivo: "al completo", testo: `il tavolo è al completo (${TOKENS} giocatori): puoi solo guardare` };
   }
 
+  // Da dove e con cosa si gioca, senza chiedere niente a nessuno: l'intestazione del paese
+  // la mette Cloudflare, il resto è l'User-Agent. È una stima grossolana di proposito:
+  // serve a sapere se il gioco vive sui telefoni, non a profilare.
+  private static provenienza(req: Request): { paese: string; dispositivo: string } {
+    const ua = req.headers.get("user-agent") ?? "";
+    const dispositivo = /iphone|ipod|android.*mobile|windows phone/i.test(ua)
+      ? "telefono"
+      : /ipad|tablet|android/i.test(ua)
+        ? "tablet"
+        : "desktop";
+    return { paese: req.headers.get("cf-ipcountry") ?? "", dispositivo };
+  }
+
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const codice = url.pathname.split("/")[3] ?? ""; // /api/room/<codice>/ws
@@ -100,7 +113,13 @@ export class RoomDO extends DurableObject<Env> {
     if (seat && joined) {
       this.send(server, { type: "seat", token: seat });
       setConnected(this.game, pid, true);
-      misura(this.env, this.codice, { evento: "ingresso", dettaglio: "posto", giocatori: this.game.players.length });
+      misura(this.env, this.codice, {
+        evento: "ingresso",
+        dettaglio: "posto",
+        giocatori: this.game.players.length,
+        pid,
+        ...RoomDO.provenienza(req),
+      });
       await this.persistAndBroadcast();
     } else {
       // spettatore: vede stato e chat. Dirgli PERCHÉ, o il banner "stai guardando" è un muro.
@@ -111,6 +130,8 @@ export class RoomDO extends DurableObject<Env> {
         dettaglio: "spettatore",
         come: perche.motivo,
         giocatori: this.game.players.length,
+        pid,
+        ...RoomDO.provenienza(req),
       });
       this.send(server, { type: "state", state: redact(this.game), events: [] });
     }

@@ -23,7 +23,9 @@ enabled = true
 # 100k punti al giorno, 3 mesi di retention. Lo schema sta in ANALYTICS.md.
 [[analytics_engine_datasets]]
 binding = "METRICHE"
-dataset = "tangentopoly"
+# "gioco" e non "tangentopoly": Analytics Engine non si cancella, quindi ripartire da zero
+# vuol dire un dataset nuovo. Il vecchio contiene solo dati di prova e scade in 3 mesi.
+dataset = "gioco"
 
 # Il registro delle partite: una riga per partita e una per partecipante. Analytics Engine
 # è approssimativo a bassi volumi (qualche punto perso, minuti di ingestione); qui i numeri

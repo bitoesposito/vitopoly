@@ -55,7 +55,7 @@ const conta = (righe) => Object.fromEntries(righe.map((r) => [Object.values(r)[0
 const riga = (etichetta, valore, nota = "") => console.log(`  ${etichetta.padEnd(26)}${String(valore).padStart(7)}  ${nota}`);
 const perc = (a, b) => (b ? `${Math.round((a / b) * 100)}%` : "—");
 
-const eventi = conta(await sql(`SELECT blob1 AS k, ${N} FROM tangentopoly WHERE ${DA} GROUP BY k`));
+const eventi = conta(await sql(`SELECT blob1 AS k, ${N} FROM gioco WHERE ${DA} GROUP BY k`));
 if (!Object.keys(eventi).length) {
   console.log(`Nessun punto negli ultimi ${GIORNI} giorni. Il dataset nasce alla prima scrittura: serve una partita in produzione.`);
   process.exit(0);
@@ -68,7 +68,7 @@ riga("stanze con qualcuno", eventi.ingresso ?? 0, perc(eventi.ingresso ?? 0, sta
 riga("azioni giocate", eventi.azione ?? 0);
 riga("partite finite", eventi.fine ?? 0, perc(eventi.fine ?? 0, stanze) + " delle stanze aperte");
 
-const morte = conta(await sql(`SELECT blob2 AS k, ${N} FROM tangentopoly WHERE blob1 = 'sfratto' AND ${DA} GROUP BY k`));
+const morte = conta(await sql(`SELECT blob2 AS k, ${N} FROM gioco WHERE blob1 = 'sfratto' AND ${DA} GROUP BY k`));
 if (Object.keys(morte).length) {
   console.log("\n■ COM'È FINITA LA STANZA");
   const tot = Object.values(morte).reduce((a, b) => a + b, 0);
@@ -76,7 +76,7 @@ if (Object.keys(morte).length) {
 }
 
 const azioni = await sql(
-  `SELECT blob2 AS azione, blob3 AS come, ${N} FROM tangentopoly WHERE blob1 = 'azione' AND ${DA} GROUP BY azione, come ORDER BY n DESC`,
+  `SELECT blob2 AS azione, blob3 AS come, ${N} FROM gioco WHERE blob1 = 'azione' AND ${DA} GROUP BY azione, come ORDER BY n DESC`,
 );
 if (azioni.length) {
   console.log("\n■ COSA FA LA GENTE (e cosa fa il server al posto suo)");
@@ -89,7 +89,7 @@ if (azioni.length) {
   console.log(`\n  automatiche sul totale: ${perc(ta, ta + tm)} — se sale, la gente abbandona a metà o il timer è corto`);
 }
 
-const spettatori = conta(await sql(`SELECT blob3 AS k, ${N} FROM tangentopoly WHERE blob1 = 'ingresso' AND blob2 = 'spettatore' AND ${DA} GROUP BY k`));
+const spettatori = conta(await sql(`SELECT blob3 AS k, ${N} FROM gioco WHERE blob1 = 'ingresso' AND blob2 = 'spettatore' AND ${DA} GROUP BY k`));
 if (Object.keys(spettatori).length) {
   console.log("\n■ CHI È RESTATO A GUARDARE, E PERCHÉ");
   for (const [k, v] of Object.entries(spettatori).sort((a, b) => b[1] - a[1])) riga(k || "(senza motivo)", v);
@@ -97,7 +97,7 @@ if (Object.keys(spettatori).length) {
 
 // La durata non è un campo: è la distanza fra il primo e l'ultimo punto della stanza.
 const vite = await sql(
-  `SELECT index1 AS stanza, MIN(timestamp) AS inizio, MAX(timestamp) AS fine, ${N} FROM tangentopoly WHERE ${DA} GROUP BY stanza ORDER BY n DESC LIMIT 8`,
+  `SELECT index1 AS stanza, MIN(timestamp) AS inizio, MAX(timestamp) AS fine, ${N} FROM gioco WHERE ${DA} GROUP BY stanza ORDER BY n DESC LIMIT 8`,
 );
 if (vite.length) {
   console.log("\n■ LE STANZE PIÙ VIVE");

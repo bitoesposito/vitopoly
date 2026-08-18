@@ -197,11 +197,14 @@ export class RoomDO extends DurableObject<Env> {
       r = auctionTimeout(this.game); // timer expiry settles to the leader (or nobody)
     } else {
       const t = timeoutAction(this.game);
-      if (!t) return;
+      if (!t) return void (await this.arma());
       r = apply(this.game, t.pid, t.action);
       if (!r.ok && activeNode(this.game).t === "debt") r = apply(this.game, t.pid, { type: "bankrupt" }); // can't pay -> out
     }
-    if (!r.ok) return; // no auto-action possible; leave the room to humans (debug endpoint shows why)
+    // Nessuna azione automatica possibile: la stanza resta agli umani, ma CON un allarme.
+    // Uscire di qui senza riarmare la lascia senza nessun timer: né turno né sfratto, e
+    // nessuno la raccoglie più — è così che si accumulano stanze immortali.
+    if (!r.ok) return void (await this.arma());
     r.events.push({ e: "info", text: "⏰ tempo scaduto — azione automatica" });
     await this.commit(r);
   }

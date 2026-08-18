@@ -21,7 +21,7 @@ export function entra(
   codice: string,
   p: { pid: string; nome: string; inchiostro: number | null; paese: string; dispositivo: string; spettatore: boolean }
 ): Promise<void> {
-  if (!env.PARTITE) return Promise.resolve();
+  if (!env.PARTITE || !codice) return Promise.resolve();
   return prova(
     "ingresso",
     env.PARTITE.prepare(
@@ -41,7 +41,7 @@ export function chiude(
   g: GameState,
   d: { aperta: number; iniziata: number | null; esito: string; umane: number; auto: number }
 ): Promise<void> {
-  if (!env.PARTITE) return Promise.resolve();
+  if (!env.PARTITE || !codice) return Promise.resolve();
   const ora = Date.now();
   const vinto = g.players.find((p) => p.id === g.winner);
   const durata = d.iniziata ? Math.round((ora - d.iniziata) / 1000) : null;

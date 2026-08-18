@@ -33,6 +33,9 @@ export type Punto =
  *  dashboard, per i log sì, e i campi JSON sono indicizzati — si filtra per `metrica` senza
  *  passare da un token. Sono due finestre sulla stessa cosa: tre giorni contro tre mesi. */
 export function misura(env: Env, codice: string, p: Punto): void {
+  // Le stanze nate prima che il codice si salvasse non ne hanno uno: quando l'allarme le
+  // raccoglie non c'è niente da attribuire, e una riga senza nome sporca solo i conteggi.
+  if (!codice) return;
   const { evento, ...resto } = p;
   console.log(JSON.stringify({ metrica: evento, stanza: codice, ...resto }));
   env.METRICHE?.writeDataPoint({

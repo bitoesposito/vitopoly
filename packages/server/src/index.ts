@@ -1,5 +1,6 @@
 import { RoomDO } from "./room";
 import { misura } from "./metriche";
+import { serviVista } from "./viste";
 
 export { RoomDO };
 
@@ -7,6 +8,7 @@ export interface Env {
   ROOM: DurableObjectNamespace;
   METRICHE?: AnalyticsEngineDataset;
   PARTITE?: D1Database;
+  REGISTRO_CHIAVE?: string; // secret: senza, la rotta del registro resta chiusa
 }
 
 // Aperto di proposito: non c'è cookie né credenziale da rubare con una richiesta
@@ -41,6 +43,9 @@ export default {
       misura(env, code, { evento: "stanza" });
       return Response.json({ code }, { headers: CORS });
     }
+
+    // Il registro, per Grafana: viste con un nome, protette da una chiave in un'intestazione.
+    if (url.pathname === "/api/registro") return serviVista(env, url, req.headers.get("x-chiave"));
 
     // WebSocket into a room (+ debug state dump).
     const m = url.pathname.match(/^\/api\/room\/([a-z0-9]+)\/(ws|debug)$/i);

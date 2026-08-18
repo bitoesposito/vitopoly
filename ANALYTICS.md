@@ -255,7 +255,17 @@ FROM partite;
 
 ## Le visite: Cloudflare Web Analytics
 
-Visite, pagine viste, provenienza, browser e Core Web Vitals riguardano chi **apre** l'app, e
-il server non li vede: quelli li dà Cloudflare Web Analytics, gratis e senza cookie, con una
-dashboard sua. Va abilitato dal dashboard sul dominio del client e aggiunto uno snippet in
-`index.html`. È l'unico pezzo che il repo non copre ancora.
+Visite, pagine viste, provenienza, browser e Core Web Vitals riguardano chi **apre** l'app: il
+server vede solo chi entra in una stanza. Li dà Cloudflare Web Analytics, gratis e senza
+cookie. Il beacon è già in `index.html` e si accende da solo quando trova il token:
+
+1. Dashboard Cloudflare → **Analytics & Logs → Web Analytics → Add a site**, host
+   `tangentopoly.it`, senza auto-install (il beacon ce l'abbiamo già).
+2. Copia il token dallo snippet e mettilo in `.env.production`:
+   `VITE_RUM_TOKEN=…`
+3. Ripubblica il client. Da lì i dati stanno anche nel GraphQL
+   (`rumPageloadEventsAdaptiveGroups`), quindi finiscono nella stessa dashboard Grafana
+   accanto a tutto il resto.
+
+L'API per creare il sito vuole un permesso di scrittura sugli analytics che il token di
+lettura non ha: quel primo passo è da dashboard.

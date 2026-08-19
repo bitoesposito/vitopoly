@@ -36,8 +36,12 @@ export function entra(
     env.PARTITE.prepare(
       `INSERT INTO partecipanti (codice, pid, nome, inchiostro, paese, dispositivo, ua, ip, entrato_il, spettatore)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (codice, pid) DO UPDATE SET nome = excluded.nome, inchiostro = excluded.inchiostro,
-                                              ua = excluded.ua, ip = excluded.ip`
+       -- Un ingresso da spettatore NON riscrive nome e inchiostro di chi ha un posto: stesso
+       -- pid in un'altra scheda è la stessa persona che guarda, non un cambio di identità.
+       ON CONFLICT (codice, pid) DO UPDATE SET
+         nome = CASE WHEN excluded.spettatore = 0 THEN excluded.nome ELSE partecipanti.nome END,
+         inchiostro = COALESCE(excluded.inchiostro, partecipanti.inchiostro),
+         ua = excluded.ua, ip = excluded.ip`
     )
       .bind(codice, p.pid, p.nome, p.inchiostro, p.paese, p.dispositivo, p.ua, p.ip, Date.now(), p.spettatore ? 1 : 0)
       .run()

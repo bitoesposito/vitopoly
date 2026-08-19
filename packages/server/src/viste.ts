@@ -22,7 +22,9 @@ const VISTE: Record<string, string> = {
                  ROUND(MAX(durata_s) / 60.0, 1) AS piu_lunga_min
           FROM partite WHERE chiusa_il BETWEEN ?1 AND ?2 GROUP BY esito ORDER BY partite DESC`,
 
-  giocatori: `SELECT MAX(pa.nome) AS nome, pa.pid, COUNT(DISTINCT pa.codice) AS partite,
+  giocatori: `SELECT (SELECT nome FROM partecipanti u WHERE u.pid = pa.pid ORDER BY u.entrato_il DESC LIMIT 1) AS nome,
+                     COUNT(DISTINCT pa.nome) AS nomi_usati, pa.pid,
+                     COUNT(DISTINCT pa.codice) AS partite,
                      SUM(COALESCE(pa.bancarotta, 0)) AS bancarotte,
                      MIN(pa.entrato_il) AS prima_volta, MAX(pa.entrato_il) AS ultima_volta,
                      (SELECT COUNT(*) FROM partite p WHERE p.vincitore_pid = pa.pid) AS vittorie
@@ -48,13 +50,14 @@ const VISTE: Record<string, string> = {
            WHERE p.aperta_il BETWEEN ?1 AND ?2
            GROUP BY p.codice ORDER BY p.aperta_il DESC LIMIT 200`,
 
+  // Una persona è un pid, non un nome: il nome lo si sceglie a ogni ingresso, il pid resta
+  // nel localStorage. Ogni conteggio di persone qui dentro passa da DISTINCT pid.
   sintesi: `SELECT COUNT(*) AS partite,
-                   SUM(CASE WHEN esito = 'finita' THEN 1 ELSE 0 END) AS finite,
-                   ROUND(SUM(COALESCE(durata_s, 0)) / 60.0) AS minuti_giocati,
-                   ROUND(AVG(durata_s) / 60.0, 1) AS minuti_medi,
-                   ROUND(AVG(giocatori), 1) AS giocatori_medi,
-                   (SELECT COUNT(DISTINCT pid) FROM partecipanti WHERE spettatore = 0 AND entrato_il BETWEEN ?1 AND ?2) AS persone,
-                   SUM(azioni_umane) AS azioni, SUM(azioni_auto) AS azioni_auto
+                   ROUND(100.0 * SUM(CASE WHEN esito = 'finita' THEN 1 ELSE 0 END) / COUNT(*), 1) AS completamento,
+                   ROUND(AVG(CASE WHEN esito = 'finita' THEN durata_s END) / 60.0, 1) AS minuti_finite,
+                   ROUND(AVG(giocatori), 1) AS persone_per_partita,
+                   (SELECT COUNT(DISTINCT pid) FROM partecipanti
+                    WHERE spettatore = 0 AND entrato_il BETWEEN ?1 AND ?2) AS persone
             FROM partite WHERE chiusa_il BETWEEN ?1 AND ?2`,
 
   // quante persone tornano: la domanda di lungo periodo, in quattro secchi
@@ -66,12 +69,15 @@ const VISTE: Record<string, string> = {
                      COUNT(*) AS persone
               FROM conteggio GROUP BY quante ORDER BY MIN(n)`,
 
-  ritorno: `WITH prime AS (SELECT pid, MIN(entrato_il) AS p FROM partecipanti GROUP BY pid)
+  ritorno: `WITH prime AS (SELECT pid, MIN(entrato_il) AS p FROM partecipanti WHERE spettatore = 0 GROUP BY pid)
             SELECT date(pa.entrato_il / 1000, 'unixepoch') AS giorno,
-                   COUNT(DISTINCT CASE WHEN pa.entrato_il = pr.p THEN pa.pid END) AS nuovi,
-                   COUNT(DISTINCT CASE WHEN pa.entrato_il > pr.p THEN pa.pid END) AS di_ritorno
+                   COUNT(DISTINCT CASE WHEN date(pa.entrato_il / 1000, 'unixepoch') = date(pr.p / 1000, 'unixepoch')
+                                       THEN pa.pid END) AS nuovi,
+                   COUNT(DISTINCT CASE WHEN date(pa.entrato_il / 1000, 'unixepoch') > date(pr.p / 1000, 'unixepoch')
+                                       THEN pa.pid END) AS di_ritorno
             FROM partecipanti pa JOIN prime pr ON pr.pid = pa.pid
-            WHERE pa.entrato_il BETWEEN ?1 AND ?2 GROUP BY giorno ORDER BY giorno`,
+            WHERE pa.spettatore = 0 AND pa.entrato_il BETWEEN ?1 AND ?2
+            GROUP BY giorno ORDER BY giorno`,
 };
 
 export async function serviVista(env: Env, url: URL, chiave: string | null): Promise<Response> {

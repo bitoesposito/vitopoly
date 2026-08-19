@@ -24,8 +24,12 @@ function seed(): number {
 // Quanto vive una stanza ferma. Un namespace di Durable Object non si può elencare, quindi
 // uno spazzino non è scrivibile e ogni stanza deve cancellarsi da sé: l'invariante è che
 // ogni transizione lasci esattamente un allarme armato (vedi arma()).
-const SPENTA_MS = 24 * 60 * 60 * 1000; // in corso o in attesa: "riprendiamo domani" deve funzionare
-const FINITA_MS = 60 * 60 * 1000; // finita: il tempo di leggere la classifica e chiedere la rivincita
+// Una stanza è una sessione, non un salvataggio: se nessuno è collegato e nessuno rientra,
+// si chiude. Quando invece qualcuno c'è ma non si gioca — lobby in attesa, classifica finale
+// — il conto alla rovescia è solo la rete di sicurezza per una socket morta in silenzio, e
+// va lungo: a cinque minuti una lobby piena si sveglierebbe 288 volte al giorno.
+const VUOTA_MS = 5 * 60 * 1000;
+const FERMA_MS = 60 * 60 * 1000;
 
 // One room = one Durable Object. State is a single JSON blob under key "game".
 export class RoomDO extends DurableObject<Env> {
@@ -325,7 +329,7 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
     this.game.deadline = undefined;
-    await this.ctx.storage.setAlarm(Date.now() + (this.game.status === "ended" ? FINITA_MS : SPENTA_MS));
+    await this.ctx.storage.setAlarm(Date.now() + (this.hasLivePlayers() ? FERMA_MS : VUOTA_MS));
   }
 
   private async persistAndBroadcast(events: GameEvent[] = []): Promise<void> {

@@ -67,9 +67,11 @@ Currency is € throughout.
   touch the DO, so a code that nobody uses costs nothing. **A DO namespace cannot be enumerated**, so
   no sweeper can exist and every room must delete itself: the invariant is that each transition arms
   exactly one alarm — the turn deadline while somebody is playing, otherwise the countdown that wipes
-  it (1h once the match has ended, 24h while it is in progress or waiting, because "let's finish it
-  tomorrow" is why seat secrets exist). Codes are 6 characters over a 32-letter alphabet and are never
-  reserved: uniqueness is probabilistic by design.
+  it. **A room is a session, not a save**: with nobody connected it closes after 5 minutes, so an
+  abandoned match is gone rather than waiting to be resumed. While somebody is still connected but no
+  match is running — a waiting lobby, a final standings screen — the countdown is 1h, and it exists
+  only as the safety net for a socket that died without a close event. Codes are 6 characters over a
+  32-letter alphabet and are never reserved: uniqueness is probabilistic by design.
 - **Leaving is an action, not a closed tab.** `leave` frees the seat in the waiting room and _is_ the
   voluntary withdrawal once the match has started (`packages/game/src/engine.ts`). It has to exist in
   the interface because the installed app has no address bar and no back button — the room code and the

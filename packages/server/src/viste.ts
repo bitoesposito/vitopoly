@@ -22,7 +22,8 @@ const VISTE: Record<string, string> = {
                  ROUND(MAX(durata_s) / 60.0, 1) AS piu_lunga_min
           FROM partite WHERE chiusa_il BETWEEN ?1 AND ?2 GROUP BY esito ORDER BY partite DESC`,
 
-  giocatori: `SELECT (SELECT nome FROM partecipanti u WHERE u.pid = pa.pid ORDER BY u.entrato_il DESC LIMIT 1) AS nome,
+  giocatori: `SELECT '[' || substr(pa.pid, -4) || ']' ||
+                     (SELECT nome FROM partecipanti u WHERE u.pid = pa.pid ORDER BY u.entrato_il DESC LIMIT 1) AS nome,
                      COUNT(DISTINCT pa.nome) AS nomi_usati, pa.pid,
                      COUNT(DISTINCT pa.codice) AS partite,
                      SUM(COALESCE(pa.bancarotta, 0)) AS bancarotte,
@@ -37,14 +38,16 @@ const VISTE: Record<string, string> = {
 
   // chi è dentro adesso: i partecipanti esistono dall'ingresso, la riga della partita solo
   // dalla chiusura — una stanza senza riga è una stanza ancora viva (o morta da meno di 5')
-  aperte: `SELECT pa.codice, COUNT(*) AS quanti, group_concat(pa.nome, ', ') AS giocatori,
+  aperte: `SELECT pa.codice, COUNT(*) AS quanti,
+                  group_concat('[' || substr(pa.pid, -4) || ']' || pa.nome, ', ') AS giocatori,
                   MIN(pa.entrato_il) AS dal, (unixepoch() * 1000 - MIN(pa.entrato_il)) / 1000 AS da_quanto_s
            FROM partecipanti pa LEFT JOIN partite p ON p.codice = pa.codice
            WHERE p.codice IS NULL AND pa.spettatore = 0
            GROUP BY pa.codice ORDER BY dal DESC`,
 
   tavoli: `SELECT p.codice, p.aperta_il, p.esito, p.durata_s, p.giocatori,
-                  group_concat(CASE WHEN pa.spettatore = 0 THEN pa.nome END, ', ') AS chi,
+                  group_concat(CASE WHEN pa.spettatore = 0
+                                    THEN '[' || substr(pa.pid, -4) || ']' || pa.nome END, ', ') AS chi,
                   p.vincitore
            FROM partite p LEFT JOIN partecipanti pa ON pa.codice = p.codice
            WHERE p.aperta_il BETWEEN ?1 AND ?2
@@ -80,6 +83,26 @@ const VISTE: Record<string, string> = {
             GROUP BY giorno ORDER BY giorno`,
 };
 
+// Le date all'italiana le fa Intl, non Grafana: là il formato vive nella config del server,
+// che su Cloud non si tocca. Ogni numero che è un millisecondo d'epoca si porta dietro un
+// gemello leggibile — `aperta_il` e `aperta_il_it` — così le tabelle mostrano il testo e i
+// grafici continuano a usare il numero.
+const ORA_IT = new Intl.DateTimeFormat("it-IT", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  timeZone: "Europe/Rome",
+});
+const leggibile = (r: Record<string, unknown>) => {
+  for (const [k, v] of Object.entries(r)) {
+    if (typeof v === "number" && v > 1e12) r[`${k}_it`] = ORA_IT.format(v).replace(",", "");
+  }
+  return r;
+};
+
 export async function serviVista(env: Env, url: URL, chiave: string | null): Promise<Response> {
   if (!env.REGISTRO_CHIAVE || chiave !== env.REGISTRO_CHIAVE) return new Response("chiave mancante o sbagliata", { status: 403 });
   if (!env.PARTITE) return Response.json([]);
@@ -92,5 +115,5 @@ export async function serviVista(env: Env, url: URL, chiave: string | null): Pro
   // aspetta è un errore, non un no-op
   const st = env.PARTITE.prepare(sql);
   const { results } = await (sql.includes("?1") ? st.bind(da, a) : st).all();
-  return Response.json(results);
+  return Response.json((results as Record<string, unknown>[]).map(leggibile));
 }

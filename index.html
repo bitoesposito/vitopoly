@@ -39,20 +39,6 @@
       id="barra-azione"
       class="fixed inset-x-0 bottom-0 z-30 flex min-h-[calc(4.25rem_+_env(safe-area-inset-bottom))] flex-row-reverse items-center justify-center gap-2 border-t border-border bg-card/95 p-2 pr-15 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-sm empty:hidden md:hidden"
     ></div>
-    <script>
-      // Web Analytics di Cloudflare: visite, browser e dispositivi di chi APRE l'app, che il
-      // server non vede (lui conosce solo chi entra in una stanza). Senza cookie e senza dati
-      // personali. Il token sta in .env.production come VITE_RUM_TOKEN: se manca, in sviluppo
-      // la variabile resta letterale e il beacon non si carica affatto.
-      const rum = "%VITE_RUM_TOKEN%";
-      if (rum && !rum.startsWith("%")) {
-        const b = document.createElement("script");
-        b.defer = true;
-        b.src = "https://static.cloudflareinsights.com/beacon.min.js";
-        b.setAttribute("data-cf-beacon", JSON.stringify({ token: rum }));
-        document.head.appendChild(b);
-      }
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

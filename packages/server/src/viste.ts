@@ -3,7 +3,7 @@ import type { Env } from "./index";
 // Il registro delle partite, servito in JSON a chi ha la chiave: è così che Grafana ci
 // arriva, perché D1 non è un suo datasource.
 //
-// Viste con un nome, non SQL libero: da fuori si scegle QUALE domanda fare, mai come. Una
+// Viste con un nome, non SQL libero: da fuori si sceglie QUALE domanda fare, mai come. Una
 // rotta che accetta SQL è una rotta che prima o poi lo esegue per qualcun altro.
 const VISTE: Record<string, string> = {
   partite: `SELECT codice, esito, giocatori, falliti, vincitore, vincitore_cassa, durata_s,

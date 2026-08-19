@@ -267,8 +267,8 @@ export class RoomDO extends DurableObject<Env> {
       if (!r.ok && activeNode(this.game).t === "debt") r = apply(this.game, t.pid, { type: "bankrupt" }); // can't pay -> out
     }
     // Nessuna azione automatica possibile: la stanza resta agli umani, ma CON un allarme.
-    // Uscire di qui senza riarmare la lascia senza nessun timer: né turno né sfratto, e
-    // nessuno la raccoglie più — è così che si accumulano stanze immortali.
+    // Uscire senza riarmare la lascerebbe senza timer, né turno né sfratto: nessuno la
+    // raccoglierebbe più.
     if (!r.ok) return void (await this.arma());
     misura(this.env, this.codice, { evento: "azione", dettaglio: quale, come: "timeout", giocatori: this.game.players.length });
     this.vita.auto++;
@@ -303,9 +303,9 @@ export class RoomDO extends DurableObject<Env> {
 
   // C'è ancora qualcuno che gioca davvero? Il timer del turno esiste per non far aspettare
   // gli altri: a stanza vuota non ha nessuno da sbloccare, e giocherebbe da sola.
-  // Le socket aperte, non `connected`: quel flag racconta la UI e resta vero se una socket
-  // muore senza che il close arrivi, e allora la stanza si crede abitata e riarma il turno
-  // per sempre — un minuto per volta, per settimane.
+  // Le socket aperte, non `connected`: quel flag racconta la UI e può restare vero se una
+  // socket muore senza che il close arrivi, e una stanza che si crede abitata riarma il
+  // turno all'infinito, giocandosi addosso.
   private hasLivePlayers(): boolean {
     const attivi = new Set(
       this.ctx

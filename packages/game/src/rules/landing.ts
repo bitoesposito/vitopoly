@@ -5,7 +5,7 @@ import { rentFor } from "./rent";
 // Cosa VUOLE che succeda una casella. Funzione pura: descrive, non tocca mai
 // phase/stack né i giocatori. Ad agire è core/movement.ts.
 
-export type Outcome =
+type Outcome =
   | { t: "none" }
   | { t: "offerBuy"; tile: number }
   | { t: "charge"; amount: number; to: string; why: string } // to: PlayerId | "bank"

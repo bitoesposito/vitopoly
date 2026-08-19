@@ -19,7 +19,7 @@ let popupSeq = 0;
 // quindi l'ordine è quello d'arrivo: un contatore che non torna indietro nemmeno quando la
 // lista si accorcia. La cronologia caricata all'ingresso è l'unico punto approssimato —
 // prima il registro, poi la chat.
-export type FeedInput = { ev: GameEvent } | { msg: ChatMsg };
+type FeedInput = { ev: GameEvent } | { msg: ChatMsg };
 export type FeedItem = FeedInput & { seq: number };
 let feedSeq = 0;
 const stamp = (i: FeedInput): FeedItem => ({ ...i, seq: ++feedSeq });

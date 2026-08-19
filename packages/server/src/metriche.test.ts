@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { misura } from "./metriche";
 import type { Env } from "./index";
 
-// Le query in ANALYTICS.md leggono per posizione: se qualcuno riordina i campi, i grafici
+// Le query della dashboard leggono per posizione: se qualcuno riordina i campi, i grafici
 // mentono senza che niente si rompa. Questo test è il cancello di quel contratto.
 describe("schema dei punti", () => {
   const scritti: { indexes: string[]; blobs: string[]; doubles: number[] }[] = [];

@@ -8,7 +8,7 @@ import { alive, byId, cur, nextPlayer } from "./players";
 // giro senza lasciare riferimenti pendenti in stack, scambi e voti.
 
 /** Gli edifici si liquidano SEMPRE alla banca a metà prezzo. Ritorna le caselle del patrimonio. */
-export function liquidateBuildings(s: GameState, pid: PlayerId, ev: GameEvent[]): TileId[] {
+function liquidateBuildings(s: GameState, pid: PlayerId, ev: GameEvent[]): TileId[] {
   const estate = Object.keys(s.props)
     .map(Number)
     .filter((t) => s.props[t]!.owner === pid);
@@ -57,7 +57,7 @@ function finish(s: GameState, pid: PlayerId, estate: TileId[], ev: GameEvent[]):
 }
 
 /** L'unico imbuto: segna il fallimento, ripulisce ogni frame/scambio/voto, passa il turno. */
-export function eliminate(s: GameState, pid: PlayerId, ev: GameEvent[]): void {
+function eliminate(s: GameState, pid: PlayerId, ev: GameEvent[]): void {
   const p = byId(s, pid);
   p.bankrupt = true;
   ev.push({ e: "bankrupt", pid });

@@ -5,7 +5,7 @@
 const CHIAVE = "tangentopoly:modo";
 
 export const MODI = ["suono", "muto"] as const;
-export type Modo = (typeof MODI)[number];
+type Modo = (typeof MODI)[number];
 
 export function modo(): Modo {
   const m = localStorage.getItem(CHIAVE) as Modo | null;

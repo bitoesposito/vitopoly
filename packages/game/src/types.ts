@@ -15,7 +15,7 @@ export interface Player {
   connected: boolean;
 }
 
-export interface OwnedProp {
+interface OwnedProp {
   owner: PlayerId;
   mortgaged: boolean;
   houses: 0 | 1 | 2 | 3 | 4 | 5; // 5 = hotel
@@ -24,7 +24,7 @@ export interface OwnedProp {
 // ---- The statechart, reified as data --------------------------------
 
 // Base turn phases: ONLY the points where we wait for the current player.
-export type TurnPhase =
+type TurnPhase =
   | { t: "preRoll" } // roll | payBail | useJailCard
   | { t: "buyPrompt"; tile: TileId; again: boolean } // buy | decline
   | { t: "postRoll"; again: boolean }; // build/sell/mortgage | endTurn (again = doubles)
@@ -50,7 +50,7 @@ export interface DebtFrame {
   claims: Claim[]; // QUEUE: "pay each player 50" = N claims
   deadline?: number;
 }
-export type Interrupt = AuctionFrame | DebtFrame;
+type Interrupt = AuctionFrame | DebtFrame;
 
 /** Dove la macchina aspetta: fase di turno, o l'interrupt che la sovrasta. */
 export type GameNode = TurnPhase | Interrupt;

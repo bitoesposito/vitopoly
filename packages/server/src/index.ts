@@ -44,16 +44,6 @@ export default {
       return Response.json({ code }, { headers: CORS });
     }
 
-    // Manutenzione: riarma l'allarme di una stanza raggiunta per id. Serve alle stanze nate
-    // prima dell'invariante, che non hanno nessun timer e che nessuno sveglierà mai — un
-    // namespace di Durable Object non si elenca da dentro, gli id arrivano dalla REST.
-    if (url.pathname === "/api/riarma") {
-      if (req.headers.get("x-chiave") !== env.REGISTRO_CHIAVE) return new Response("no", { status: 403 });
-      const id = url.searchParams.get("id");
-      if (!id) return new Response("manca l'id", { status: 400 });
-      return env.ROOM.get(env.ROOM.idFromString(id)).fetch(new Request("https://stanza/riarma"));
-    }
-
     // Il registro, per Grafana: viste con un nome, protette da una chiave in un'intestazione.
     if (url.pathname === "/api/registro") return serviVista(env, url, req.headers.get("x-chiave"));
 

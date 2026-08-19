@@ -102,6 +102,13 @@ export class RoomDO extends DurableObject<Env> {
     const pid = url.searchParams.get("pid");
     const token = url.searchParams.get("token");
 
+    // Riarma e basta: se la stanza è vuota il conto alla rovescia la raccoglie da sé fra
+    // pochi minuti, se è viva questo rimette l'allarme che le spetta comunque.
+    if (url.pathname === "/riarma") {
+      await this.arma();
+      return Response.json({ stato: this.game.status, socket: this.ctx.getWebSockets().length, codice: this.codice });
+    }
+
     // debug escape hatch: solo per chi ha un posto in questa stanza, e sempre da redact()
     if (url.pathname.endsWith("/debug")) {
       if (!pid || !token || this.seats[pid] !== token) return new Response("non sei di questa stanza", { status: 403 });

@@ -82,6 +82,9 @@ export async function serviVista(env: Env, url: URL, chiave: string | null): Pro
   // la finestra arriva da Grafana in ms epoch; senza, tutto
   const da = Number(url.searchParams.get("da")) || 0;
   const a = Number(url.searchParams.get("a")) || Date.now() + 86_400_000;
-  const { results } = await env.PARTITE.prepare(sql).bind(da, a).all();
+  // "aperte" guarda l'adesso e non ha segnaposti: legare parametri a una query che non li
+  // aspetta è un errore, non un no-op
+  const st = env.PARTITE.prepare(sql);
+  const { results } = await (sql.includes("?1") ? st.bind(da, a) : st).all();
   return Response.json(results);
 }

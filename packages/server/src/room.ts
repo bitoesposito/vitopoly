@@ -81,14 +81,19 @@ export class RoomDO extends DurableObject<Env> {
   // Da dove e con cosa si gioca, senza chiedere niente a nessuno: l'intestazione del paese
   // la mette Cloudflare, il resto è l'User-Agent. È una stima grossolana di proposito:
   // serve a sapere se il gioco vive sui telefoni, non a profilare.
-  private static provenienza(req: Request): { paese: string; dispositivo: string } {
+  private static provenienza(req: Request): { paese: string; dispositivo: string; ua: string; ip: string } {
     const ua = req.headers.get("user-agent") ?? "";
     const dispositivo = /iphone|ipod|android.*mobile|windows phone/i.test(ua)
       ? "telefono"
       : /ipad|tablet|android/i.test(ua)
         ? "tablet"
         : "desktop";
-    return { paese: req.headers.get("cf-ipcountry") ?? "", dispositivo };
+    return {
+      paese: req.headers.get("cf-ipcountry") ?? "",
+      dispositivo,
+      ua: ua.slice(0, 200),
+      ip: req.headers.get("cf-connecting-ip") ?? "",
+    };
   }
 
   async fetch(req: Request): Promise<Response> {

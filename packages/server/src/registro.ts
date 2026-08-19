@@ -19,17 +19,27 @@ async function prova(cosa: string, p: Promise<unknown>): Promise<void> {
 export function entra(
   env: Env,
   codice: string,
-  p: { pid: string; nome: string; inchiostro: number | null; paese: string; dispositivo: string; spettatore: boolean }
+  p: {
+    pid: string;
+    nome: string;
+    inchiostro: number | null;
+    paese: string;
+    dispositivo: string;
+    ua: string;
+    ip: string;
+    spettatore: boolean;
+  }
 ): Promise<void> {
   if (!env.PARTITE || !codice) return Promise.resolve();
   return prova(
     "ingresso",
     env.PARTITE.prepare(
-      `INSERT INTO partecipanti (codice, pid, nome, inchiostro, paese, dispositivo, entrato_il, spettatore)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (codice, pid) DO UPDATE SET nome = excluded.nome, inchiostro = excluded.inchiostro`
+      `INSERT INTO partecipanti (codice, pid, nome, inchiostro, paese, dispositivo, ua, ip, entrato_il, spettatore)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (codice, pid) DO UPDATE SET nome = excluded.nome, inchiostro = excluded.inchiostro,
+                                              ua = excluded.ua, ip = excluded.ip`
     )
-      .bind(codice, p.pid, p.nome, p.inchiostro, p.paese, p.dispositivo, Date.now(), p.spettatore ? 1 : 0)
+      .bind(codice, p.pid, p.nome, p.inchiostro, p.paese, p.dispositivo, p.ua, p.ip, Date.now(), p.spettatore ? 1 : 0)
       .run()
   );
 }

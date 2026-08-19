@@ -32,6 +32,17 @@ const VISTE: Record<string, string> = {
               FROM partecipanti pa WHERE pa.spettatore = 0 AND pa.entrato_il BETWEEN ?1 AND ?2
               GROUP BY pa.pid ORDER BY partite DESC LIMIT 200`,
 
+  // Una riga per persona: il pid la identifica, il resto dice con che cosa e da dove entra.
+  // Qui ci sono dati personali (IP, User-Agent): vivono solo in questo database.
+  persone: `SELECT '[' || substr(pa.pid, -4) || ']' ||
+                   (SELECT nome FROM partecipanti u WHERE u.pid = pa.pid ORDER BY u.entrato_il DESC LIMIT 1) AS chi,
+                   pa.dispositivo, MAX(pa.paese) AS paese,
+                   (SELECT ua FROM partecipanti u WHERE u.pid = pa.pid AND u.ua <> '' ORDER BY u.entrato_il DESC LIMIT 1) AS ua,
+                   (SELECT ip FROM partecipanti u WHERE u.pid = pa.pid AND u.ip <> '' ORDER BY u.entrato_il DESC LIMIT 1) AS ip,
+                   COUNT(*) AS ingressi, COUNT(DISTINCT pa.codice) AS partite, MAX(pa.entrato_il) AS ultima_volta
+            FROM partecipanti pa WHERE pa.entrato_il BETWEEN ?1 AND ?2
+            GROUP BY pa.pid ORDER BY ingressi DESC LIMIT 200`,
+
   dispositivi: `SELECT dispositivo, paese, COUNT(DISTINCT pid) AS persone, COUNT(*) AS ingressi
                 FROM partecipanti WHERE entrato_il BETWEEN ?1 AND ?2
                 GROUP BY dispositivo, paese ORDER BY ingressi DESC`,

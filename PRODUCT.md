@@ -77,6 +77,11 @@ Currency is € throughout.
   the interface because the installed app has no address bar and no back button — the room code and the
   way out live in the header (`src/components/Stanza.tsx`), and the home takes a room code directly.
 - Invite by link with a room code; a native share sheet is used where available (`src/lib/share.ts`).
+- **The match registry holds personal data.** `packages/server/partite.sql` records, per participant:
+  the chosen display name, the random browser `pid`, country, device class, User-Agent and
+  **IP address** — the last two on purpose, to answer "who plays, with what". It lives only in that
+  D1 database and in the private Grafana dashboard; nothing of it reaches Analytics Engine, which
+  stays free of identifiers.
 - **The rules are fixed and identical in every match.** `DEFAULT_SETTINGS`
   (`packages/game/src/setup.ts`) is the house rulebook: €1500 starting cash, auctions on decline,
   mortgages allowed, double rent on full sets, the `Malloppo` pot on Latitanza, rent still collected

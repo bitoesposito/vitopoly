@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS partecipanti (
   dispositivo TEXT,                 -- telefono | tablet | desktop
   entrato_il  INTEGER NOT NULL,
   spettatore  INTEGER DEFAULT 0,
+  ua          TEXT,                 -- User-Agent grezzo, troncato: il dispositivo per esteso
+  ip          TEXT,                 -- CF-Connecting-IP: è un dato personale, sta solo qui
   bancarotta  INTEGER,
   cassa       INTEGER,              -- contante a fine partita
   PRIMARY KEY (codice, pid)

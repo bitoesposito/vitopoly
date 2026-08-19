@@ -24,10 +24,9 @@ function seed(): number {
 // Quanto vive una stanza ferma. Un namespace di Durable Object non si può elencare, quindi
 // uno spazzino non è scrivibile e ogni stanza deve cancellarsi da sé: l'invariante è che
 // ogni transizione lasci esattamente un allarme armato (vedi arma()).
-// Una stanza è una sessione, non un salvataggio: se nessuno è collegato e nessuno rientra,
-// si chiude. Quando invece qualcuno c'è ma non si gioca — lobby in attesa, classifica finale
-// — il conto alla rovescia è solo la rete di sicurezza per una socket morta in silenzio, e
-// va lungo: a cinque minuti una lobby piena si sveglierebbe 288 volte al giorno.
+// Una stanza è una sessione, non un salvataggio. Il conto lungo vale solo dove c'è gente ma
+// non si gioca: là è la rete per una socket morta in silenzio, e a 5 minuti una lobby piena
+// si sveglierebbe 288 volte al giorno.
 const VUOTA_MS = 5 * 60 * 1000;
 const FERMA_MS = 60 * 60 * 1000;
 

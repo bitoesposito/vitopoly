@@ -1,14 +1,9 @@
 import { RoomDO } from "./room";
-import { misura } from "./metriche";
-import { serviVista } from "./viste";
 
 export { RoomDO };
 
 export interface Env {
   ROOM: DurableObjectNamespace;
-  METRICHE?: AnalyticsEngineDataset;
-  PARTITE?: D1Database;
-  REGISTRO_CHIAVE?: string; // secret: senza, la rotta del registro resta chiusa
 }
 
 // Aperto di proposito: non c'è cookie né credenziale da rubare con una richiesta
@@ -37,15 +32,8 @@ export default {
 
     // Create a room -> return a join code. The DO is created lazily on first WS connect.
     if (req.method === "POST" && url.pathname === "/api/room") {
-      const code = makeCode();
-      // Qui, e solo qui, si sa che una stanza è nata: creare il codice non tocca il
-      // Durable Object, quindi una stanza mai usata non lascia altra traccia.
-      misura(env, code, { evento: "stanza" });
-      return Response.json({ code }, { headers: CORS });
+      return Response.json({ code: makeCode() }, { headers: CORS });
     }
-
-    // Il registro, per Grafana: viste con un nome, protette da una chiave in un'intestazione.
-    if (url.pathname === "/api/registro") return serviVista(env, url, req.headers.get("x-chiave"));
 
     // WebSocket into a room (+ debug state dump).
     const m = url.pathname.match(/^\/api\/room\/([a-z0-9]+)\/(ws|debug)$/i);
